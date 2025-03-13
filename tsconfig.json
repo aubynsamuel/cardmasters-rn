@@ -11,7 +11,7 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
-    "App.tsx",
+    "App.js",
     "PlayedCardsComCardComponent.tsx"
   ]
 }
