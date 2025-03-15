@@ -3,7 +3,7 @@ import { suitSymbols } from "./GameFunctions";
 import { Card } from "./Types";
 import React from "react";
 
-const RenderCard = (card: Card | null) => {
+const RenderCard = ({ card }: { card: Card | null }) => {
   const colorStyle: TextStyle =
     card?.suit === "love" || card?.suit === "diamond"
       ? { color: "red" }

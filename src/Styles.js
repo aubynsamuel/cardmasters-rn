@@ -8,26 +8,19 @@ const getStyles = (width) => {
     },
     computerSection: {
       alignItems: "center",
-      // marginBottom: 10,
-      // backgroundColor: "red",
       width: 280,
       height: 130,
     },
     humanSection: {
       alignItems: "center",
-      // backgroundColor: "red",
       height: 130,
       width: 280,
-
-      // marginTop: 10,
     },
     gameResultSection: {
       flex: 1,
       justifyContent: "center",
       alignItems: "center",
-      // backgroundColor: "red",
-      // gap: 10,
-      bottom: width > 400 ? 30 : 0, //add in landscape
+      bottom: width > 400 ? 30 : 0,
     },
     sectionHeader: {
       fontSize: 20,
@@ -66,13 +59,10 @@ const getStyles = (width) => {
     roundText: {
       fontSize: 18,
       textAlign: "center",
-      // marginVertical: 5,
     },
     newGameButton: {
-      // marginTop: 15,
-      // marginBottom: 125,
       backgroundColor: "#007AFF",
-      // paddingVertical: 12,
+      paddingVertical: 5,
       paddingHorizontal: 25,
       borderRadius: 8,
       alignSelf: "center",
@@ -86,7 +76,7 @@ const getStyles = (width) => {
       textAlign: "center",
       marginVertical: 5,
       marginTop: 20,
-      flexDirection: width > 400 ? "row" : "column", // make row in landscape
+      flexDirection: width > 400 ? "row" : "column",
       alignItems: "flex-start",
       gap: 45,
     },

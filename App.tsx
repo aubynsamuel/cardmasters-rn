@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   Alert,
-  Dimensions,
   useWindowDimensions,
 } from "react-native";
 import {
@@ -14,18 +13,15 @@ import {
   shuffleDeck,
   suitSymbols,
 } from "./src/GameFunctions";
-import {
-  Card,
-  RoundState,
-  gameHistoryType,
-  Player,
-  GameState,
-} from "./src/Types";
+import { Card, gameHistoryType, Player, GameState, Play } from "./src/Types";
 import getStyles from "./src/Styles";
 import { StatusBar } from "expo-status-bar";
 import RenderCard from "./src/Card";
 import GameHistory from "./src/GameHistory";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+let currentCard: Card | null;
+let currentControl: Player = "computer";
 
 const Game: React.FC = () => {
   const { width } = useWindowDimensions();
@@ -38,21 +34,24 @@ const Game: React.FC = () => {
     human: [],
   });
 
-  const [currentRound, setCurrentRound] = useState<RoundState>({
-    leadCard: null,
-    plays: [],
-  });
+  const [currentPlays, setCurrentPlays] = useState<Play[]>([]);
+  const [currentLeadCard, setCurrentLeadCard] = useState<Card | null>(null);
   const [roundsPlayed, setRoundsPlayed] = useState<number>(0);
-  const [currentControl, setCurrentControl] = useState<Player>("computer");
   const [message, setMessage] = useState<string>("");
   const [gameOver, setGameOver] = useState<boolean>(false);
-  const [winner, setWinner] = useState<Player | null>(null);
   const [gameHistory, setGameHistory] = useState<gameHistoryType[]>([]);
   const [showStartButton, setShowStartButton] = useState<boolean>(false);
 
   useEffect(() => {
     startNewGame();
   }, []);
+
+  // When both players have played in a round, finish the round
+  useEffect(() => {
+    if (currentPlays.length === 2) {
+      finishRound();
+    }
+  }, [currentPlays, currentLeadCard]);
 
   const handleGameState = () => {
     if (!gameState || gameState.deck.length < 5 * 2) {
@@ -73,14 +72,13 @@ const Game: React.FC = () => {
   const startNewGame = (): void => {
     // First, reset everything
     setRoundsPlayed(0);
-    setCurrentRound({ leadCard: null, plays: [] });
+    setCurrentLeadCard(null);
+    setCurrentPlays([]);
     setMessage("Game started. Computer will play first.");
     setGameOver(false);
     setShowStartButton(true);
     setGameHistory([]);
-    setWinner(null);
-    setCurrentControl("computer");
-
+    currentControl = "computer";
     const gameState = handleGameState();
 
     setHumanHand(gameState.human);
@@ -96,17 +94,21 @@ const Game: React.FC = () => {
 
   // Reset current round
   const resetRound = (): void => {
-    setCurrentRound({ leadCard: null, plays: [] });
+    setCurrentLeadCard(null);
+    setCurrentPlays([]);
   };
 
   const playCard = (player: Player, card: Card): void => {
-    setCurrentRound((prev) => {
-      let newRound = { ...prev };
-      if (!newRound.leadCard) {
-        newRound.leadCard = card;
+    setCurrentPlays((prev) => {
+      let newPlay = [...prev];
+      newPlay = [...newPlay, { player, card }];
+      return newPlay;
+    });
+    setCurrentLeadCard((prev) => {
+      if (prev == null) {
+        prev = card;
       }
-      newRound.plays = [...newRound.plays, { player, card }];
-      return newRound;
+      return prev;
     });
     setGameHistory((prev) => [
       ...prev,
@@ -117,28 +119,21 @@ const Game: React.FC = () => {
     ]);
   };
 
-  // When both players have played in a round, finish the round
-  useEffect(() => {
-    if (currentRound.plays.length === 2) {
-      finishRound();
-    }
-  }, [currentRound]);
-
   const finishRound = (): void => {
-    const [firstPlay, secondPlay] = currentRound.plays;
+    const [firstPlay, secondPlay] = currentPlays;
     let newControl: Player, resultMessage: string;
 
-    if (!currentRound.leadCard) {
+    if (!currentLeadCard) {
       return;
     }
 
-    const leadSuit = currentRound.leadCard.suit;
+    const leadSuit = currentLeadCard.suit;
     const followerCard = secondPlay.card;
 
     // If follower followed suit and has higher card value, they win control
     if (
       followerCard.suit === leadSuit &&
-      followerCard.value > currentRound.leadCard.value
+      followerCard.value > currentLeadCard.value
     ) {
       newControl = secondPlay.player;
       resultMessage =
@@ -154,7 +149,7 @@ const Game: React.FC = () => {
           : "Computer wins the round.";
     }
 
-    setCurrentControl(newControl);
+    currentControl = newControl;
     setMessage(resultMessage);
     setGameHistory((prev) => [
       ...prev,
@@ -172,8 +167,6 @@ const Game: React.FC = () => {
       // Check if game is over
       if (newRoundsPlayed >= 5) {
         setGameOver(true);
-        // setWinner(newControl);
-        // Alert.alert(
         setMessage(
           `Game Over \n ${
             newControl === "you"
@@ -203,17 +196,15 @@ const Game: React.FC = () => {
 
     const remainingRounds = 5 - roundsPlayed;
     let cardToPlay: Card;
-
-    if (!currentRound.leadCard) {
-      // Computer is leading
+    if (currentControl === "computer") {
+      console.log("Computer is playing as a leader");
+      console.log("");
       cardToPlay = chooseCardAI(computerHand, null, remainingRounds);
     } else {
-      // Computer is following
-      cardToPlay = chooseCardAI(
-        computerHand,
-        currentRound.leadCard,
-        remainingRounds
-      );
+      console.log("Computer is playing as a follower");
+      console.log("Current lead card ", currentCard);
+      console.log("");
+      cardToPlay = chooseCardAI(computerHand, currentCard, remainingRounds);
     }
 
     setComputerHand((prev) => {
@@ -229,14 +220,14 @@ const Game: React.FC = () => {
     if (gameOver) return;
 
     // If it's not human's turn
-    if (currentControl === "computer" && !currentRound.leadCard) {
+    if (currentControl === "computer" && !currentLeadCard) {
       Alert.alert("Wait", "It's not your turn to play!");
       return;
     }
 
     // If responding, enforce following suit if you have it
-    if (currentRound.leadCard) {
-      const requiredSuit = currentRound.leadCard.suit;
+    if (currentLeadCard) {
+      const requiredSuit = currentLeadCard.suit;
       const hasRequired = humanHand.some((c) => c.suit === requiredSuit);
 
       if (hasRequired && card.suit !== requiredSuit) {
@@ -256,8 +247,9 @@ const Game: React.FC = () => {
 
     playCard("you", card);
 
-    const isLeading = !currentRound.leadCard;
+    const isLeading = !currentLeadCard;
     if (isLeading) {
+      currentCard = card;
       setTimeout(() => computerTurn(), 1000);
     }
   };
@@ -278,7 +270,6 @@ const Game: React.FC = () => {
           flexDirection: width > 400 ? "row" : "column",
           flex: width > 400 ? null : (1 as any),
           alignItems: "center",
-          // backgroundColor: "red",
         }}
       >
         {/* Computer's Hand at the Top */}
@@ -288,7 +279,7 @@ const Game: React.FC = () => {
             Computer's Hand {currentControl === "computer" && <Text> 🔥 </Text>}
           </Text>
           <View style={styles.hand}>
-            {computerHand.map((_, index) => renderCardBack(index))}
+            {computerHand.map((card, index) => renderCardBack(index))}
           </View>
         </View>
 
@@ -304,22 +295,28 @@ const Game: React.FC = () => {
 
           <View style={styles.currentRound}>
             <View style={{ alignItems: "center" }}>
-              {currentRound.plays.find((play) => play.player === "computer")
-                ? RenderCard(
-                    currentRound.plays.find(
-                      (play) => play.player === "computer"
-                    )!.card
-                  )
-                : RenderCard(null)}
+              {currentPlays.find((play) => play.player === "computer") ? (
+                <RenderCard
+                  card={
+                    currentPlays.find((play) => play.player === "computer")!
+                      .card
+                  }
+                />
+              ) : (
+                <RenderCard card={null} />
+              )}
             </View>
 
             <View style={{ alignItems: "center" }}>
-              {currentRound.plays.find((play) => play.player === "you")
-                ? RenderCard(
-                    currentRound.plays.find((play) => play.player === "you")!
-                      .card
-                  )
-                : RenderCard(null)}
+              {currentPlays.find((play) => play.player === "you") ? (
+                <RenderCard
+                  card={
+                    currentPlays.find((play) => play.player === "you")!.card
+                  }
+                />
+              ) : (
+                <RenderCard card={null} />
+              )}
             </View>
           </View>
         </View>
@@ -336,7 +333,7 @@ const Game: React.FC = () => {
                 onPress={() => humanPlayCard(card, index)}
                 activeOpacity={0.8}
               >
-                {RenderCard(card)}
+                {<RenderCard card={card} />}
               </TouchableOpacity>
             ))}
           </View>

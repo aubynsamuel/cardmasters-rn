@@ -84,7 +84,6 @@ const chooseCardAI = (
   remainingRounds: number
 ): Card => {
   // If AI is leading/ is in control (no lead card)
-  console.log("Remaining rounds ", remainingRounds);
   if (!leadCard) {
     if (remainingRounds <= 2) {
       // In final 2 rounds, play highest cards to secure control
@@ -108,10 +107,10 @@ const chooseCardAI = (
 
       if (winningCards.length > 0) {
         if (remainingRounds <= 2) {
-          // Play highest winner in final round
+          // Play highest winner in final rounds
           return winningCards.sort((a, b) => b.value - a.value)[0];
         } else {
-          // Play lowest winner in early round
+          // Play lowest winner in early rounds
           return winningCards.sort((a, b) => a.value - b.value)[0];
         }
       } else {

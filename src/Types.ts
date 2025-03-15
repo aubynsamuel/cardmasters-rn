@@ -29,4 +29,13 @@ interface gameHistoryType {
   importance: boolean;
 }
 
-export { Suit, Rank, Card, GameState, RoundState, gameHistoryType, Player };
+export {
+  Suit,
+  Rank,
+  Card,
+  GameState,
+  RoundState,
+  gameHistoryType,
+  Player,
+  Play,
+};
