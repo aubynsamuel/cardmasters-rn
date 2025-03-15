@@ -12,7 +12,7 @@ interface GameState {
   computer: Card[];
   deck: Card[];
 }
-type Player = "human" | "computer";
+type Player = "you" | "computer";
 
 interface Play {
   player: Player;

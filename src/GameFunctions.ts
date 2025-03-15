@@ -47,14 +47,26 @@ const dealCards = (deck: Card[]): GameState => {
 
   // First round: 3 cards each
   for (let i = 0; i < 3; i++) {
-    computer.push(deckCopy.shift()!);
     human.push(deckCopy.shift()!);
+  }
+  for (let i = 0; i < 3; i++) {
+    computer.push(deckCopy.shift()!);
   }
 
   // Second round: 2 cards each
   for (let i = 0; i < 2; i++) {
-    computer.push(deckCopy.shift()!);
     human.push(deckCopy.shift()!);
+  }
+  for (let i = 0; i < 2; i++) {
+    computer.push(deckCopy.shift()!);
+  }
+
+  for (let humanCard of human) {
+    for (let computerCard of computer) {
+      if (humanCard === computerCard) {
+        console.error("Duplicate Card found", humanCard, computerCard);
+      }
+    }
   }
 
   return { human, computer, deck: deckCopy };
@@ -71,10 +83,11 @@ const chooseCardAI = (
   leadCard: Card | null,
   remainingRounds: number
 ): Card => {
-  // If AI is leading (no lead card)
+  // If AI is leading/ is in control (no lead card)
+  console.log("Remaining rounds ", remainingRounds);
   if (!leadCard) {
     if (remainingRounds <= 2) {
-      // In final round, play highest cards to secure control
+      // In final 2 rounds, play highest cards to secure control
       return [...hand].sort((a, b) => b.value - a.value)[0];
     } else {
       // Otherwise play lowest card to preserve high cards
@@ -99,7 +112,7 @@ const chooseCardAI = (
           return winningCards.sort((a, b) => b.value - a.value)[0];
         } else {
           // Play lowest winner in early round
-          return winningCards.sort((a, b) => a.value - a.value)[0];
+          return winningCards.sort((a, b) => a.value - b.value)[0];
         }
       } else {
         // Can't win, so play lowest card of required suit
