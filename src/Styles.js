@@ -1,26 +1,23 @@
 import { StyleSheet } from "react-native";
-const getStyles = (width) => {
+const getStyles = (width, height) => {
   const styles = StyleSheet.create({
     container: {
       flex: 1,
-      backgroundColor: "plum",
+      backgroundColor: "lightgreen",
       padding: width > 400 ? 20 : 10,
+      // borderStyle: "dotted",
+      // borderWidth: 2,
     },
     computerSection: {
       alignItems: "center",
       width: 280,
-      height: 130,
+      // backgroundColor: "yellow",
+      flex: width > 400 ? 1.5 : 1,
     },
     humanSection: {
       alignItems: "center",
-      height: 130,
       width: 280,
-    },
-    gameResultSection: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      bottom: width > 400 ? 30 : 0,
+      flex: width > 400 ? 1.5 : 1,
     },
     sectionHeader: {
       fontSize: 20,
@@ -29,8 +26,7 @@ const getStyles = (width) => {
     },
     hand: {
       flexDirection: "row",
-      flexWrap: "wrap",
-      justifyContent: "center",
+      // backgroundColor: "red",
     },
     cardBack: {
       margin: 5,
@@ -43,14 +39,21 @@ const getStyles = (width) => {
       height: 70,
       width: 45,
     },
+    deckCardBack: {
+      margin: 5,
+      backgroundColor: "#1e3d59",
+      borderRadius: 8,
+      borderWidth: 1,
+      borderColor: "#ccc",
+      alignItems: "center",
+      justifyContent: "center",
+      height: 60,
+      width: 40,
+      position: "absolute",
+    },
     cardBackText: {
       fontSize: 50,
       color: "#fff",
-    },
-    message: {
-      fontSize: 18,
-      textAlign: "center",
-      marginVertical: 5,
     },
     playText: {
       fontSize: 15,
@@ -66,19 +69,35 @@ const getStyles = (width) => {
       paddingHorizontal: 25,
       borderRadius: 8,
       alignSelf: "center",
+      justifyContent: "center",
+      alignContent: "center",
+      alignItems: "center",
     },
     newGameText: {
       color: "#fff",
       fontSize: 18,
+      textAlign: "center",
+    },
+    gameResultSection: {
+      flex: 2,
+      justifyContent: "center",
+      alignItems: "center",
+      bottom: width > 400 ? 30 : 0,
+      // backgroundColor: "red",
+    },
+    message: {
+      fontSize: 18,
+      textAlign: "center",
+      marginVertical: 5,
+      bottom: 10,
     },
     currentRound: {
       fontSize: 18,
       textAlign: "center",
-      marginVertical: 5,
-      marginTop: 20,
-      flexDirection: width > 400 ? "row" : "column",
-      alignItems: "flex-start",
-      gap: 45,
+      flexDirection: width > 400 || height < 640 ? "row" : "column",
+      justifyContent: "center",
+      alignItems: "center",
+      // backgroundColor: "blue",
     },
     controlText: {
       fontSize: 18,

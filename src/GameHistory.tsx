@@ -17,18 +17,18 @@ const GameHistory: React.FC<gameHistoryInterface> = ({
   }, [gameHistory]);
 
   return (
-    <View style={{ margin: 7 }}>
+    <View>
       <Text style={{ fontWeight: "bold", marginLeft: 15 }}>Game History</Text>
       <ScrollView
         ref={scrollRef}
         contentContainerStyle={{
           padding: 10,
-          paddingBottom: width > 400 ? 40 : 0,
+          paddingBottom: width > 400 ? 45 : 0,
         }}
         style={{
-          height: 120,
+          height: 110,
           borderRadius: 10,
-          backgroundColor: "green",
+          backgroundColor: "lightgrey",
         }}
       >
         {gameHistory?.map((item, index) => (
@@ -40,8 +40,8 @@ const GameHistory: React.FC<gameHistoryInterface> = ({
                 fontWeight: "semibold",
               },
               item.importance
-                ? { color: "yellow", fontWeight: "bold", marginBottom: 5 }
-                : { color: "white" },
+                ? { color: "green", fontWeight: "bold", marginBottom: 5 }
+                : { color: "black", fontWeight: "semibold" },
             ]}
           >
             {item.message}

@@ -13,19 +13,35 @@ import {
   shuffleDeck,
   suitSymbols,
 } from "./src/GameFunctions";
-import { Card, gameHistoryType, Player, GameState, Play } from "./src/Types";
+import {
+  Card,
+  gameHistoryType,
+  Player,
+  GameState,
+  Play,
+  roundsType,
+} from "./src/Types";
 import getStyles from "./src/Styles";
 import { StatusBar } from "expo-status-bar";
 import RenderCard from "./src/Card";
 import GameHistory from "./src/GameHistory";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import Animated, { BounceInUp } from "react-native-reanimated";
 
 let currentCard: Card | null;
 let currentControl: Player = "computer";
+const roundsList: roundsType[] = [
+  { roundNUmber: 1, active: true },
+  { roundNUmber: 2, active: false },
+  { roundNUmber: 3, active: false },
+  { roundNUmber: 4, active: false },
+  { roundNUmber: 5, active: false },
+];
 
 const Game: React.FC = () => {
-  const { width } = useWindowDimensions();
-  const styles = getStyles(width);
+  const { width, height } = useWindowDimensions();
+  const styles = getStyles(width, height);
   const [humanHand, setHumanHand] = useState<Card[]>([]);
   const [computerHand, setComputerHand] = useState<Card[]>([]);
   const [gameState, setGameState] = useState<GameState>({
@@ -41,6 +57,11 @@ const Game: React.FC = () => {
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [gameHistory, setGameHistory] = useState<gameHistoryType[]>([]);
   const [showStartButton, setShowStartButton] = useState<boolean>(false);
+  const [rounds, setRounds] = useState<roundsType[]>(roundsList);
+
+  // const ref = useRef<number>(0);
+  // console.log("Re rendered ", ref.current++, " times");
+  console.log("Current control ", currentControl);
 
   useEffect(() => {
     startNewGame();
@@ -72,13 +93,15 @@ const Game: React.FC = () => {
   const startNewGame = (): void => {
     // First, reset everything
     setRoundsPlayed(0);
+    setRounds(roundsList);
     setCurrentLeadCard(null);
+    currentCard = null;
     setCurrentPlays([]);
-    setMessage("Game started. Computer will play first.");
+    setMessage(`Game started. ${currentControl} will play first.`);
     setGameOver(false);
     setShowStartButton(true);
     setGameHistory([]);
-    currentControl = "computer";
+    // currentControl = "computer";  // 
     const gameState = handleGameState();
 
     setHumanHand(gameState.human);
@@ -95,6 +118,7 @@ const Game: React.FC = () => {
   // Reset current round
   const resetRound = (): void => {
     setCurrentLeadCard(null);
+    currentCard = null;
     setCurrentPlays([]);
   };
 
@@ -113,7 +137,7 @@ const Game: React.FC = () => {
     setGameHistory((prev) => [
       ...prev,
       {
-        message: `${player} played ${card.rank} of ${suitSymbols[card.suit]}`,
+        message: `${player} played ${card.rank}${suitSymbols[card.suit]}`,
         importance: false,
       },
     ]);
@@ -158,21 +182,24 @@ const Game: React.FC = () => {
         importance: true,
       },
     ]);
-    const newRoundsPlayed = roundsPlayed + 1;
-    setRoundsPlayed(newRoundsPlayed);
 
     setTimeout(() => {
       resetRound();
-
+      const newRoundsPlayed = roundsPlayed + 1;
+      console.log("Round Number", newRoundsPlayed);
+      setRoundsPlayed(newRoundsPlayed > 5 ? 5 : newRoundsPlayed);
+      setRounds((prev) =>
+        prev.map((rnd) =>
+          rnd.roundNUmber === newRoundsPlayed + 1
+            ? { ...rnd, active: true }
+            : rnd
+        )
+      );
       // Check if game is over
       if (newRoundsPlayed >= 5) {
         setGameOver(true);
         setMessage(
-          `Game Over \n ${
-            newControl === "you"
-              ? "You win the game!"
-              : "Computer wins the game!"
-          }`
+          `Game Over \n ${newControl === "you" ? "You won" : "Computer won!"}`
         );
       } else {
         // Continue to next round
@@ -256,111 +283,232 @@ const Game: React.FC = () => {
 
   const renderCardBack = (index: number) => {
     return (
-      <View key={index} style={styles.cardBack}>
+      <Animated.View entering={BounceInUp.duration(500)}>
+        <View key={index} style={styles.cardBack}>
+          <Text style={styles.cardBackText}>🂠</Text>
+        </View>
+      </Animated.View>
+    );
+  };
+
+  const renderDeckBack = (index: number) => {
+    return (
+      <View
+        key={index}
+        style={[
+          styles.deckCardBack,
+          { transform: [{ translateX: index * 5 }] },
+        ]}
+      >
         <Text style={styles.cardBackText}>🂠</Text>
       </View>
     );
   };
 
+  // useEffect(() => {
+  //   if (message.includes("won!")) {
+  //     scaleValue.value = withRepeat(
+  //       withTiming(1.2, { duration: 500 }),
+  //       0,
+  //       true
+  //     );
+  //   }
+  // }, [message]);
+
+  // const animatedText = useAnimatedStyle(() => {
+  //   return {
+  //     transform: [{ scale: scaleValue.value }],
+  //   };
+  // });
+
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar backgroundColor="transparent" style="dark" />
-      <View
-        style={{
-          flexDirection: width > 400 ? "row" : "column",
-          flex: width > 400 ? null : (1 as any),
-          alignItems: "center",
-        }}
-      >
-        {/* Computer's Hand at the Top */}
-        <View style={styles.computerSection}>
-          <View></View>
-          <Text style={styles.sectionHeader}>
-            Computer's Hand {currentControl === "computer" && <Text> 🔥 </Text>}
-          </Text>
-          <View style={styles.hand}>
-            {computerHand.map((card, index) => renderCardBack(index))}
+    <GestureHandlerRootView>
+      <SafeAreaView style={styles.container}>
+        <StatusBar backgroundColor="transparent" style="dark" />
+
+        {/* TOP ROW */}
+        <View
+          style={{
+            flex: 0.1,
+            justifyContent: "space-between",
+            flexDirection: "row",
+            // backgroundColor: "red",
+          }}
+        >
+          {/* Remaining Deck */}
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              // backgroundColor: "red",
+            }}
+          >
+            <Text style={{}}>Deck</Text>
+            <View style={{ flexDirection: "row", top: -35, left: 0 }}>
+              {gameState.deck.map((deck, index) => renderDeckBack(index))}
+            </View>
+          </View>
+
+          {/* Rounds */}
+          <View
+            style={{
+              flexDirection: "column",
+              gap: 5,
+              alignItems: "center",
+              // backgroundColor: "red",
+            }}
+          >
+            <Text>Rounds</Text>
+            <View
+              style={{
+                flexDirection: "row",
+                gap: 5,
+                alignItems: "center",
+                // backgroundColor: "yellow",
+              }}
+            >
+              {rounds.map((round, index) => (
+                <View
+                  key={index + round.roundNUmber}
+                  style={{
+                    height: 15,
+                    width: 15,
+                    backgroundColor: round.active ? "yellow" : "lightgray",
+                    borderRadius: 30,
+                    borderColor: "red",
+                    borderWidth: 2,
+                    marginBottom: 5,
+                  }}
+                />
+              ))}
+            </View>
           </View>
         </View>
 
-        {/* Game Results in the Middle */}
-        <View style={styles.gameResultSection}>
-          <Text style={styles.roundText}>
-            round: {gameOver == false ? roundsPlayed + 1 : roundsPlayed} / 5
-          </Text>
-
-          <Text numberOfLines={2} style={[styles.message, { height: 50 }]}>
-            {message}
-          </Text>
-
-          <View style={styles.currentRound}>
-            <View style={{ alignItems: "center" }}>
-              {currentPlays.find((play) => play.player === "computer") ? (
-                <RenderCard
-                  card={
-                    currentPlays.find((play) => play.player === "computer")!
-                      .card
-                  }
-                />
-              ) : (
-                <RenderCard card={null} />
-              )}
-            </View>
-
-            <View style={{ alignItems: "center" }}>
-              {currentPlays.find((play) => play.player === "you") ? (
-                <RenderCard
-                  card={
-                    currentPlays.find((play) => play.player === "you")!.card
-                  }
-                />
-              ) : (
-                <RenderCard card={null} />
-              )}
+        {/* MAIN GAME AREA */}
+        <View
+          style={{
+            flexDirection: width > 400 ? "row" : "column",
+            flex: 1,
+            alignItems: "center",
+            // backgroundColor: "yellow",
+            justifyContent: "center",
+            padding: 15,
+          }}
+        >
+          {/* Computer's Hand at the Top */}
+          <View style={styles.computerSection}>
+            <View></View>
+            <Text style={styles.sectionHeader}>
+              Computer's Hand{" "}
+              {currentControl === "computer" && <Text> 🔥 </Text>}
+            </Text>
+            <View style={styles.hand}>
+              {computerHand.map((card, index) => renderCardBack(index))}
             </View>
           </View>
-        </View>
 
-        {/* Human's Hand at the Bottom */}
-        <View style={styles.humanSection}>
-          <Text style={styles.sectionHeader}>
-            Your Hand {currentControl === "you" && <Text> 🔥 </Text>}
-          </Text>
-          <View style={styles.hand}>
-            {humanHand.map((card, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => humanPlayCard(card, index)}
-                activeOpacity={0.8}
+          {/* Game Results in the Middle */}
+          <View style={styles.gameResultSection}>
+            <Text numberOfLines={2} style={[styles.message, { fontSize: 15 }]}>
+              {message}
+            </Text>
+
+            {/* Current Play Cards */}
+            <View style={styles.currentRound}>
+              {/* Computer Play Spot */}
+              <View
+                style={{
+                  alignItems: "center",
+                  flex: 1,
+                }}
               >
-                {<RenderCard card={card} />}
-              </TouchableOpacity>
-            ))}
+                {currentPlays.find((play) => play.player === "computer") ? (
+                  <RenderCard
+                    card={
+                      currentPlays.find((play) => play.player === "computer")!
+                        .card
+                    }
+                    playCard={() => {}}
+                  />
+                ) : (
+                  <RenderCard card={null} playCard={() => {}} />
+                )}
+              </View>
+
+              {/* Human Play Spot */}
+              <View style={{ alignItems: "center", flex: 1 }}>
+                {currentPlays.find((play) => play.player === "you") ? (
+                  <RenderCard
+                    card={
+                      currentPlays.find((play) => play.player === "you")!.card
+                    }
+                    playCard={() => {}}
+                  />
+                ) : (
+                  <RenderCard card={null} playCard={() => {}} />
+                )}
+              </View>
+            </View>
+          </View>
+
+          {/* Human's Hand at the Bottom */}
+          <View style={styles.humanSection}>
+            <Text style={styles.sectionHeader}>
+              Your Hand {currentControl === "you" && <Text> 🔥 </Text>}
+            </Text>
+            <View style={styles.hand}>
+              {humanHand.map((card, index) => (
+                <RenderCard
+                  card={card}
+                  playCard={() => humanPlayCard(card, index)}
+                />
+              ))}
+            </View>
           </View>
         </View>
-      </View>
 
-      {/* Start, New and Restart Game Buttons */}
-      <View style={{ flexDirection: "row", alignSelf: "center", gap: 10 }}>
-        {showStartButton && (
-          <TouchableOpacity style={styles.newGameButton} onPress={startPlaying}>
-            <Text style={styles.newGameText}>{"Start Game"}</Text>
+        {/* Start, New and Restart Game Buttons */}
+        <View
+          style={{
+            flexDirection: "row",
+            alignSelf: "center",
+            gap: 10,
+            flex: width > 400 ? 0.22 : 0.12,
+            // backgroundColor: "brown",
+          }}
+        >
+          {/* {showStartButton && currentControl == "computer" && (
+            <TouchableOpacity
+              style={styles.newGameButton}
+              onPress={startPlaying}
+            >
+              <Text style={styles.newGameText}>{"Start Game"}</Text>
+            </TouchableOpacity>
+          )} */}
+          <TouchableOpacity
+            style={styles.newGameButton}
+            onPress={() => {
+              startNewGame();
+              if (currentControl == "computer") {
+                setTimeout(() => {
+                  startPlaying();
+                }, 1000);
+              }
+            }}
+          >
+            <Text style={styles.newGameText}>
+              {gameOver ? "New Game" : "Restart Game"}
+            </Text>
           </TouchableOpacity>
-        )}
-        <TouchableOpacity style={styles.newGameButton} onPress={startNewGame}>
-          <Text style={styles.newGameText}>
-            {gameOver
-              ? "New Game"
-              : showStartButton
-              ? "New Game"
-              : "Restart Game"}
-          </Text>
-        </TouchableOpacity>
-      </View>
+        </View>
 
-      {/* Game Logs */}
-      <GameHistory gameHistory={gameHistory} width={width} />
-    </SafeAreaView>
+        {/* Game Logs */}
+        <View style={{ flex: width > 400 ? 0.4 : 0.24, backgroundColor: "" }}>
+          <GameHistory gameHistory={gameHistory} width={width} />
+        </View>
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 };
 

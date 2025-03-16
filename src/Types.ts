@@ -7,6 +7,11 @@ interface Card {
   value: number;
 }
 
+interface roundsType {
+  roundNUmber: number;
+  active: boolean;
+}
+
 interface GameState {
   human: Card[];
   computer: Card[];
@@ -38,4 +43,5 @@ export {
   gameHistoryType,
   Player,
   Play,
+  roundsType,
 };
