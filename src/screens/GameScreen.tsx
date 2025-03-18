@@ -31,14 +31,15 @@ import Animated, {
   FlipInEasyX,
   useSharedValue,
   withSpring,
-  withTiming,
 } from "react-native-reanimated";
 import ShufflingAnimation from "../components/ShufflingAnimations";
 import EmptyCard from "../components/EmptySlotCard";
 import SlotCard from "../components/SlotCard";
+import Colors from "../Colors";
+import DiagonalStripes from "../components/DiagonalStripes";
 
 let currentCard: Card | null;
-let currentControl: Player = "computer";
+let currentControl: Player = "Computer";
 const roundsList: roundsType[] = [
   { roundNUmber: 1, active: true },
   { roundNUmber: 2, active: false },
@@ -81,7 +82,7 @@ const GameScreen: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (currentControl === "computer")
+    if (currentControl === "Computer")
       computerControlScale.value = withSpring(1.2, {
         duration: 500,
         stiffness: 300,
@@ -92,7 +93,7 @@ const GameScreen: React.FC = () => {
         stiffness: 300,
       });
 
-    if (currentControl === "you")
+    if (currentControl === "You")
       humanControlScale.value = withSpring(1.2, {
         duration: 500,
         stiffness: 300,
@@ -151,10 +152,8 @@ const GameScreen: React.FC = () => {
         setIsShuffling(false);
         setMessage(`Dealing cards...`);
 
-        // Set up the game state
         const gameState = handleGameState();
 
-        // Start the dealing animation
         setIsDealing(true);
 
         // Deal cards with animation
@@ -225,14 +224,14 @@ const GameScreen: React.FC = () => {
     ) {
       newControl = secondPlay.player;
       resultMessage =
-        secondPlay.player === "computer"
+        secondPlay.player === "Computer"
           ? "Computer wins the round."
           : "You win the round.";
     } else {
       // Otherwise leader retains control
       newControl = firstPlay.player;
       resultMessage =
-        firstPlay.player === "you"
+        firstPlay.player === "You"
           ? "You win the round."
           : "Computer wins the round.";
     }
@@ -263,11 +262,13 @@ const GameScreen: React.FC = () => {
       if (newRoundsPlayed >= 5) {
         setGameOver(true);
         setMessage(
-          `Game Over \n ${newControl === "you" ? "You won" : "Computer won!"}`
+          `Game Over \n ${
+            newControl === "You" ? "🏆 You won 🏆" : "🏆 Computer won! 🏆"
+          }`
         );
       } else {
         // Continue to next round
-        if (newControl === "computer") {
+        if (newControl === "Computer") {
           setMessage("Computer is playing.");
           setTimeout(() => {
             computerTurn();
@@ -287,7 +288,7 @@ const GameScreen: React.FC = () => {
 
     const remainingRounds = 5 - roundsPlayed;
     let cardToPlay: Card;
-    if (currentControl === "computer") {
+    if (currentControl === "Computer") {
       // console.log("Computer is playing as a leader");
       // console.log("");
       cardToPlay = chooseCardAI(computerHand, null, remainingRounds);
@@ -304,14 +305,14 @@ const GameScreen: React.FC = () => {
       return newHand;
     });
 
-    playCard("computer", cardToPlay);
+    playCard("Computer", cardToPlay);
   };
 
   const humanPlayCard = (card: Card, index: number): void => {
     if (gameOver) return;
 
     // If it's not human's turn
-    if (currentControl === "computer" && !currentLeadCard) {
+    if (currentControl === "Computer" && !currentLeadCard) {
       Alert.alert("Wait", "It's not your turn to play!");
       return;
     }
@@ -336,16 +337,13 @@ const GameScreen: React.FC = () => {
       return newHand;
     });
 
-    // Add a slight delay for visual effect
     setTimeout(() => {
-      playCard("you", card);
+      playCard("You", card);
 
       const isLeading = !currentLeadCard;
       if (isLeading) {
         currentCard = card;
         setMessage("Computer is thinking...");
-
-        // Add delay to simulate computer "thinking"
         setTimeout(() => computerTurn(), 1000);
       }
     }, 300);
@@ -360,7 +358,7 @@ const GameScreen: React.FC = () => {
         }
       >
         <View style={styles.cardBack}>
-          <Text style={styles.cardBackText}>🂠</Text>
+          <DiagonalStripes />
         </View>
       </Animated.View>
     );
@@ -375,7 +373,7 @@ const GameScreen: React.FC = () => {
           { transform: [{ translateX: index * 5 }] },
         ]}
       >
-        <Text style={styles.cardBackText}>🂠</Text>
+        <DiagonalStripes />
       </View>
     );
   };
@@ -383,16 +381,14 @@ const GameScreen: React.FC = () => {
   return (
     <GestureHandlerRootView>
       <SafeAreaView style={styles.container}>
-        <StatusBar backgroundColor="transparent" style="dark" />
+        <StatusBar backgroundColor="transparent" style="light" hidden={true} />
 
-        {/* Shuffling animation overlay - shows when cards are being shuffled */}
         {isShuffling && (
           <View style={styles.animationOverlay}>
             <ShufflingAnimation />
           </View>
         )}
 
-        {/* Dealing animation overlay - shows when cards are being dealt */}
         {isDealing && (
           <View style={styles.animationOverlay}>
             <Text style={styles.dealingText}>Dealing Cards...</Text>
@@ -406,7 +402,6 @@ const GameScreen: React.FC = () => {
               flex: 0.1,
               justifyContent: "space-between",
               flexDirection: "row",
-              opacity: isShuffling || isDealing ? 0.5 : 1, // Dim during animations
             },
           ]}
         >
@@ -417,7 +412,7 @@ const GameScreen: React.FC = () => {
               alignItems: "center",
             }}
           >
-            <Text>Deck</Text>
+            <Text style={{ color: Colors.mainTextColor }}>Deck</Text>
             <View
               style={{
                 flexDirection: "row",
@@ -437,7 +432,7 @@ const GameScreen: React.FC = () => {
               alignItems: "center",
             }}
           >
-            <Text>Rounds</Text>
+            <Text style={{ color: Colors.mainTextColor }}>Rounds</Text>
             <View
               style={{
                 flexDirection: "row",
@@ -471,19 +466,19 @@ const GameScreen: React.FC = () => {
             alignItems: "center",
             justifyContent: "center",
             padding: 15,
-            opacity: isShuffling ? 0.5 : 1, // Dim during shuffling
           }}
         >
           {/* Computer's Hand at the Top */}
           <View style={[styles.computerSection]}>
             <Text style={styles.sectionHeader}>
-              Computer's Hand
+              Computer
               <Animated.View
                 style={{
                   transform: [{ scale: computerControlScale }],
                 }}
               >
-                <Text> 🔥 </Text>
+                {" "}
+                <Text style={{ top: 2, left: 4 }}> 🔥 </Text>
               </Animated.View>
             </Text>
             <View style={styles.hand}>
@@ -493,17 +488,19 @@ const GameScreen: React.FC = () => {
 
           {/* Game Results in the Middle */}
           <View style={[styles.gameResultSection]}>
-            <Text numberOfLines={2} style={[styles.message]}>
-              {message}
-            </Text>
+            <View style={styles.messageContainer}>
+              <Text numberOfLines={2} style={[styles.message]}>
+                {message}
+              </Text>
+            </View>
 
             {/* Current Play Cards */}
             <View style={styles.currentRound}>
               {/* Computer Play Spot */}
-              {currentPlays.find((play) => play.player === "computer") ? (
+              {currentPlays.find((play) => play.player === "Computer") ? (
                 <SlotCard
                   card={
-                    currentPlays.find((play) => play.player === "computer")!
+                    currentPlays.find((play) => play.player === "Computer")!
                       .card
                   }
                 />
@@ -512,10 +509,10 @@ const GameScreen: React.FC = () => {
               )}
 
               {/* Human Play Spot */}
-              {currentPlays.find((play) => play.player === "you") ? (
+              {currentPlays.find((play) => play.player === "You") ? (
                 <SlotCard
                   card={
-                    currentPlays.find((play) => play.player === "you")!.card
+                    currentPlays.find((play) => play.player === "You")!.card
                   }
                 />
               ) : (
@@ -527,13 +524,14 @@ const GameScreen: React.FC = () => {
           {/* Human's Hand at the Bottom */}
           <View style={[styles.humanSection]}>
             <Text style={styles.sectionHeader}>
-              Your Hand
+              You
               <Animated.View
                 style={{
                   transform: [{ scale: humanControlScale }],
                 }}
               >
-                <Text> 🔥 </Text>
+                {" "}
+                <Text style={{ top: 2, left: 4 }}> 🔥 </Text>
               </Animated.View>
             </Text>
             <View style={styles.hand}>
@@ -553,7 +551,7 @@ const GameScreen: React.FC = () => {
                     playCard={() => humanPlayCard(card, index)}
                     isDealt={isDealing}
                     dealDelay={index * 200}
-                    canPlayCard={currentControl == "you"}
+                    canPlayCard={currentControl == "You"}
                   />
                 </Animated.View>
               ))}
@@ -568,13 +566,14 @@ const GameScreen: React.FC = () => {
             alignSelf: "center",
             gap: 10,
             flex: width > 400 ? 0.22 : 0.12,
-            opacity: isShuffling || isDealing ? 0.5 : 1, // Dim during animations
+            opacity: isShuffling || isDealing ? 0.5 : 1,
           }}
         >
-          {showStartButton && currentControl == "computer" && (
+          {showStartButton && currentControl == "Computer" && (
             <TouchableOpacity
               style={styles.newGameButton}
               onPress={startPlaying}
+              activeOpacity={0.8}
             >
               <Text style={styles.newGameText}>{"Start Game"}</Text>
             </TouchableOpacity>
@@ -584,6 +583,7 @@ const GameScreen: React.FC = () => {
             onPress={() => {
               startNewGame();
             }}
+            activeOpacity={0.8}
           >
             <Text style={styles.newGameText}>
               {gameOver || showStartButton ? "New Game" : "Restart Game"}
@@ -595,7 +595,7 @@ const GameScreen: React.FC = () => {
         <View
           style={{
             flex: width > 400 ? 0.4 : 0.24,
-            opacity: isShuffling ? 0.5 : 1, // Dim during shuffling
+            opacity: isShuffling ? 0.5 : 1,
           }}
         >
           <GameHistory gameHistory={gameHistory} width={width} />

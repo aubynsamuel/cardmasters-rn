@@ -1,6 +1,8 @@
 import Animated, { BounceInUp } from "react-native-reanimated";
 import { View, Text } from "react-native";
 import getStyles from "../Styles";
+import { DiagonalDirections } from "react-native-gesture-handler/lib/typescript/Directions";
+import DiagonalStripes from "./DiagonalStripes";
 
 const ShufflingAnimation = () => {
   // Create an array of cards for animation
@@ -24,14 +26,14 @@ const ShufflingAnimation = () => {
                   styles.shuffleCard,
                   {
                     transform: [
-                      { translateX: isEven ? -10 : 10 },
-                      { rotate: isEven ? "-5deg" : "5deg" },
+                      { translateX: isEven ? -20 : 20 },
+                      { rotate: isEven ? "-15deg" : "15deg" },
                     ],
                     zIndex: index,
                   },
                 ]}
               >
-                <Text style={styles.cardBackText}>🂠</Text>
+                <DiagonalStripes />
               </View>
             </Animated.View>
           );

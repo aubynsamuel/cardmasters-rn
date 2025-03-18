@@ -1,6 +1,7 @@
 import { View, ScrollView, Text } from "react-native";
 import { gameHistoryType } from "../Types";
 import React, { useEffect, useRef } from "react";
+import Colors from "../Colors";
 
 interface gameHistoryInterface {
   gameHistory: gameHistoryType[];
@@ -18,7 +19,9 @@ const GameHistory: React.FC<gameHistoryInterface> = ({
 
   return (
     <View>
-      <Text style={{ fontWeight: "bold", marginLeft: 15 }}>Game History</Text>
+      <Text style={{ fontWeight: "bold", marginLeft: 15, color: "white" }}>
+        Game History
+      </Text>
       <ScrollView
         ref={scrollRef}
         contentContainerStyle={{
@@ -28,7 +31,7 @@ const GameHistory: React.FC<gameHistoryInterface> = ({
         style={{
           height: 110,
           borderRadius: 10,
-          backgroundColor: "lightgrey",
+          backgroundColor: Colors.logContainerBackground,
         }}
       >
         {gameHistory?.map((item, index) => (
@@ -40,8 +43,8 @@ const GameHistory: React.FC<gameHistoryInterface> = ({
                 fontWeight: "semibold",
               },
               item.importance
-                ? { color: "green", fontWeight: "bold", marginBottom: 5 }
-                : { color: "black", fontWeight: "semibold" },
+                ? { color: "yellow", fontWeight: "bold", marginBottom: 5 }
+                : { color: Colors.logText, fontWeight: "semibold" },
             ]}
           >
             {item.message}
