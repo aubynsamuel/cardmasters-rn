@@ -1,4 +1,4 @@
-import { Card, GameState, Rank, Suit } from "./Types";
+import { Card, GameState, Rank, Suit } from "../Types";
 
 const suits: Suit[] = ["diamond", "spade", "love", "club"];
 const ranks: Rank[] = ["6", "7", "8", "9", "10", "J", "Q", "K"];

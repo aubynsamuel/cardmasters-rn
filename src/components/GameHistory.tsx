@@ -1,5 +1,5 @@
 import { View, ScrollView, Text } from "react-native";
-import { gameHistoryType } from "./Types";
+import { gameHistoryType } from "../Types";
 import React, { useEffect, useRef } from "react";
 
 interface gameHistoryInterface {
