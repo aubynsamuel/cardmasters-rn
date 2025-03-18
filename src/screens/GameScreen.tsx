@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Alert,
-  useWindowDimensions,
-} from "react-native";
+import { View, Text, Alert, useWindowDimensions } from "react-native";
 import {
   chooseCardAI,
   createDeck,
@@ -23,7 +17,7 @@ import {
 } from "../Types";
 import getStyles from "../Styles";
 import { StatusBar } from "expo-status-bar";
-import RenderCard from "../components/RenderCard";
+import CardComponent from "../components/CardComponent";
 import GameHistory from "../components/GameHistory";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -35,8 +29,9 @@ import Animated, {
 import ShufflingAnimation from "../components/ShufflingAnimations";
 import EmptyCard from "../components/EmptySlotCard";
 import SlotCard from "../components/SlotCard";
-import Colors from "../Colors";
-import DiagonalStripes from "../components/DiagonalStripes";
+import OpponentCard from "../components/OpponentCard";
+import TopRow from "../components/TopRow";
+import GameControls from "../components/GameControls";
 
 let currentCard: Card | null;
 let currentControl: Player = "Computer";
@@ -69,6 +64,7 @@ const GameScreen: React.FC = () => {
   const [rounds, setRounds] = useState<roundsType[]>(roundsList);
   const [isShuffling, setIsShuffling] = useState<boolean>(false);
   const [isDealing, setIsDealing] = useState<boolean>(false);
+  const [canPlayCard, setCanPlayCard] = useState(false);
   const computerControlScale = useSharedValue(0);
   const humanControlScale = useSharedValue(0);
 
@@ -140,7 +136,7 @@ const GameScreen: React.FC = () => {
       !gameState || gameState.deck.length < 5 * 2 ? `Shuffling cards...` : ""
     );
     setGameOver(false);
-    setShowStartButton(true);
+    setShowStartButton(currentControl === "Computer");
     setGameHistory([]);
 
     // Start shuffling animation
@@ -163,8 +159,15 @@ const GameScreen: React.FC = () => {
 
           // End dealing animation after cards are shown
           setTimeout(() => {
+            setCanPlayCard(currentControl === "You");
             setIsDealing(false);
-            setMessage(`Game started. ${currentControl} will play first.`);
+            setMessage(
+              `${
+                currentControl === "Computer"
+                  ? "Press 'Start Game' to play"
+                  : "Play a card to start"
+              } `
+            );
           }, 1500);
         }, 500);
       },
@@ -180,6 +183,7 @@ const GameScreen: React.FC = () => {
 
   // Reset current round
   const resetRound = (): void => {
+    setCanPlayCard(false);
     setCurrentLeadCard(null);
     currentCard = null;
     setCurrentPlays([]);
@@ -260,7 +264,9 @@ const GameScreen: React.FC = () => {
       );
       // Check if game is over
       if (newRoundsPlayed >= 5) {
+        setCanPlayCard(false);
         setGameOver(true);
+        setShowStartButton(false);
         setMessage(
           `Game Over \n ${
             newControl === "You" ? "🏆 You won 🏆" : "🏆 Computer won! 🏆"
@@ -269,11 +275,13 @@ const GameScreen: React.FC = () => {
       } else {
         // Continue to next round
         if (newControl === "Computer") {
+          setCanPlayCard(false);
           setMessage("Computer is playing.");
           setTimeout(() => {
             computerTurn();
           }, 1000);
         } else {
+          setCanPlayCard(true);
           setMessage("It's your turn to play.");
         }
       }
@@ -306,15 +314,24 @@ const GameScreen: React.FC = () => {
     });
 
     playCard("Computer", cardToPlay);
+    setCanPlayCard(true);
+    setMessage("It's your turn to play.");
   };
 
-  const humanPlayCard = (card: Card, index: number): void => {
-    if (gameOver) return;
+  const humanPlayCard = (card: Card, index: number): void | 1 => {
+    if (gameOver) {
+      return 1;
+    }
 
     // If it's not human's turn
     if (currentControl === "Computer" && !currentLeadCard) {
       Alert.alert("Wait", "It's not your turn to play!");
-      return;
+      return 1;
+    }
+
+    if (!canPlayCard) {
+      Alert.alert("Wait", "It's not your turn to play!");
+      return 1;
     }
 
     // If responding, enforce following suit if you have it
@@ -327,8 +344,12 @@ const GameScreen: React.FC = () => {
           "Invalid Move",
           `You must play a ${requiredSuit} card if you have one.`
         );
-        return;
+        return 1;
+      } else {
+        setCanPlayCard(false);
       }
+    } else {
+      setCanPlayCard(false);
     }
 
     setHumanHand((prev) => {
@@ -349,35 +370,6 @@ const GameScreen: React.FC = () => {
     }, 300);
   };
 
-  const renderCardBack = (index: number) => {
-    return (
-      <Animated.View
-        key={`computer-card-${index}`}
-        entering={
-          isDealing ? FlipInEasyX.delay(index * 200).duration(300) : undefined
-        }
-      >
-        <View style={styles.cardBack}>
-          <DiagonalStripes />
-        </View>
-      </Animated.View>
-    );
-  };
-
-  const renderDeckBack = (index: number) => {
-    return (
-      <View
-        key={index}
-        style={[
-          styles.deckCardBack,
-          { transform: [{ translateX: index * 5 }] },
-        ]}
-      >
-        <DiagonalStripes />
-      </View>
-    );
-  };
-
   return (
     <GestureHandlerRootView>
       <SafeAreaView style={styles.container}>
@@ -395,79 +387,10 @@ const GameScreen: React.FC = () => {
           </View>
         )}
 
-        {/* TOP ROW */}
-        <View
-          style={[
-            {
-              flex: 0.1,
-              justifyContent: "space-between",
-              flexDirection: "row",
-            },
-          ]}
-        >
-          {/* Remaining Deck */}
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ color: Colors.mainTextColor }}>Deck</Text>
-            <View
-              style={{
-                flexDirection: "row",
-                top: -35,
-                left: 0,
-              }}
-            >
-              {gameState.deck.map((deck, index) => renderDeckBack(index))}
-            </View>
-          </View>
-
-          {/* Rounds */}
-          <View
-            style={{
-              flexDirection: "column",
-              gap: 5,
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ color: Colors.mainTextColor }}>Rounds</Text>
-            <View
-              style={{
-                flexDirection: "row",
-                gap: 5,
-                alignItems: "center",
-              }}
-            >
-              {rounds.map((round, index) => (
-                <View
-                  key={index + round.roundNUmber}
-                  style={{
-                    height: 15,
-                    width: 15,
-                    backgroundColor: round.active ? "yellow" : "lightgray",
-                    borderRadius: 30,
-                    borderColor: "red",
-                    borderWidth: 2,
-                    marginBottom: 5,
-                  }}
-                />
-              ))}
-            </View>
-          </View>
-        </View>
+        <TopRow rounds={rounds} gameState={gameState} styles={styles} />
 
         {/* MAIN GAME AREA */}
-        <View
-          style={{
-            flexDirection: width > 400 ? "row" : "column",
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 15,
-          }}
-        >
+        <View style={styles.mainGameArea}>
           {/* Computer's Hand at the Top */}
           <View style={[styles.computerSection]}>
             <Text style={styles.sectionHeader}>
@@ -477,12 +400,18 @@ const GameScreen: React.FC = () => {
                   transform: [{ scale: computerControlScale }],
                 }}
               >
-                {" "}
                 <Text style={{ top: 2, left: 4 }}> 🔥 </Text>
               </Animated.View>
             </Text>
             <View style={styles.hand}>
-              {computerHand.map((card, index) => renderCardBack(index))}
+              {computerHand.map((card, index) => (
+                <OpponentCard
+                  index={index}
+                  styles={styles}
+                  isDealing={isDealing}
+                  key={`computer-card-${index}`}
+                />
+              ))}
             </View>
           </View>
 
@@ -530,7 +459,6 @@ const GameScreen: React.FC = () => {
                   transform: [{ scale: humanControlScale }],
                 }}
               >
-                {" "}
                 <Text style={{ top: 2, left: 4 }}> 🔥 </Text>
               </Animated.View>
             </Text>
@@ -546,12 +474,12 @@ const GameScreen: React.FC = () => {
                       : undefined
                   }
                 >
-                  <RenderCard
+                  <CardComponent
                     card={card}
                     playCard={() => humanPlayCard(card, index)}
                     isDealt={isDealing}
                     dealDelay={index * 200}
-                    canPlayCard={currentControl == "You"}
+                    width={width}
                   />
                 </Animated.View>
               ))}
@@ -559,47 +487,16 @@ const GameScreen: React.FC = () => {
           </View>
         </View>
 
-        {/* Start, New and Restart Game Buttons */}
-        <View
-          style={{
-            flexDirection: "row",
-            alignSelf: "center",
-            gap: 10,
-            flex: width > 400 ? 0.22 : 0.12,
-            opacity: isShuffling || isDealing ? 0.5 : 1,
-          }}
-        >
-          {showStartButton && currentControl == "Computer" && (
-            <TouchableOpacity
-              style={styles.newGameButton}
-              onPress={startPlaying}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.newGameText}>{"Start Game"}</Text>
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            style={styles.newGameButton}
-            onPress={() => {
-              startNewGame();
-            }}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.newGameText}>
-              {gameOver || showStartButton ? "New Game" : "Restart Game"}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <GameControls
+          styles={styles}
+          width={width}
+          showStartButton={showStartButton}
+          startPlaying={startPlaying}
+          startNewGame={startNewGame}
+          gameOver={gameOver}
+        />
 
-        {/* Game Logs */}
-        <View
-          style={{
-            flex: width > 400 ? 0.4 : 0.24,
-            opacity: isShuffling ? 0.5 : 1,
-          }}
-        >
-          <GameHistory gameHistory={gameHistory} width={width} />
-        </View>
+        <GameHistory gameHistory={gameHistory} width={width} />
       </SafeAreaView>
     </GestureHandlerRootView>
   );

@@ -6,9 +6,20 @@ const getStyles = (width, height) => {
     container: {
       flex: 1,
       backgroundColor: Colors.containerBackground,
-      padding: width > 400 ? 30 : 10,
+      paddingHorizontal: 10,
+      paddingTop: width > 400 ? 30 : 15,
+      paddingBottom: width > 400 ? 2 : 10,
       // borderStyle: "dotted",
       // borderWidth: 2,
+    },
+    mainGameArea: {
+      flexDirection: width > 400 ? "row" : "column",
+      flex: 1,
+      alignItems: "center",
+      justifyContent: "center",
+      padding: 15,
+      top: width > 400 ? 30 : 0,
+      // backgroundColor: "blue",
     },
     computerSection: {
       alignItems: "center",
@@ -30,10 +41,10 @@ const getStyles = (width, height) => {
       marginBottom: 5,
       color: Colors.mainTextColor,
       textAlign: "center",
+      left: 8,
     },
     hand: {
       flexDirection: "row",
-      // backgroundColor: "red",
     },
     cardBack: {
       margin: 5,
@@ -89,8 +100,10 @@ const getStyles = (width, height) => {
       flex: 2,
       justifyContent: "center",
       alignItems: "center",
-      bottom: width > 400 ? 30 : 0,
+      bottom: width > 400 ? 40 : 0,
       // backgroundColor: "red",
+      marginTop: 8,
+      gap: width > 400 ? 30 : 5,
     },
     message: {
       fontSize: 16,
@@ -99,7 +112,7 @@ const getStyles = (width, height) => {
     },
     messageContainer: {
       bottom: 10,
-      width: width > 400 ? 400 : 320,
+      width: 330,
       padding: 5,
       backgroundColor: Colors.logContainerBackground,
       borderRadius: 15,
@@ -129,13 +142,13 @@ const getStyles = (width, height) => {
       justifyContent: "center",
       alignItems: "center",
       zIndex: 100,
-      backgroundColor: "rgba(0,0,0,0.3)",
+      backgroundColor: "rgba(0,0,0,0.5)",
     },
     dealingText: {
       fontSize: 24,
       fontWeight: "bold",
       color: "#333",
-      backgroundColor: "rgba(255,255,255,1)",
+      backgroundColor: "rgba(255,255,255,0.9)",
       padding: 15,
       borderRadius: 10,
     },
@@ -143,7 +156,7 @@ const getStyles = (width, height) => {
       alignItems: "center",
       justifyContent: "center",
       padding: 20,
-      backgroundColor: "rgba(255,255,255,1)",
+      backgroundColor: "rgba(255,255,255,0.9)",
       borderRadius: 10,
       elevation: 5,
     },
@@ -168,10 +181,6 @@ const getStyles = (width, height) => {
     shuffleCards: {
       width: 100,
       height: 100,
-    },
-    controlIndicator: {
-      fontWeight: "bold",
-      fontSize: 20,
     },
   });
   return styles;

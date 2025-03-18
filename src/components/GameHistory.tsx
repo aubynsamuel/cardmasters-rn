@@ -18,7 +18,11 @@ const GameHistory: React.FC<gameHistoryInterface> = ({
   }, [gameHistory]);
 
   return (
-    <View>
+    <View
+      style={{
+        flex: width > 400 ? 0.4 : 0.24,
+      }}
+    >
       <Text style={{ fontWeight: "bold", marginLeft: 15, color: "white" }}>
         Game History
       </Text>
@@ -26,7 +30,7 @@ const GameHistory: React.FC<gameHistoryInterface> = ({
         ref={scrollRef}
         contentContainerStyle={{
           padding: 10,
-          paddingBottom: width > 400 ? 45 : 0,
+          // paddingBottom: width > 400 ? 45 : 0,
         }}
         style={{
           height: 110,

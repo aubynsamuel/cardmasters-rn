@@ -1,7 +1,7 @@
 import { TextStyle, Text, StyleSheet, View } from "react-native";
 import { suitSymbols } from "../functions/GameFunctions";
 import { Card } from "../Types";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import Animated, {
   FlipInEasyX,
   runOnJS,
@@ -9,7 +9,6 @@ import Animated, {
   useSharedValue,
   withSpring,
   withTiming,
-  ZoomIn,
 } from "react-native-reanimated";
 import {
   Gesture,
@@ -17,33 +16,26 @@ import {
   TouchableWithoutFeedback,
 } from "react-native-gesture-handler";
 
-const RenderCard = ({
+interface CardComponentInterface {
+  card: Card;
+  playCard: () => void | 1;
+  isDealt?: boolean;
+  dealDelay?: number;
+  width: number;
+}
+
+const CardComponent = ({
   card,
   playCard,
   isDealt = false,
   dealDelay = 0,
-  canPlayCard = false,
-}: {
-  card: Card;
-  playCard: () => void;
-  isDealt?: boolean;
-  dealDelay?: number;
-  canPlayCard?: boolean;
-}) => {
+  width,
+}: CardComponentInterface) => {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(isDealt ? 0.5 : 1);
   const rotate = useSharedValue(isDealt ? "45deg" : "0deg");
   const ctx = useSharedValue({ startX: 0, startY: 0 });
-  const [isDragged, setIsDragged] = useState(false);
-  // const [showAlert, setShowAlert] = useState(false);
-
-  // useEffect(() => {
-  //   if (showAlert) {
-  //     Alert.alert("", "It is not your turn to play");
-  //     setShowAlert(false);
-  //   }
-  // }, [showAlert]);
 
   useEffect(() => {
     if (isDealt) {
@@ -55,30 +47,37 @@ const RenderCard = ({
     }
   }, []);
 
+  function visualEffectForUnsuccessfulPlays() {
+    const afterEffect = playCard();
+    console.log("After Effect was", afterEffect);
+    if (afterEffect === 1) {
+      translateX.value = withSpring(0, { duration: 500 });
+      translateY.value = withSpring(0, { duration: 500 });
+    }
+  }
+
   const panGesture = Gesture.Pan()
     .onStart(() => {
       ctx.value = { startX: translateX.value, startY: translateY.value };
       scale.value = withTiming(1.1, { duration: 150 });
-      runOnJS(setIsDragged)(true);
     })
     .onUpdate((event) => {
       translateX.value = ctx.value.startX + event.translationX;
       translateY.value = ctx.value.startY + event.translationY;
+      console.log(event.absoluteX, event.absoluteY);
     })
     .onEnd((event) => {
+      scale.value = withTiming(1, { duration: 150 });
       if (
-        event.absoluteY > 378 &&
-        event.absoluteY < 470 &&
-        event.absoluteX < 230 &&
-        event.absoluteX > 150
-        // && canPlayCard
+        event.absoluteY > (width < 400 ? 378 : 85) &&
+        event.absoluteY < (width < 400 ? 470 : 230) &&
+        event.absoluteX < (width < 400 ? 230 : 525) &&
+        event.absoluteX > (width < 400 ? 150 : 430)
       ) {
-        runOnJS(playCard)();
-        // runOnJS(setIsDragged)(false);
+        runOnJS(visualEffectForUnsuccessfulPlays)();
       } else {
         translateX.value = withSpring(0, { duration: 500 });
         translateY.value = withSpring(0, { duration: 500 });
-        // runOnJS(setShowAlert)(true);
       }
     });
 
@@ -102,11 +101,7 @@ const RenderCard = ({
         <TouchableWithoutFeedback onPress={playCard}>
           <Animated.View
             entering={
-              isDealt
-                ? FlipInEasyX.delay(dealDelay).duration(400)
-                : isDragged
-                ? undefined
-                : ZoomIn.duration(300).springify(200)
+              isDealt ? FlipInEasyX.delay(dealDelay).duration(400) : undefined
             }
           >
             <View
@@ -155,4 +150,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default RenderCard;
+export default CardComponent;
