@@ -11,7 +11,7 @@ const DeckCard: React.FC<DecKCardInterface> = ({ index, styles }) => {
   return (
     <View
       key={index}
-      style={[styles.deckCardBack, { transform: [{ translateX: index * 5 }] }]}
+      style={[styles.deckCardBack, { transform: [{ translateX: index * 3 }] }]}
     >
       <DiagonalStripes />
     </View>

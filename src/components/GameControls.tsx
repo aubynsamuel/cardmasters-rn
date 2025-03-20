@@ -1,53 +1,88 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import React from "react";
+import { useNavigation } from "@react-navigation/native";
 
 interface GameControlsInterface {
-  styles: any;
-  width: number;
   showStartButton: boolean;
   startPlaying: () => void;
   startNewGame: () => void;
   gameOver: boolean;
+  onClose?: () => void; // Add this prop
 }
+
 const GameControls: React.FC<GameControlsInterface> = ({
-  styles,
-  width,
   showStartButton,
   startPlaying,
   startNewGame,
   gameOver,
+  onClose,
 }) => {
+  const navigation = useNavigation();
   return (
-    <View
-      style={{
-        flexDirection: "row",
-        alignSelf: "center",
-        gap: 10,
-        flex: width > 400 ? 0.22 : 0.12,
-      }}
-    >
-      {showStartButton && (
+    <View style={styles.overlayButtonsContainer}>
+      {/* {showStartButton && (
         <TouchableOpacity
-          style={styles.newGameButton}
-          onPress={startPlaying}
+          style={[styles.overlayButton, styles.startButton]}
+          onPress={() => {
+            startPlaying();
+            onClose && onClose();
+          }}
           activeOpacity={0.8}
         >
-          <Text style={styles.newGameText}>{"Start Game"}</Text>
+          <Text style={styles.overlayButtonText}>{"Start Game"}</Text>
         </TouchableOpacity>
-      )}
+      )} */}
       <TouchableOpacity
-        style={styles.newGameButton}
+        style={[styles.overlayButton, styles.newGameButton]}
         onPress={() => {
           startNewGame();
+          onClose && onClose();
         }}
-        activeOpacity={0.8}
+        activeOpacity={0.7}
       >
-        <Text style={styles.newGameText}>
+        <Text style={styles.overlayButtonText}>
           {gameOver || showStartButton ? "New Game" : "Restart Game"}
         </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.overlayButton, styles.QuitGameButton]}
+        onPress={() => navigation.navigate("MainMenu" as never)}
+        activeOpacity={0.7}
+      >
+        <Text style={styles.overlayButtonText}>Quit Game</Text>
       </TouchableOpacity>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  overlayButtonsContainer: {
+    alignItems: "center",
+    gap: 20,
+  },
+  overlayButton: {
+    width: "100%",
+    height: 50,
+    borderRadius: 25,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  startButton: {
+    backgroundColor: "#FF9800",
+  },
+  newGameButton: {
+    backgroundColor: "#076345",
+  },
+  QuitGameButton: {
+    backgroundColor: "red",
+    opacity: 0.8,
+  },
+  overlayButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+});
 
 export default GameControls;

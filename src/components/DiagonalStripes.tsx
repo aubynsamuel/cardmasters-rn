@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Dimensions } from "react-native";
+import { View } from "react-native";
 import Svg, { Defs, Pattern, Rect, Line } from "react-native-svg";
 
 const DiagonalStripes = ({ style }: any) => {

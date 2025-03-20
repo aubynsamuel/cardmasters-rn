@@ -1,5 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, Alert, useWindowDimensions } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  Alert,
+  useWindowDimensions,
+  TouchableOpacity,
+} from "react-native";
 import {
   chooseCardAI,
   createDeck,
@@ -30,20 +36,15 @@ import ShufflingAnimation from "../components/ShufflingAnimations";
 import EmptyCard from "../components/EmptySlotCard";
 import SlotCard from "../components/SlotCard";
 import OpponentCard from "../components/OpponentCard";
-import TopRow from "../components/TopRow";
+import TopRow, { GameScore } from "../components/TopRow";
 import GameControls from "../components/GameControls";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 
-let currentCard: Card | null;
-let currentControl: Player = "Computer";
-const roundsList: roundsType[] = [
-  { roundNUmber: 1, active: true },
-  { roundNUmber: 2, active: false },
-  { roundNUmber: 3, active: false },
-  { roundNUmber: 4, active: false },
-  { roundNUmber: 5, active: false },
-];
+const GAME_TO: number = 1;
 
 const GameScreen: React.FC = () => {
+  const navigation = useNavigation<any>();
   const { width, height } = useWindowDimensions();
   const styles = getStyles(width, height);
   const [humanHand, setHumanHand] = useState<Card[]>([]);
@@ -53,7 +54,10 @@ const GameScreen: React.FC = () => {
     deck: [],
     human: [],
   });
-
+  const [gameScore, setGameScore] = useState<GameScore>({
+    computer: 0,
+    human: 0,
+  });
   const [currentPlays, setCurrentPlays] = useState<Play[]>([]);
   const [currentLeadCard, setCurrentLeadCard] = useState<Card | null>(null);
   const [roundsPlayed, setRoundsPlayed] = useState<number>(0);
@@ -61,14 +65,14 @@ const GameScreen: React.FC = () => {
   const [gameOver, setGameOver] = useState<boolean>(false);
   const [gameHistory, setGameHistory] = useState<gameHistoryType[]>([]);
   const [showStartButton, setShowStartButton] = useState<boolean>(false);
-  const [rounds, setRounds] = useState<roundsType[]>(roundsList);
   const [isShuffling, setIsShuffling] = useState<boolean>(false);
   const [isDealing, setIsDealing] = useState<boolean>(false);
   const [canPlayCard, setCanPlayCard] = useState(false);
   const computerControlScale = useSharedValue(0);
   const humanControlScale = useSharedValue(0);
-
-  // const messageScale = useSharedValue(1);
+  const currentCard = useRef<Card | null>();
+  const currentControl = useRef<Player>("Computer");
+  const [showControlsOverlay, setShowControlsOverlay] = useState(false);
 
   // const ref = useRef<number>(0);
   // console.log("Re rendered ", ref.current++, " times");
@@ -78,7 +82,7 @@ const GameScreen: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (currentControl === "Computer")
+    if (currentControl.current === "Computer")
       computerControlScale.value = withSpring(1.2, {
         duration: 500,
         stiffness: 300,
@@ -89,7 +93,7 @@ const GameScreen: React.FC = () => {
         stiffness: 300,
       });
 
-    if (currentControl === "You")
+    if (currentControl.current === "You")
       humanControlScale.value = withSpring(1.2, {
         duration: 500,
         stiffness: 300,
@@ -99,7 +103,7 @@ const GameScreen: React.FC = () => {
         duration: 500,
         stiffness: 300,
       });
-  }, [currentControl]);
+  }, [currentControl.current]);
 
   // When both players have played in a round, finish the round
   useEffect(() => {
@@ -128,15 +132,14 @@ const GameScreen: React.FC = () => {
   const startNewGame = (): void => {
     // First, reset everything
     setRoundsPlayed(0);
-    setRounds(roundsList);
     setCurrentLeadCard(null);
-    currentCard = null;
+    currentCard.current = null;
     setCurrentPlays([]);
     setMessage(
       !gameState || gameState.deck.length < 5 * 2 ? `Shuffling cards...` : ""
     );
     setGameOver(false);
-    setShowStartButton(currentControl === "Computer");
+    setShowStartButton(currentControl.current === "Computer");
     setGameHistory([]);
 
     // Start shuffling animation
@@ -159,11 +162,11 @@ const GameScreen: React.FC = () => {
 
           // End dealing animation after cards are shown
           setTimeout(() => {
-            setCanPlayCard(currentControl === "You");
+            setCanPlayCard(currentControl.current === "You");
             setIsDealing(false);
             setMessage(
               `${
-                currentControl === "Computer"
+                currentControl.current === "Computer"
                   ? "Press 'Start Game' to play"
                   : "Play a card to start"
               } `
@@ -185,7 +188,7 @@ const GameScreen: React.FC = () => {
   const resetRound = (): void => {
     setCanPlayCard(false);
     setCurrentLeadCard(null);
-    currentCard = null;
+    currentCard.current = null;
     setCurrentPlays([]);
   };
 
@@ -240,7 +243,7 @@ const GameScreen: React.FC = () => {
           : "Computer wins the round.";
     }
 
-    currentControl = newControl;
+    currentControl.current = newControl;
     setMessage(resultMessage);
     setGameHistory((prev) => [
       ...prev,
@@ -255,23 +258,53 @@ const GameScreen: React.FC = () => {
       const newRoundsPlayed = roundsPlayed + 1;
       // console.log("Round Number", newRoundsPlayed);
       setRoundsPlayed(newRoundsPlayed > 5 ? 5 : newRoundsPlayed);
-      setRounds((prev) =>
-        prev.map((rnd) =>
-          rnd.roundNUmber === newRoundsPlayed + 1
-            ? { ...rnd, active: true }
-            : rnd
-        )
-      );
       // Check if game is over
       if (newRoundsPlayed >= 5) {
         setCanPlayCard(false);
         setGameOver(true);
         setShowStartButton(false);
+        const currentGameScore: GameScore =
+          newControl === "Computer"
+            ? {
+                computer: gameScore.computer + 1,
+                human: gameScore.human,
+              }
+            : {
+                computer: gameScore.computer,
+                human: gameScore.human + 1,
+              };
+        setGameScore((prev) => {
+          if (newControl === "Computer") {
+            prev.computer++;
+          } else {
+            prev.human++;
+          }
+          return prev;
+        });
+        console.log(gameScore.computer, gameScore.human);
         setMessage(
-          `Game Over \n ${
-            newControl === "You" ? "🏆 You won 🏆" : "🏆 Computer won! 🏆"
+          `${
+            newControl === "You"
+              ? "🏆 You won this game 🏆"
+              : "🏆 Computer won this game! 🏆"
           }`
         );
+        if (
+          currentGameScore.computer < GAME_TO &&
+          currentGameScore.human < GAME_TO
+        ) {
+          setTimeout(() => {
+            startNewGame();
+          }, 1000);
+        } else {
+          setMessage(`Game Over ${currentControl.current} won`);
+          setTimeout(() => {
+            navigation.navigate("GameOver", {
+              winner: currentControl.current,
+              score: currentGameScore,
+            });
+          }, 1000);
+        }
       } else {
         // Continue to next round
         if (newControl === "Computer") {
@@ -296,15 +329,23 @@ const GameScreen: React.FC = () => {
 
     const remainingRounds = 5 - roundsPlayed;
     let cardToPlay: Card;
-    if (currentControl === "Computer") {
+    if (currentControl.current === "Computer") {
       // console.log("Computer is playing as a leader");
       // console.log("");
       cardToPlay = chooseCardAI(computerHand, null, remainingRounds);
     } else {
       // console.log("Computer is playing as a follower");
-      // console.log("Current lead card ", currentCard);
+      // console.log("Current lead card ", currentCard.current);
       // console.log("");
-      cardToPlay = chooseCardAI(computerHand, currentCard, remainingRounds);
+      if (!currentCard.current) {
+        console.log("Current control card is null");
+        return;
+      }
+      cardToPlay = chooseCardAI(
+        computerHand,
+        currentCard.current,
+        remainingRounds
+      );
     }
 
     setComputerHand((prev) => {
@@ -324,7 +365,7 @@ const GameScreen: React.FC = () => {
     }
 
     // If it's not human's turn
-    if (currentControl === "Computer" && !currentLeadCard) {
+    if (currentControl.current === "Computer" && !currentLeadCard) {
       Alert.alert("Wait", "It's not your turn to play!");
       return 1;
     }
@@ -363,7 +404,7 @@ const GameScreen: React.FC = () => {
 
       const isLeading = !currentLeadCard;
       if (isLeading) {
-        currentCard = card;
+        currentCard.current = card;
         setMessage("Computer is thinking...");
         setTimeout(() => computerTurn(), 1000);
       }
@@ -387,7 +428,37 @@ const GameScreen: React.FC = () => {
           </View>
         )}
 
-        <TopRow rounds={rounds} gameState={gameState} styles={styles} />
+        {/* Controls Overlay */}
+        {showControlsOverlay && (
+          <TouchableOpacity
+            activeOpacity={1}
+            style={styles.overlayContainer}
+            onPress={() => setShowControlsOverlay(false)}
+          >
+            <View style={styles.overlayContent}>
+              <View style={styles.overlayHeader}>
+                <Text style={styles.overlayTitle}>Game Controls</Text>
+                <TouchableOpacity onPress={() => setShowControlsOverlay(false)}>
+                  <Ionicons name="close" size={24} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+              <GameControls
+                showStartButton={showStartButton}
+                startPlaying={startPlaying}
+                startNewGame={startNewGame}
+                gameOver={gameOver}
+                onClose={() => setShowControlsOverlay(false)}
+              />
+            </View>
+          </TouchableOpacity>
+        )}
+
+        <TopRow
+          gameState={gameState}
+          styles={styles}
+          setShowControlsOverlay={setShowControlsOverlay}
+          gameScore={gameScore}
+        />
 
         {/* MAIN GAME AREA */}
         <View style={styles.mainGameArea}>
@@ -487,14 +558,19 @@ const GameScreen: React.FC = () => {
           </View>
         </View>
 
-        <GameControls
-          styles={styles}
-          width={width}
-          showStartButton={showStartButton}
-          startPlaying={startPlaying}
-          startNewGame={startNewGame}
-          gameOver={gameOver}
-        />
+        {showStartButton && (
+          <View style={{ width: "100%", alignItems: "center" }}>
+            <TouchableOpacity
+              style={styles.startButton}
+              onPress={() => {
+                startPlaying();
+              }}
+              activeOpacity={0.8}
+            >
+              <Text style={styles.overlayButtonText}>{"Start Game"}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         <GameHistory gameHistory={gameHistory} width={width} />
       </SafeAreaView>

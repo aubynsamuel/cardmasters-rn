@@ -38,18 +38,20 @@ const CardComponent = ({
   const ctx = useSharedValue({ startX: 0, startY: 0 });
 
   useEffect(() => {
+    let timer: NodeJS.Timeout;
     if (isDealt) {
-      setTimeout(() => {
+      timer = setTimeout(() => {
         scale.value = withSpring(1);
         rotate.value = withTiming("0deg", { duration: 300 });
         // Play card slide sound here if you have sound effects
       }, dealDelay);
     }
+    return () => clearTimeout(timer);
   }, []);
 
   function visualEffectForUnsuccessfulPlays() {
     const afterEffect = playCard();
-    console.log("After Effect was", afterEffect);
+    // console.log("After Effect was", afterEffect);
     if (afterEffect === 1) {
       translateX.value = withSpring(0, { duration: 500 });
       translateY.value = withSpring(0, { duration: 500 });
@@ -64,7 +66,7 @@ const CardComponent = ({
     .onUpdate((event) => {
       translateX.value = ctx.value.startX + event.translationX;
       translateY.value = ctx.value.startY + event.translationY;
-      console.log(event.absoluteX, event.absoluteY);
+      // console.log(event.absoluteX, event.absoluteY);
     })
     .onEnd((event) => {
       scale.value = withTiming(1, { duration: 150 });

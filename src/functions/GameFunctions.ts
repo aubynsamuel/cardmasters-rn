@@ -1,4 +1,4 @@
-import { Card, GameState, Rank, Suit } from "../Types";
+import { Card, GameState, Rank, roundsType, Suit } from "../Types";
 
 const suits: Suit[] = ["diamond", "spade", "love", "club"];
 const ranks: Rank[] = ["6", "7", "8", "9", "10", "J", "Q", "K"];
@@ -18,6 +18,14 @@ const suitSymbols: Record<Suit, string> = {
   love: "♥",
   club: "♣",
 };
+
+const roundsList: roundsType[] = [
+  { roundNUmber: 1, active: true },
+  { roundNUmber: 2, active: false },
+  { roundNUmber: 3, active: false },
+  { roundNUmber: 4, active: false },
+  { roundNUmber: 5, active: false },
+];
 
 const createDeck = (): Card[] => {
   let deck: Card[] = [];
@@ -85,6 +93,7 @@ const chooseCardAI = (
 ): Card => {
   // If AI is leading/ is in control (no lead card)
   if (!leadCard) {
+    // console.log("AI is leading");
     if (remainingRounds <= 2) {
       // In final 2 rounds, play highest cards to secure control
       return [...hand].sort((a, b) => b.value - a.value)[0];
@@ -95,11 +104,13 @@ const chooseCardAI = (
   }
   // If AI is following
   else {
+    // console.log("AI is following");
     const requiredSuit = leadCard.suit;
     const cardsOfSuit = hand.filter((card) => card.suit === requiredSuit);
 
     // If AI has cards of the required suit
     if (cardsOfSuit.length > 0) {
+      // console.log("AI has the required suit");
       // Find cards that can win
       const winningCards = cardsOfSuit.filter(
         (card) => card.value > leadCard.value
@@ -121,6 +132,7 @@ const chooseCardAI = (
     // If AI doesn't have required suit
     else {
       // Play lowest value card to minimize loss
+      // console.log("AI doesn't have the required suit");
       return [...hand].sort((a, b) => a.value - b.value)[0];
     }
   }

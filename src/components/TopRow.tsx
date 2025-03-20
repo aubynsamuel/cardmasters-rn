@@ -1,15 +1,26 @@
-import { View, Text } from "react-native";
+import { View, Text, TouchableOpacity } from "react-native";
 import React from "react";
 import DeckCard from "./DeckCard";
 import Colors from "../Colors";
-import { GameState, roundsType } from "../Types";
+import { GameState } from "../Types";
+import { Ionicons } from "@expo/vector-icons";
 
+export interface GameScore {
+  human: number;
+  computer: number;
+}
 interface TopRowInterface {
   gameState: GameState;
-  rounds: roundsType[];
   styles: any;
+  gameScore: GameScore;
+  setShowControlsOverlay: React.Dispatch<React.SetStateAction<boolean>>;
 }
-const TopRow: React.FC<TopRowInterface> = ({ rounds, gameState, styles }) => {
+const TopRow: React.FC<TopRowInterface> = ({
+  gameState,
+  styles,
+  gameScore,
+  setShowControlsOverlay,
+}) => {
   return (
     <View
       key={"TopRow"}
@@ -42,37 +53,17 @@ const TopRow: React.FC<TopRowInterface> = ({ rounds, gameState, styles }) => {
         </View>
       </View>
 
-      {/* Rounds */}
-      <View
-        style={{
-          flexDirection: "column",
-          gap: 5,
-          alignItems: "center",
-        }}
-      >
-        <Text style={{ color: Colors.mainTextColor }}>Rounds</Text>
-        <View
-          style={{
-            flexDirection: "row",
-            gap: 5,
-            alignItems: "center",
-          }}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <Text style={{ color: Colors.mainTextColor, fontWeight: "bold" }}>
+          {`AI ${gameScore.computer} : ${gameScore.human} You`}
+        </Text>
+        {/* Controls */}
+        <TouchableOpacity
+          style={styles.controlsButton}
+          onPress={() => setShowControlsOverlay(true)}
         >
-          {rounds.map((round, index) => (
-            <View
-              key={index + round.roundNUmber}
-              style={{
-                height: 15,
-                width: 15,
-                backgroundColor: round.active ? "yellow" : "lightgray",
-                borderRadius: 30,
-                borderColor: "red",
-                borderWidth: 2,
-                marginBottom: 5,
-              }}
-            />
-          ))}
-        </View>
+          <Ionicons name="settings-outline" size={28} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
     </View>
   );

@@ -182,6 +182,60 @@ const getStyles = (width, height) => {
       width: 100,
       height: 100,
     },
+    // Add these to your styles object in getStyles
+    controlsButton: {
+      // position: "absolute",
+      // bottom: 20,
+      // right: 20,
+      width: 40,
+      height: 40,
+      borderRadius: 30,
+      backgroundColor: Colors.buttonBackground,
+      justifyContent: "center",
+      alignItems: "center",
+      elevation: 5,
+    },
+    overlayContainer: {
+      position: "absolute",
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: "rgba(0, 0, 0, 0.7)",
+      justifyContent: "center",
+      alignItems: "center",
+      zIndex: 1000,
+    },
+    overlayContent: {
+      width: "80%",
+      backgroundColor: "#0a8132",
+      borderRadius: 16,
+      padding: 20,
+      borderWidth: 2,
+      borderColor: "#e0f2e9",
+    },
+    overlayHeader: {
+      flexDirection: "row",
+      justifyContent: "space-between",
+      alignItems: "center",
+      marginBottom: 20,
+    },
+    overlayTitle: {
+      fontSize: 20,
+      fontWeight: "bold",
+      color: "#FFFFFF",
+    },
+    overlayButtonText: {
+      color: "#FFFFFF",
+      fontSize: 16,
+      fontWeight: "bold",
+    },
+    startButton: {
+      backgroundColor: "#FF9800",
+      borderRadius: 25,
+      paddingVertical: 5,
+      paddingHorizontal: 10,
+    },
   });
   return styles;
 };

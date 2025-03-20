@@ -1,12 +1,29 @@
 import Animated, { BounceInUp } from "react-native-reanimated";
 import { View, Text } from "react-native";
 import getStyles from "../Styles";
-import { DiagonalDirections } from "react-native-gesture-handler/lib/typescript/Directions";
 import DiagonalStripes from "./DiagonalStripes";
+
+const rotateDegree: Record<number, string> = {
+  0: "-75deg",
+  1: "-65deg",
+  2: "-55deg",
+  3: "-45deg",
+  4: "-35deg",
+  5: "-25deg",
+  6: "-15deg",
+  7: "-5deg",
+  8: "15deg",
+  9: "25deg",
+  10: "35deg",
+  11: "45deg",
+  12: "55deg",
+  13: "65deg",
+  14: "75deg",
+};
 
 const ShufflingAnimation = () => {
   // Create an array of cards for animation
-  const cards = Array(10).fill(0);
+  const cards = Array(15).fill(0);
   const styles = getStyles();
 
   return (
@@ -14,11 +31,13 @@ const ShufflingAnimation = () => {
       <Text style={styles.shuffleText}>Shuffling...</Text>
       <View style={styles.shuffleCards}>
         {cards.map((_, index) => {
-          const isEven = index % 2 === 0;
           return (
             <Animated.View
               key={index}
-              entering={BounceInUp.delay(index * 50).duration(300)}
+              entering={BounceInUp.delay(index * 50)
+                .duration(300)
+                .springify()
+                .stiffness(300)}
             >
               <View
                 key={index}
@@ -26,8 +45,9 @@ const ShufflingAnimation = () => {
                   styles.shuffleCard,
                   {
                     transform: [
-                      { translateX: isEven ? -20 : 20 },
-                      { rotate: isEven ? "-15deg" : "15deg" },
+                      {
+                        rotate: rotateDegree[index],
+                      },
                     ],
                     zIndex: index,
                   },
