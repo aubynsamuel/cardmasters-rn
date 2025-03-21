@@ -77,7 +77,7 @@ const AnimatedStatusBadge: React.FC<{ status: string }> = ({ status }) => {
 
   useEffect(() => {
     scale.value = withSpring(1, { damping: 10 });
-    opacity.value = withTiming(1, { duration: 300 });
+    opacity.value = withTiming(1, { duration: 150 });
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -131,7 +131,7 @@ const RoomItem: React.FC<{ item: LobbyRoom; onPress: () => void }> = ({
   const opacity = useSharedValue(0);
 
   useEffect(() => {
-    opacity.value = withTiming(1, { duration: 500 });
+    opacity.value = withTiming(1, { duration: 250 });
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -140,11 +140,11 @@ const RoomItem: React.FC<{ item: LobbyRoom; onPress: () => void }> = ({
   }));
 
   const handlePressIn = () => {
-    scale.value = withTiming(0.95, { duration: 100 });
+    scale.value = withTiming(0.95, { duration: 50 });
   };
 
   const handlePressOut = () => {
-    scale.value = withTiming(1, { duration: 200 });
+    scale.value = withTiming(1, { duration: 100 });
   };
 
   const isJoinable = item.status !== "full";
@@ -209,11 +209,11 @@ const MultiplayerLobbyScreen: React.FC = () => {
       setLoading(false);
 
       // Start animations
-      headerOpacity.value = withTiming(1, { duration: 600 });
-      listOpacity.value = withDelay(300, withTiming(1, { duration: 800 }));
-      buttonOpacity.value = withDelay(500, withTiming(1, { duration: 600 }));
+      headerOpacity.value = withTiming(1, { duration: 300 });
+      listOpacity.value = withDelay(300, withTiming(1, { duration: 400 }));
+      buttonOpacity.value = withDelay(500, withTiming(1, { duration: 300 }));
       buttonTranslateY.value = withDelay(500, withSpring(0, { damping: 14 }));
-    }, 1000);
+    }, 500);
     return () => clearTimeout(timer);
   }, []);
 
@@ -222,7 +222,7 @@ const MultiplayerLobbyScreen: React.FC = () => {
     setTimeout(() => {
       setRooms([...dummyRooms]);
       setRefreshing(false);
-    }, 1000);
+    }, 500);
   };
 
   const headerAnimatedStyle = useAnimatedStyle(() => ({
@@ -333,8 +333,6 @@ const MultiplayerLobbyScreen: React.FC = () => {
     </LinearGradient>
   );
 };
-
-const { width, height } = Dimensions.get("window");
 
 const styles = StyleSheet.create({
   container: {

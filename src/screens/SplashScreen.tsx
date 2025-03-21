@@ -56,8 +56,8 @@ const SplashScreen: React.FC = () => {
       opacity.value = withTiming(0, { duration: 400 });
       scale.value = withTiming(5, { duration: 400 });
 
-      navigation.navigate("MainMenu" as never);
-      // navigation.reset({ index: 0, routes: [{ name: "MainMenu" as never }] });
+      // navigation.navigate("MainMenu" as never);
+      navigation.reset({ index: 0, routes: [{ name: "MainMenu" as never }] });
     }, 3500);
 
     return () => clearTimeout(timer);

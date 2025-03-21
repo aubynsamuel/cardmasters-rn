@@ -1,15 +1,14 @@
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import Animated, { FlipInEasyX } from "react-native-reanimated";
 import DiagonalStripes from "./DiagonalStripes";
+import Colors from "../Colors";
 
 interface opponentCardInterface {
   index: number;
-  styles: any;
   isDealing: boolean;
 }
 const OpponentCard: React.FC<opponentCardInterface> = ({
   index,
-  styles,
   isDealing,
 }) => {
   return (
@@ -26,4 +25,18 @@ const OpponentCard: React.FC<opponentCardInterface> = ({
   );
 };
 
+const styles = StyleSheet.create({
+  cardBack: {
+    margin: 5,
+    backgroundColor: Colors.cardBackBackground,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.cardBackBorder,
+    alignItems: "center",
+    justifyContent: "center",
+    height: 70,
+    width: 45,
+    elevation: 10,
+  },
+});
 export default OpponentCard;

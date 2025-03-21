@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     margin: 5,
     borderRadius: 8,
-    elevation: 5,
+    elevation: 10,
     padding: 5,
   },
   cardRank: {

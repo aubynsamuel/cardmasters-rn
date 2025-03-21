@@ -1,7 +1,7 @@
 import Animated, { BounceInUp } from "react-native-reanimated";
-import { View, Text } from "react-native";
-import getStyles from "../Styles";
+import { View, Text, StyleSheet } from "react-native";
 import DiagonalStripes from "./DiagonalStripes";
+import Colors from "../Colors";
 
 const rotateDegree: Record<number, string> = {
   0: "-75deg",
@@ -22,10 +22,7 @@ const rotateDegree: Record<number, string> = {
 };
 
 const ShufflingAnimation = () => {
-  // Create an array of cards for animation
   const cards = Array(15).fill(0);
-  const styles = getStyles();
-
   return (
     <View style={styles.shuffleContainer}>
       <Text style={styles.shuffleText}>Shuffling...</Text>
@@ -62,5 +59,38 @@ const ShufflingAnimation = () => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  shuffleContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    borderRadius: 10,
+    elevation: 5,
+  },
+  shuffleText: {
+    fontSize: 24,
+    fontWeight: "bold",
+    marginBottom: 20,
+    color: "#333",
+  },
+  shuffleCard: {
+    position: "absolute",
+    width: 45,
+    height: 70,
+    backgroundColor: Colors.cardBackBackground,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.cardBackBorder,
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+  },
+  shuffleCards: {
+    width: 100,
+    height: 100,
+  },
+});
 
 export default ShufflingAnimation;

@@ -1,13 +1,13 @@
 import React from "react";
 import DiagonalStripes from "./DiagonalStripes";
-import { View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import Colors from "../Colors";
 
 interface DecKCardInterface {
   index: number;
-  styles: any;
 }
 
-const DeckCard: React.FC<DecKCardInterface> = ({ index, styles }) => {
+const DeckCard: React.FC<DecKCardInterface> = ({ index }) => {
   return (
     <View
       key={index}
@@ -17,5 +17,21 @@ const DeckCard: React.FC<DecKCardInterface> = ({ index, styles }) => {
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  deckCardBack: {
+    margin: 5,
+    backgroundColor: Colors.cardBackBackground,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: Colors.cardBackBorder,
+    alignItems: "center",
+    justifyContent: "center",
+    height: 60,
+    width: 40,
+    position: "absolute",
+    elevation: 5,
+  },
+});
 
 export default DeckCard;

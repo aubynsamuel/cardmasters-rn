@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import React from "react";
 import DeckCard from "./DeckCard";
 import Colors from "../Colors";
@@ -11,13 +11,11 @@ export interface GameScore {
 }
 interface TopRowInterface {
   gameState: GameState;
-  styles: any;
   gameScore: GameScore;
   setShowControlsOverlay: React.Dispatch<React.SetStateAction<boolean>>;
 }
 const TopRow: React.FC<TopRowInterface> = ({
   gameState,
-  styles,
   gameScore,
   setShowControlsOverlay,
 }) => {
@@ -48,15 +46,17 @@ const TopRow: React.FC<TopRowInterface> = ({
           }}
         >
           {gameState.deck.map((deck, index) => (
-            <DeckCard index={index} styles={styles} key={index + deck.rank} />
+            <DeckCard index={index} key={index + deck.rank} />
           ))}
         </View>
       </View>
 
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        {/* Score */}
         <Text style={{ color: Colors.mainTextColor, fontWeight: "bold" }}>
           {`AI ${gameScore.computer} : ${gameScore.human} You`}
         </Text>
+
         {/* Controls */}
         <TouchableOpacity
           style={styles.controlsButton}
@@ -68,5 +68,20 @@ const TopRow: React.FC<TopRowInterface> = ({
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  controlsButton: {
+    // position: "absolute",
+    // bottom: 20,
+    // right: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 30,
+    backgroundColor: Colors.buttonBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 5,
+  },
+});
 
 export default TopRow;

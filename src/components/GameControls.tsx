@@ -47,7 +47,12 @@ const GameControls: React.FC<GameControlsInterface> = ({
 
       <TouchableOpacity
         style={[styles.overlayButton, styles.QuitGameButton]}
-        onPress={() => navigation.navigate("MainMenu" as never)}
+        onPress={() =>
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "MainMenu" as never }],
+          })
+        }
         activeOpacity={0.7}
       >
         <Text style={styles.overlayButtonText}>Quit Game</Text>

@@ -30,7 +30,6 @@ const GameHistory: React.FC<gameHistoryInterface> = ({
         ref={scrollRef}
         contentContainerStyle={{
           padding: 10,
-          // paddingBottom: width > 400 ? 45 : 0,
         }}
         style={{
           height: 110,

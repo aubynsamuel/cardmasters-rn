@@ -19,13 +19,13 @@ const suitSymbols: Record<Suit, string> = {
   club: "♣",
 };
 
-const roundsList: roundsType[] = [
-  { roundNUmber: 1, active: true },
-  { roundNUmber: 2, active: false },
-  { roundNUmber: 3, active: false },
-  { roundNUmber: 4, active: false },
-  { roundNUmber: 5, active: false },
-];
+// const roundsList: roundsType[] = [
+//   { roundNUmber: 1, active: true },
+//   { roundNUmber: 2, active: false },
+//   { roundNUmber: 3, active: false },
+//   { roundNUmber: 4, active: false },
+//   { roundNUmber: 5, active: false },
+// ];
 
 const createDeck = (): Card[] => {
   let deck: Card[] = [];

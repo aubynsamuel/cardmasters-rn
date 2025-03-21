@@ -13,14 +13,7 @@ import {
   shuffleDeck,
   suitSymbols,
 } from "../functions/GameFunctions";
-import {
-  Card,
-  gameHistoryType,
-  Player,
-  GameState,
-  Play,
-  roundsType,
-} from "../Types";
+import { Card, gameHistoryType, Player, GameState, Play } from "../Types";
 import getStyles from "../Styles";
 import { StatusBar } from "expo-status-bar";
 import CardComponent from "../components/CardComponent";
@@ -416,6 +409,25 @@ const GameScreen: React.FC = () => {
       <SafeAreaView style={styles.container}>
         <StatusBar backgroundColor="transparent" style="light" hidden={true} />
 
+        <View style={styles.decorationContainer}>
+          {Array(5)
+            .fill(0)
+            .map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.cardDecoration,
+                  {
+                    top: 100 + i * 120,
+                    left: i % 2 === 0 ? -20 : width - 40,
+                    transform: [{ rotate: `${i * 35}deg` }],
+                    opacity: 0.15,
+                  },
+                ]}
+              />
+            ))}
+        </View>
+
         {isShuffling && (
           <View style={styles.animationOverlay}>
             <ShufflingAnimation />
@@ -455,7 +467,6 @@ const GameScreen: React.FC = () => {
 
         <TopRow
           gameState={gameState}
-          styles={styles}
           setShowControlsOverlay={setShowControlsOverlay}
           gameScore={gameScore}
         />
@@ -478,7 +489,6 @@ const GameScreen: React.FC = () => {
               {computerHand.map((card, index) => (
                 <OpponentCard
                   index={index}
-                  styles={styles}
                   isDealing={isDealing}
                   key={`computer-card-${index}`}
                 />

@@ -46,29 +46,7 @@ const getStyles = (width, height) => {
     hand: {
       flexDirection: "row",
     },
-    cardBack: {
-      margin: 5,
-      backgroundColor: Colors.cardBackBackground,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: Colors.cardBackBorder,
-      alignItems: "center",
-      justifyContent: "center",
-      height: 70,
-      width: 45,
-    },
-    deckCardBack: {
-      margin: 5,
-      backgroundColor: Colors.cardBackBackground,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: Colors.cardBackBorder,
-      alignItems: "center",
-      justifyContent: "center",
-      height: 60,
-      width: 40,
-      position: "absolute",
-    },
+
     cardBackText: {
       fontSize: 50,
       color: "#fff",
@@ -116,6 +94,7 @@ const getStyles = (width, height) => {
       padding: 5,
       backgroundColor: Colors.logContainerBackground,
       borderRadius: 15,
+      elevation: 5,
     },
     currentRound: {
       fontSize: 18,
@@ -152,49 +131,7 @@ const getStyles = (width, height) => {
       padding: 15,
       borderRadius: 10,
     },
-    shuffleContainer: {
-      alignItems: "center",
-      justifyContent: "center",
-      padding: 20,
-      backgroundColor: "rgba(255,255,255,0.9)",
-      borderRadius: 10,
-      elevation: 5,
-    },
-    shuffleText: {
-      fontSize: 24,
-      fontWeight: "bold",
-      marginBottom: 20,
-      color: "#333",
-    },
-    shuffleCard: {
-      position: "absolute",
-      width: 45,
-      height: 70,
-      backgroundColor: Colors.cardBackBackground,
-      borderRadius: 8,
-      borderWidth: 1,
-      borderColor: Colors.cardBackBorder,
-      justifyContent: "center",
-      alignItems: "center",
-      alignSelf: "center",
-    },
-    shuffleCards: {
-      width: 100,
-      height: 100,
-    },
-    // Add these to your styles object in getStyles
-    controlsButton: {
-      // position: "absolute",
-      // bottom: 20,
-      // right: 20,
-      width: 40,
-      height: 40,
-      borderRadius: 30,
-      backgroundColor: Colors.buttonBackground,
-      justifyContent: "center",
-      alignItems: "center",
-      elevation: 5,
-    },
+
     overlayContainer: {
       position: "absolute",
       top: 0,
@@ -235,6 +172,21 @@ const getStyles = (width, height) => {
       borderRadius: 25,
       paddingVertical: 5,
       paddingHorizontal: 10,
+      elevation: 2,
+    },
+    decorationContainer: {
+      ...StyleSheet.absoluteFillObject,
+      overflow: "hidden",
+      opacity: 0.3,
+    },
+    cardDecoration: {
+      position: "absolute",
+      width: 80,
+      height: 110,
+      borderRadius: 10,
+      backgroundColor: "red",
+      borderWidth: 2,
+      borderColor: "rgba(255, 255, 255, 0.5)",
     },
   });
   return styles;

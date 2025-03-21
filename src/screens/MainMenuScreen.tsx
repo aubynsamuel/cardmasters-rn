@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   Dimensions,
   StyleSheet,
+  useWindowDimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Animated, {
@@ -20,7 +21,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 const MainMenuScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { width, height } = Dimensions.get("window");
+  const { width, height } = useWindowDimensions();
   const extendedStyles = getExtendedStyles(width, height);
 
   // Shared values for animations
