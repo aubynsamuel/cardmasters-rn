@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Dimensions,
   StyleSheet,
   useWindowDimensions,
 } from "react-native";
@@ -21,8 +20,8 @@ import { Ionicons } from "@expo/vector-icons";
 
 const MainMenuScreen: React.FC = () => {
   const navigation = useNavigation();
-  const { width, height } = useWindowDimensions();
-  const extendedStyles = getExtendedStyles(width, height);
+  const { width } = useWindowDimensions();
+  const extendedStyles = getExtendedStyles();
 
   // Shared values for animations
   const titleOpacity = useSharedValue(0);
@@ -223,7 +222,7 @@ const MainMenuScreen: React.FC = () => {
   );
 };
 
-const getExtendedStyles = (width: number, height: number) => {
+const getExtendedStyles = () => {
   const styles = StyleSheet.create({
     mainContainer: {
       flex: 1,
@@ -289,6 +288,7 @@ const getExtendedStyles = (width: number, height: number) => {
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
+      zIndex:5
     },
     buttonGradient: {
       flexDirection: "row",

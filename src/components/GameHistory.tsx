@@ -11,7 +11,7 @@ const GameHistory: React.FC<gameHistoryInterface> = ({
   gameHistory,
   width,
 }) => {
-  const scrollRef = useRef<any>();
+  const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollToEnd({ animated: true });

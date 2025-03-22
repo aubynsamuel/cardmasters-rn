@@ -4,15 +4,13 @@ import { useNavigation } from "@react-navigation/native";
 
 interface GameControlsInterface {
   showStartButton: boolean;
-  startPlaying: () => void;
   startNewGame: () => void;
   gameOver: boolean;
-  onClose?: () => void; // Add this prop
+  onClose?: () => void;
 }
 
 const GameControls: React.FC<GameControlsInterface> = ({
   showStartButton,
-  startPlaying,
   startNewGame,
   gameOver,
   onClose,
@@ -36,7 +34,7 @@ const GameControls: React.FC<GameControlsInterface> = ({
         style={[styles.overlayButton, styles.newGameButton]}
         onPress={() => {
           startNewGame();
-          onClose && onClose();
+          onClose?.();
         }}
         activeOpacity={0.7}
       >

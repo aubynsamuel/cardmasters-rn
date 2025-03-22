@@ -33,11 +33,21 @@ import TopRow, { GameScore } from "../components/TopRow";
 import GameControls from "../components/GameControls";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
-const GAME_TO: number = 1;
+type GameScreenStackParamList = {
+  GameOver: { winner: string; score: GameScore };
+};
+
+type GameScreenProps = NativeStackNavigationProp<
+  GameScreenStackParamList,
+  "GameOver"
+>;
+
+const GAME_TO: number = 5;
 
 const GameScreen: React.FC = () => {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<GameScreenProps>();
   const { width, height } = useWindowDimensions();
   const styles = getStyles(width, height);
   const [humanHand, setHumanHand] = useState<Card[]>([]);
@@ -96,6 +106,7 @@ const GameScreen: React.FC = () => {
         duration: 500,
         stiffness: 300,
       });
+    // eslint-disable-next-line react-compiler/react-compiler
   }, [currentControl.current]);
 
   // When both players have played in a round, finish the round
@@ -342,7 +353,7 @@ const GameScreen: React.FC = () => {
     }
 
     setComputerHand((prev) => {
-      let newHand = [...prev];
+      const newHand = [...prev];
       newHand.splice(newHand.indexOf(cardToPlay), 1);
       return newHand;
     });
@@ -387,7 +398,7 @@ const GameScreen: React.FC = () => {
     }
 
     setHumanHand((prev) => {
-      let newHand = [...prev];
+      const newHand = [...prev];
       newHand.splice(index, 1);
       return newHand;
     });
@@ -456,7 +467,6 @@ const GameScreen: React.FC = () => {
               </View>
               <GameControls
                 showStartButton={showStartButton}
-                startPlaying={startPlaying}
                 startNewGame={startNewGame}
                 gameOver={gameOver}
                 onClose={() => setShowControlsOverlay(false)}

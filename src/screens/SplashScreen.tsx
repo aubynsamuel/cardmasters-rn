@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Text,
   StyleSheet,
@@ -22,8 +22,8 @@ const SplashScreen: React.FC = () => {
   const navigation = useNavigation();
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.8);
-  const titleOpacity = useRef(new RNAnimated.Value(0)).current;
-  const subtitleOpacity = useRef(new RNAnimated.Value(0)).current;
+  const [titleOpacity] = useState(new RNAnimated.Value(0));
+  const [subtitleOpacity] = useState(new RNAnimated.Value(0));
 
   useEffect(() => {
     // Animate title and subtitle

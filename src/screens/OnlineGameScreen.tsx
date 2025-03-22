@@ -1,8 +1,12 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
-const OnlineGameScreen: React.FC<any> = ({ route }) => {
-  const { roomId } = route.params;
+interface OnlineGameScreenRouteProp {
+  route : {params:{roomId:string}}
+};
+
+const OnlineGameScreen: React.FC< OnlineGameScreenRouteProp > = ({ route }) => {
+  const { roomId } = route.params ;
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Online Game Room: {roomId}</Text>

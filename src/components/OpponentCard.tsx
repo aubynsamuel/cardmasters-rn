@@ -1,4 +1,5 @@
 import { StyleSheet, View } from "react-native";
+import React from "react";
 import Animated, { FlipInEasyX } from "react-native-reanimated";
 import DiagonalStripes from "./DiagonalStripes";
 import Colors from "../Colors";
@@ -39,4 +40,5 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
 });
+
 export default OpponentCard;

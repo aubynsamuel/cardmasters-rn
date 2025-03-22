@@ -2,9 +2,9 @@ import React from "react";
 import { View } from "react-native";
 import Svg, { Defs, Pattern, Rect, Line } from "react-native-svg";
 
-const DiagonalStripes = ({ style }: any) => {
+const DiagonalStripes = () => {
   return (
-    <View style={[{ width: "100%", height: "100%" }, style]}>
+    <View style={[{ width: "100%", height: "100%" }]}>
       <Svg width="100%" height="100%">
         <Defs>
           <Pattern

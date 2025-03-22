@@ -61,6 +61,7 @@ const CardComponent = ({
   const panGesture = Gesture.Pan()
     .onStart(() => {
       ctx.value = { startX: translateX.value, startY: translateY.value };
+      // eslint-disable-next-line react-compiler/react-compiler
       scale.value = withTiming(1.1, { duration: 150 });
     })
     .onUpdate((event) => {

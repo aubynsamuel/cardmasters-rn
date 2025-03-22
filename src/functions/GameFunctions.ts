@@ -1,4 +1,4 @@
-import { Card, GameState, Rank, roundsType, Suit } from "../Types";
+import { Card, GameState, Rank, Suit } from "../Types";
 
 const suits: Suit[] = ["diamond", "spade", "love", "club"];
 const ranks: Rank[] = ["6", "7", "8", "9", "10", "J", "Q", "K"];
@@ -28,7 +28,7 @@ const suitSymbols: Record<Suit, string> = {
 // ];
 
 const createDeck = (): Card[] => {
-  let deck: Card[] = [];
+  const deck: Card[] = [];
   suits.forEach((suit) => {
     ranks.forEach((rank) => {
       deck.push({ suit, rank, value: rankValues[rank] });
@@ -39,7 +39,7 @@ const createDeck = (): Card[] => {
 
 // Fisher–Yates shuffle
 const shuffleDeck = (deck: Card[]): Card[] => {
-  let shuffled = [...deck];
+  const shuffled = [...deck];
   for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
@@ -49,9 +49,9 @@ const shuffleDeck = (deck: Card[]): Card[] => {
 
 // Deal 5 cards each (first 3 then 2 cards) for 2 players
 const dealCards = (deck: Card[]): GameState => {
-  let human: Card[] = [];
-  let computer: Card[] = [];
-  let deckCopy = [...deck];
+  const human: Card[] = [];
+  const computer: Card[] = [];
+  const deckCopy = [...deck];
 
   // First round: 3 cards each
   for (let i = 0; i < 3; i++) {
@@ -69,8 +69,8 @@ const dealCards = (deck: Card[]): GameState => {
     computer.push(deckCopy.shift()!);
   }
 
-  for (let humanCard of human) {
-    for (let computerCard of computer) {
+  for (const humanCard of human) {
+    for (const computerCard of computer) {
       if (humanCard === computerCard) {
         console.error("Duplicate Card found", humanCard, computerCard);
       }

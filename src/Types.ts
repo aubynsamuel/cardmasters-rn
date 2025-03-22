@@ -29,6 +29,17 @@ interface RoundState {
   plays: Play[];
 }
 
+type AccumulatedPoints = {
+  computer: number;
+  human: number;
+};
+
+// For tracking the sequence of control cards
+type ControlSequence = {
+  player: Player;
+  cards: Card[];
+};
+
 interface gameHistoryType {
   message: string;
   importance: boolean;
@@ -44,4 +55,6 @@ export {
   Player,
   Play,
   roundsType,
+  AccumulatedPoints,
+  ControlSequence,
 };

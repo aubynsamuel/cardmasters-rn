@@ -35,7 +35,7 @@ const App: React.FC = () => {
             name="MultiplayerLobby"
             component={MultiplayerLobbyScreen}
           />
-          <Stack.Screen name="OnlineGame" component={OnlineGameScreen} />
+          <Stack.Screen name="OnlineGame" component={OnlineGameScreen as React.FC} />
           <Stack.Screen
             name="GameOver"
             component={GameOverScreen as React.FC}

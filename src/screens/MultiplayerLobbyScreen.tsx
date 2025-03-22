@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Dimensions,
   ActivityIndicator,
-  Image,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
@@ -18,9 +17,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   withDelay,
-  withSequence,
   withSpring,
-  Easing,
   interpolate,
   Extrapolate,
 } from "react-native-reanimated";
@@ -114,7 +111,7 @@ const AnimatedStatusBadge: React.FC<{ status: string }> = ({ status }) => {
   return (
     <Animated.View style={[styles.badgeContainer, animatedStyle]}>
       <LinearGradient
-        colors={getStatusColor() as any}
+        colors={getStatusColor() as never}
         style={styles.badgeGradient}
       >
         <Text style={styles.badgeText}>{getStatusText()}</Text>
@@ -139,13 +136,13 @@ const RoomItem: React.FC<{ item: LobbyRoom; onPress: () => void }> = ({
     transform: [{ scale: scale.value }],
   }));
 
-  const handlePressIn = () => {
-    scale.value = withTiming(0.95, { duration: 50 });
-  };
+  // const handlePressIn = () => {
+  //   scale.value = withTiming(0.95, { duration: 50 });
+  // };
 
-  const handlePressOut = () => {
-    scale.value = withTiming(1, { duration: 100 });
-  };
+  // const handlePressOut = () => {
+  //   scale.value = withTiming(1, { duration: 100 });
+  // };
 
   const isJoinable = item.status !== "full";
 
@@ -154,8 +151,8 @@ const RoomItem: React.FC<{ item: LobbyRoom; onPress: () => void }> = ({
       <TouchableOpacity
         style={[styles.roomButton, !isJoinable && styles.disabledRoom]}
         onPress={isJoinable ? onPress : undefined}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
+        // onPressIn={handlePressIn}
+        // onPressOut={handlePressOut}
         activeOpacity={0.8}
         disabled={!isJoinable}
       >
