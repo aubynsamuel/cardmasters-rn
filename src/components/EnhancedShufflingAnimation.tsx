@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, Dimensions } from "react-native";
+import { View, useWindowDimensions } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -12,10 +12,6 @@ import Animated, {
   Extrapolate,
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
-
-const { width } = Dimensions.get("window");
-const CARD_WIDTH = width * 0.2;
-const CARD_HEIGHT = CARD_WIDTH * 1.5;
 
 interface AnimatedShuffleCardProps {
   index: number;
@@ -31,6 +27,11 @@ const AnimatedShuffleCard: React.FC<AnimatedShuffleCardProps> = ({
   const progress = useSharedValue(0);
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.8);
+  const { width } = useWindowDimensions();
+
+  // Adjust card size based on screen width
+  const CARD_WIDTH = width > 400 ? width * 0.1 : width * 0.2; // Smaller cards for wider screens
+  const CARD_HEIGHT = CARD_WIDTH * 1.5;
 
   useEffect(() => {
     // Fade in with delay based on card index

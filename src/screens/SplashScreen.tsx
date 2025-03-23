@@ -2,8 +2,8 @@ import React, { useEffect, useState } from "react";
 import {
   Text,
   StyleSheet,
-  Dimensions,
   Animated as RNAnimated,
+  useWindowDimensions,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import Animated, {
@@ -16,14 +16,14 @@ import Animated, {
 import { LinearGradient } from "expo-linear-gradient";
 import EnhancedShufflingAnimation from "../components/EnhancedShufflingAnimation";
 
-const { width, height } = Dimensions.get("window");
-
 const SplashScreen: React.FC = () => {
   const navigation = useNavigation();
+  const { width, height } = useWindowDimensions();
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.8);
   const [titleOpacity] = useState(new RNAnimated.Value(0));
   const [subtitleOpacity] = useState(new RNAnimated.Value(0));
+  const styles = getStyles(width, height);
 
   useEffect(() => {
     // Animate title and subtitle
@@ -88,40 +88,42 @@ const SplashScreen: React.FC = () => {
     </LinearGradient>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#142850",
-  },
-  titleContainer: {
-    marginBottom: 40,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: "bold",
-    color: "#fff",
-    letterSpacing: 2,
-    textShadowColor: "rgba(0, 0, 0, 0.75)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 10,
-  },
-  cardContainer: {
-    width: width * 0.9,
-    height: height * 0.4,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  subtitleContainer: {
-    marginTop: 40,
-  },
-  subtitle: {
-    fontSize: 18,
-    color: "#dae1e7",
-    letterSpacing: 1,
-  },
-});
+const getStyles = (width: number, height: number) => {
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "#142850",
+    },
+    titleContainer: {
+      marginBottom: 40,
+    },
+    title: {
+      fontSize: 36,
+      fontWeight: "bold",
+      color: "#fff",
+      letterSpacing: 2,
+      textShadowColor: "rgba(0, 0, 0, 0.75)",
+      textShadowOffset: { width: 1, height: 1 },
+      textShadowRadius: 10,
+    },
+    cardContainer: {
+      width: width * 0.9,
+      height: height * 0.4,
+      justifyContent: "center",
+      alignItems: "center",
+    },
+    subtitleContainer: {
+      marginTop: 40,
+    },
+    subtitle: {
+      fontSize: 18,
+      color: "#dae1e7",
+      letterSpacing: 1,
+    },
+  });
+  return styles;
+};
 
 export default SplashScreen;

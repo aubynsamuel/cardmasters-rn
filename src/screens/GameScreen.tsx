@@ -34,6 +34,7 @@ import GameControls from "../components/GameControls";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import AnimatedScoreDisplay from "../components/AnimatedScoreDisplay";
 
 type GameScreenStackParamList = {
   GameOver: { winner: string; score: GameScore };
@@ -74,8 +75,11 @@ const GameScreen: React.FC = () => {
   const computerControlScale = useSharedValue(0);
   const humanControlScale = useSharedValue(0);
   const currentCard = useRef<Card | null>();
-  const currentControl = useRef<Player>("Computer");
+  const currentControl = useRef<Player>("You");
   const [showControlsOverlay, setShowControlsOverlay] = useState(false);
+  const [accumulatedPoints, setAccumulatedPoints] = useState<number>(0);
+  const accumulatedPointsRef = useRef<number>(0);
+  const [lastPlayedSuit, setLastPlayedSuit] = useState<string | null>(null);
 
   // const ref = useRef<number>(0);
   // console.log("Re rendered ", ref.current++, " times");
@@ -149,6 +153,10 @@ const GameScreen: React.FC = () => {
     // Start shuffling animation
     setIsShuffling(!gameState || gameState.deck.length < 5 * 2);
 
+    accumulatedPointsRef.current = 0;
+    setAccumulatedPoints(0);
+    setLastPlayedSuit(null);
+
     // Show the shuffling animation for 2 seconds
     setTimeout(
       () => {
@@ -156,6 +164,7 @@ const GameScreen: React.FC = () => {
         setMessage(`Dealing cards...`);
 
         const gameState = handleGameState();
+        // const fixedHands = getFixedHands();
 
         setIsDealing(true);
 
@@ -215,11 +224,20 @@ const GameScreen: React.FC = () => {
         importance: false,
       },
     ]);
+    console.log(`${player} played ${card.rank}${suitSymbols[card.suit]}`); // take out
+  };
+
+  const calculateCardPoints = (card: Card): number => {
+    if (card.rank === "6") return 3;
+    if (card.rank === "7") return 2;
+    return 1; // 8-K
   };
 
   const finishRound = (): void => {
     const [firstPlay, secondPlay] = currentPlays;
+
     let newControl: Player, resultMessage: string;
+    let pointsEarned = 0;
 
     if (!currentLeadCard) {
       return;
@@ -247,8 +265,73 @@ const GameScreen: React.FC = () => {
           : "Computer wins the round.";
     }
 
+    // If control changed, reset accumulated points
+    if (currentControl.current !== newControl) {
+      accumulatedPointsRef.current = 0;
+      setAccumulatedPoints(0);
+      setLastPlayedSuit(null);
+    }
+
+    // Calculate points for the winner of this round
+    const winningCard =
+      newControl === firstPlay.player ? firstPlay.card : secondPlay.card;
+
+    // Special control transfer rule
+    const isControlTransfer =
+      currentControl.current !== newControl &&
+      (winningCard.rank === "6" || winningCard.rank === "7") &&
+      winningCard.suit === leadSuit;
+
+    console.log(`Is control transfer: ${isControlTransfer}`);
+    console.log(`Last played suit: ${lastPlayedSuit}`);
+    console.log(`Current accumulated points: ${accumulatedPointsRef.current}`);
+
+    if (isControlTransfer) {
+      // Control transfer rule - only 1 point
+      pointsEarned = 1;
+      accumulatedPointsRef.current = 0;
+      setAccumulatedPoints(0);
+    } else if (newControl === currentControl.current) {
+      // Player maintained control
+      const cardPoints = calculateCardPoints(winningCard);
+
+      // Check if this is a 6 or 7 (which can accumulate points)
+      if (winningCard.rank === "6" || winningCard.rank === "7") {
+        // Same suit rule
+        if (lastPlayedSuit === winningCard.suit) {
+          // Only count the most recent card's value
+          console.log("Same suit rule applied");
+          pointsEarned = cardPoints;
+          accumulatedPointsRef.current = pointsEarned;
+          setAccumulatedPoints(accumulatedPointsRef.current);
+        } else {
+          // Different suit rule - accumulate
+          console.log("Different suit rule applied");
+          pointsEarned = cardPoints;
+          const newAccumulatedPoints =
+            accumulatedPointsRef.current + pointsEarned;
+          accumulatedPointsRef.current = newAccumulatedPoints;
+          setAccumulatedPoints(newAccumulatedPoints);
+        }
+      } else {
+        // Playing 8-K always worth just 1 point AND resets accumulation
+        pointsEarned = 1;
+        accumulatedPointsRef.current = 0;
+        setAccumulatedPoints(0); // Reset accumulated points when playing 8-K
+      }
+    } else {
+      // New player gained control - always 1 point
+      pointsEarned = 1;
+      accumulatedPointsRef.current = 0;
+      setAccumulatedPoints(0); // Reset accumulated points on control change
+    }
+
+    if (winningCard.rank === "6" || winningCard.rank === "7") {
+      setLastPlayedSuit(winningCard.suit);
+    }
+
     currentControl.current = newControl;
-    setMessage(resultMessage);
+    setMessage(`${resultMessage} (${pointsEarned} points)`);
     setGameHistory((prev) => [
       ...prev,
       {
@@ -256,43 +339,48 @@ const GameScreen: React.FC = () => {
         importance: true,
       },
     ]);
+    console.log(
+      `${newControl} Won Round ${roundsPlayed + 1} with ${pointsEarned} points`
+    );
 
     setTimeout(() => {
       resetRound();
       const newRoundsPlayed = roundsPlayed + 1;
-      // console.log("Round Number", newRoundsPlayed);
       setRoundsPlayed(newRoundsPlayed > 5 ? 5 : newRoundsPlayed);
+
       // Check if game is over
       if (newRoundsPlayed >= 5) {
         setCanPlayCard(false);
         setGameOver(true);
         setShowStartButton(false);
+
+        // Add accumulated points to the winner's score
+        const finalPoints =
+          accumulatedPointsRef.current === 0
+            ? pointsEarned
+            : accumulatedPointsRef.current;
+        console.log(`Final points for ${newControl}: ${finalPoints}`);
+
         const currentGameScore: GameScore =
           newControl === "Computer"
             ? {
-                computer: gameScore.computer + 1,
+                computer: gameScore.computer + finalPoints,
                 human: gameScore.human,
               }
             : {
                 computer: gameScore.computer,
-                human: gameScore.human + 1,
+                human: gameScore.human + finalPoints,
               };
-        setGameScore((prev) => {
-          if (newControl === "Computer") {
-            prev.computer++;
-          } else {
-            prev.human++;
-          }
-          return prev;
-        });
-        console.log(gameScore.computer, gameScore.human);
+
+        setGameScore(currentGameScore);
         setMessage(
           `${
             newControl === "You"
-              ? "🏆 You won this game 🏆"
-              : "🏆 Computer won this game! 🏆"
+              ? `🏆 You won this game with ${finalPoints} points! 🏆`
+              : `🏆 Computer won this game with ${finalPoints} points! 🏆`
           }`
         );
+
         if (
           currentGameScore.computer < GAME_TO &&
           currentGameScore.human < GAME_TO
@@ -322,6 +410,7 @@ const GameScreen: React.FC = () => {
           setMessage("It's your turn to play.");
         }
       }
+      console.log("=== FINISH ROUND COMPLETED ===");
     }, 1500);
   };
 
@@ -485,6 +574,13 @@ const GameScreen: React.FC = () => {
         <View style={styles.mainGameArea}>
           {/* Computer's Hand at the Top */}
           <View style={[styles.computerSection]}>
+            <AnimatedScoreDisplay
+              points={accumulatedPoints}
+              visible={
+                // eslint-disable-next-line react-compiler/react-compiler
+                accumulatedPoints > 0 && currentControl.current === "Computer"
+              }
+            />
             <Text style={styles.sectionHeader}>
               Computer
               <Animated.View
@@ -502,6 +598,14 @@ const GameScreen: React.FC = () => {
                   isDealing={isDealing}
                   key={`computer-card-${index}`}
                 />
+                // <CardComponent
+                //   key={index}
+                //   card={card}
+                //   playCard={() => {}}
+                //   isDealt={isDealing}
+                //   dealDelay={index * 200}
+                //   width={width}
+                // />
               ))}
             </View>
           </View>
@@ -543,6 +647,13 @@ const GameScreen: React.FC = () => {
 
           {/* Human's Hand at the Bottom */}
           <View style={[styles.humanSection]}>
+            <AnimatedScoreDisplay
+              points={accumulatedPoints}
+              visible={
+                // eslint-disable-next-line react-compiler/react-compiler
+                accumulatedPoints > 0 && currentControl.current === "You"
+              }
+            />
             <Text style={styles.sectionHeader}>
               You
               <Animated.View
