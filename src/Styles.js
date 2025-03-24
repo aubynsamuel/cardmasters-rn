@@ -46,34 +46,6 @@ const getStyles = (width, height) => {
     hand: {
       flexDirection: "row",
     },
-
-    cardBackText: {
-      fontSize: 50,
-      color: "#fff",
-    },
-    playText: {
-      fontSize: 15,
-      marginVertical: 2,
-    },
-    roundText: {
-      fontSize: 18,
-      textAlign: "center",
-    },
-    newGameButton: {
-      backgroundColor: Colors.buttonBackground,
-      paddingVertical: 5,
-      paddingHorizontal: 25,
-      borderRadius: 8,
-      alignSelf: "center",
-      justifyContent: "center",
-      alignContent: "center",
-      alignItems: "center",
-    },
-    newGameText: {
-      color: "#fff",
-      fontSize: 18,
-      textAlign: "center",
-    },
     gameResultSection: {
       flex: 2,
       justifyContent: "center",
@@ -106,11 +78,6 @@ const getStyles = (width, height) => {
       alignItems: "center",
       // backgroundColor: "blue",
       // flex: 1,
-    },
-    controlText: {
-      fontSize: 18,
-      textAlign: "center",
-      marginVertical: 5,
     },
     animationOverlay: {
       position: "absolute",

@@ -126,12 +126,10 @@ const GameScreen: React.FC = () => {
       newDeck = shuffleDeck(newDeck);
       const updatedGameState = dealCards(newDeck);
       setGameState(updatedGameState);
-      // console.log("newly created deck ", updatedGameState.deck.length);
       return updatedGameState;
     } else {
       const updatedGameState = dealCards(gameState.deck);
       setGameState(updatedGameState);
-      // console.log("deck from previous game ", updatedGameState.deck.length);
       return updatedGameState;
     }
   };
@@ -224,7 +222,6 @@ const GameScreen: React.FC = () => {
         importance: false,
       },
     ]);
-    console.log(`${player} played ${card.rank}${suitSymbols[card.suit]}`); // take out
   };
 
   const calculateCardPoints = (card: Card): number => {
@@ -282,10 +279,7 @@ const GameScreen: React.FC = () => {
       (winningCard.rank === "6" || winningCard.rank === "7") &&
       winningCard.suit === leadSuit;
 
-    console.log(`Is control transfer: ${isControlTransfer}`);
-    console.log(`Last played suit: ${lastPlayedSuit}`);
-    console.log(`Current accumulated points: ${accumulatedPointsRef.current}`);
-
+    /**-------------------------------------------------------------------------------- */
     if (isControlTransfer) {
       // Control transfer rule - only 1 point
       pointsEarned = 1;
@@ -326,6 +320,8 @@ const GameScreen: React.FC = () => {
       setAccumulatedPoints(0); // Reset accumulated points on control change
     }
 
+    /**-------------------------------------------------------------------------------- */
+
     if (winningCard.rank === "6" || winningCard.rank === "7") {
       setLastPlayedSuit(winningCard.suit);
     }
@@ -339,9 +335,6 @@ const GameScreen: React.FC = () => {
         importance: true,
       },
     ]);
-    console.log(
-      `${newControl} Won Round ${roundsPlayed + 1} with ${pointsEarned} points`
-    );
 
     setTimeout(() => {
       resetRound();
@@ -359,7 +352,6 @@ const GameScreen: React.FC = () => {
           accumulatedPointsRef.current === 0
             ? pointsEarned
             : accumulatedPointsRef.current;
-        console.log(`Final points for ${newControl}: ${finalPoints}`);
 
         const currentGameScore: GameScore =
           newControl === "Computer"
@@ -410,28 +402,20 @@ const GameScreen: React.FC = () => {
           setMessage("It's your turn to play.");
         }
       }
-      console.log("=== FINISH ROUND COMPLETED ===");
     }, 1500);
   };
 
   const computerTurn = (): void => {
     if (computerHand.length === 0) {
-      // console.log("Computer has no cards to play");
       return;
     }
 
     const remainingRounds = 5 - roundsPlayed;
     let cardToPlay: Card;
     if (currentControl.current === "Computer") {
-      // console.log("Computer is playing as a leader");
-      // console.log("");
       cardToPlay = chooseCardAI(computerHand, null, remainingRounds);
     } else {
-      // console.log("Computer is playing as a follower");
-      // console.log("Current lead card ", currentCard.current);
-      // console.log("");
       if (!currentCard.current) {
-        console.log("Current control card is null");
         return;
       }
       cardToPlay = chooseCardAI(

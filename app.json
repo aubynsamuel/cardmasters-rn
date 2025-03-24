@@ -15,7 +15,8 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.aubynsamuel.cardmaster"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +38,14 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "325d7b98-c9fb-4585-b631-5f07450c9a52"
+      }
     }
   }
 }

@@ -51,7 +51,6 @@ const CardComponent = ({
 
   function visualEffectForUnsuccessfulPlays() {
     const afterEffect = playCard();
-    // console.log("After Effect was", afterEffect);
     if (afterEffect === 1) {
       translateX.value = withSpring(0, { duration: 500 });
       translateY.value = withSpring(0, { duration: 500 });
@@ -67,7 +66,6 @@ const CardComponent = ({
     .onUpdate((event) => {
       translateX.value = ctx.value.startX + event.translationX;
       translateY.value = ctx.value.startY + event.translationY;
-      // console.log(event.absoluteX, event.absoluteY);
     })
     .onEnd((event) => {
       scale.value = withTiming(1, { duration: 150 });
