@@ -199,6 +199,29 @@ const MainMenuScreen: React.FC = () => {
           >
             <TouchableOpacity
               style={extendedStyles.menuButton}
+              onPress={() => navigation.navigate("ProfileScreen" as never)}
+              activeOpacity={0.7}
+            >
+              <LinearGradient
+                colors={["plum", "#2d3748"]}
+                style={extendedStyles.buttonGradient}
+              >
+                <Ionicons
+                  name="settings"
+                  size={24}
+                  color="#fff"
+                  style={extendedStyles.buttonIcon}
+                />
+                <Text style={extendedStyles.buttonText}>ProfileScreen</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </Animated.View>
+
+          <Animated.View
+            style={[extendedStyles.buttonWrapper, animatedButtonStyle3]}
+          >
+            <TouchableOpacity
+              style={extendedStyles.menuButton}
               onPress={() => navigation.navigate("Settings" as never)}
               activeOpacity={0.7}
             >
@@ -288,7 +311,7 @@ const getExtendedStyles = () => {
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.25,
       shadowRadius: 3.84,
-      zIndex:5
+      zIndex: 5,
     },
     buttonGradient: {
       flexDirection: "row",

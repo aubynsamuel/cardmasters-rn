@@ -17,16 +17,19 @@ import Animated, {
   withDelay,
   Easing,
 } from "react-native-reanimated";
-import { GameScore } from "../components/TopRow";
+import { gameScoreToString } from "../functions/GameFunctions";
+import { GameOverData } from "./GameClass";
 
 interface GameOverScreenProps {
-  route: { params: { winner: string; score: GameScore } };
+  route: {
+    params: GameOverData;
+  };
 }
 
 const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
-  const { winner, score } = route.params;
+  const { winner, score, isCurrentPlayer } = route.params;
   const styles = getStyles(width);
 
   // Animation values
@@ -90,8 +93,6 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
   //   return (1 - value) * 30;
   // };
 
-  const isPlayerWinner = winner === "You" || winner === "Player";
-
   return (
     <LinearGradient
       colors={["#076345", "#0a8132"]}
@@ -126,19 +127,21 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
           <Animated.View style={[styles.resultContainer, winnerStyle]}>
             <LinearGradient
               colors={
-                isPlayerWinner ? ["#FFD700", "#FFA500"] : ["#9E9E9E", "#616161"]
+                isCurrentPlayer
+                  ? ["#FFD700", "#FFA500"]
+                  : ["#9E9E9E", "#616161"]
               }
               style={styles.resultGradient}
             >
               <View style={styles.winnerContainer}>
                 <Text style={styles.winnerLabel}>Winner</Text>
-                <Text style={styles.winnerText}>{winner}</Text>
+                <Text style={styles.winnerText}>{winner.name}</Text>
 
                 <View style={styles.trophyContainer}>
                   <Ionicons
-                    name={isPlayerWinner ? "trophy" : "sad-outline"}
+                    name={isCurrentPlayer ? "trophy" : "sad-outline"}
                     size={50}
-                    color={isPlayerWinner ? "#FFF" : "#E0E0E0"}
+                    color={isCurrentPlayer ? "#FFF" : "#E0E0E0"}
                   />
                 </View>
 
@@ -147,7 +150,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
                     <Text style={styles.scoreLabel}>Final Score</Text>
                     <Text style={styles.scoreText}>
                       {" "}
-                      {`AI ${score.computer} : ${score.human} You`}
+                      {gameScoreToString(score)}
                     </Text>
                   </View>
                 )}

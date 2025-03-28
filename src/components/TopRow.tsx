@@ -2,21 +2,18 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import React from "react";
 import DeckCard from "./DeckCard";
 import Colors from "../Colors";
-import { GameState } from "../Types";
+import { GameScore, GameState } from "../Types";
 import { Ionicons } from "@expo/vector-icons";
+import { gameScoreToString } from "../functions/GameFunctions";
 
-export interface GameScore {
-  human: number;
-  computer: number;
-}
 interface TopRowInterface {
   gameState: GameState;
-  gameScore: GameScore;
+  gameScoreList: GameScore[];
   setShowControlsOverlay: React.Dispatch<React.SetStateAction<boolean>>;
 }
 const TopRow: React.FC<TopRowInterface> = ({
   gameState,
-  gameScore,
+  gameScoreList,
   setShowControlsOverlay,
 }) => {
   return (
@@ -54,7 +51,7 @@ const TopRow: React.FC<TopRowInterface> = ({
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
         {/* Score */}
         <Text style={{ color: Colors.mainTextColor, fontWeight: "bold" }}>
-          {`AI ${gameScore.computer} : ${gameScore.human} You`}
+          {gameScoreToString(gameScoreList)}
         </Text>
 
         {/* Controls */}

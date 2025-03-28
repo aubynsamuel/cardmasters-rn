@@ -155,6 +155,18 @@ const getStyles = (width, height) => {
       borderWidth: 2,
       borderColor: "rgba(255, 255, 255, 0.5)",
     },
+    leaveButton: {
+      backgroundColor: "#f44336",
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 8,
+      alignSelf: "center",
+      marginTop: 10,
+    },
+    leaveButtonText: {
+      color: "white",
+      fontWeight: "bold",
+    },
   });
   return styles;
 };

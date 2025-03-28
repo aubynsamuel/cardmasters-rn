@@ -15,6 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import EnhancedShufflingAnimation from "../components/EnhancedShufflingAnimation";
+import { useAuth } from "../AuthContext";
 
 const SplashScreen: React.FC = () => {
   const navigation = useNavigation();
@@ -24,6 +25,7 @@ const SplashScreen: React.FC = () => {
   const [titleOpacity] = useState(new RNAnimated.Value(0));
   const [subtitleOpacity] = useState(new RNAnimated.Value(0));
   const styles = getStyles(width, height);
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
     // Animate title and subtitle
@@ -51,17 +53,24 @@ const SplashScreen: React.FC = () => {
       withTiming(1, { duration: 800, easing: Easing.out(Easing.back(2)) })
     );
 
-    // Navigate to main menu after animation completes
     const timer = setTimeout(() => {
       opacity.value = withTiming(0, { duration: 400 });
       scale.value = withTiming(5, { duration: 400 });
 
-      // navigation.navigate("MainMenu" as never);
-      navigation.reset({ index: 0, routes: [{ name: "MainMenu" as never }] });
+      // if (!isLoading) {
+      //   if (isAuthenticated) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MainMenu" as never }],
+      });
+      //   } else {
+      //     navigation.reset({ index: 0, routes: [{ name: "Auth" as never }] });
+      //   }
+      // }
     }, 3500);
 
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [navigation, isAuthenticated, isLoading]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -88,6 +97,7 @@ const SplashScreen: React.FC = () => {
     </LinearGradient>
   );
 };
+
 const getStyles = (width: number, height: number) => {
   const styles = StyleSheet.create({
     container: {

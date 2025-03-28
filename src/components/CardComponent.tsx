@@ -18,7 +18,7 @@ import {
 
 interface CardComponentInterface {
   card: Card;
-  playCard: () => void | 1;
+  playCard: () => boolean | undefined;
   isDealt?: boolean;
   dealDelay?: number;
   width: number;
@@ -51,7 +51,7 @@ const CardComponent = ({
 
   function visualEffectForUnsuccessfulPlays() {
     const afterEffect = playCard();
-    if (afterEffect === 1) {
+    if (afterEffect === false) {
       translateX.value = withSpring(0, { duration: 500 });
       translateY.value = withSpring(0, { duration: 500 });
     }

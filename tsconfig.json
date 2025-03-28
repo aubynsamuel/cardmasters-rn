@@ -3,7 +3,8 @@
   "compilerOptions": {
     "strict": true,
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@firebase/auth": ["./node_modules/@firebase/auth/dist/index.rn.d.ts"]
     }
   },
   "include": [
@@ -12,6 +13,10 @@
     ".expo/types/**/*.ts",
     "expo-env.d.ts",
     "App.ts",
-    "PlayedCardsComCardComponent.tsx"
+    "PlayedCardsComCardComponent.tsx",
+    "server/server.js",
+    "src/screens/GameClass.ts",
+    "src/screens/CustomGameHook.ts",
+    "src/screens/GameScreen.tsx"
   ]
 }

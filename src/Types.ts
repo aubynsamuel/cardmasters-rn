@@ -7,38 +7,29 @@ interface Card {
   value: number;
 }
 
-interface roundsType {
-  roundNUmber: number;
-  active: boolean;
-}
-
 interface GameState {
   human: Card[];
   computer: Card[];
   deck: Card[];
 }
-type Player = "You" | "Computer";
+
+interface GameScore {
+  playerName: string;
+  score: number;
+}
+
+// type Player = "You" | "Computer" | string;
+interface Player {
+  name: string;
+  id: number;
+  hands: Card[];
+  score: number;
+}
 
 interface Play {
   player: Player;
   card: Card;
 }
-
-interface RoundState {
-  leadCard: Card | null;
-  plays: Play[];
-}
-
-type AccumulatedPoints = {
-  computer: number;
-  human: number;
-};
-
-// For tracking the sequence of control cards
-type ControlSequence = {
-  player: Player;
-  cards: Card[];
-};
 
 interface gameHistoryType {
   message: string;
@@ -50,11 +41,8 @@ export {
   Rank,
   Card,
   GameState,
-  RoundState,
   gameHistoryType,
   Player,
   Play,
-  roundsType,
-  AccumulatedPoints,
-  ControlSequence,
+  GameScore,
 };

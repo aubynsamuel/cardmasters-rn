@@ -1,4 +1,10 @@
-import { Card, GameState, Rank, Suit } from "../Types";
+import {
+  Card,
+  GameScore,
+  GameState,
+  Rank,
+  Suit,
+} from "../Types";
 
 const suits: Suit[] = ["diamond", "spade", "love", "club"];
 const ranks: Rank[] = ["6", "7", "8", "9", "10", "J", "Q", "K"];
@@ -19,15 +25,21 @@ const suitSymbols: Record<Suit, string> = {
   club: "♣",
 };
 
-// const roundsList: roundsType[] = [
-//   { roundNUmber: 1, active: true },
-//   { roundNUmber: 2, active: false },
-//   { roundNUmber: 3, active: false },
-//   { roundNUmber: 4, active: false },
-//   { roundNUmber: 5, active: false },
-// ];
+const gameScoreToString = (gameScoreList: GameScore[]) => {
+  let Score: string = "";
+  for (const gameScore of gameScoreList) {
+    Score += `${gameScore.playerName} : ${gameScore.score}\n`;
+    // ${
+    //   gameScoreList.indexOf(gameScore) === gameScoreList.length - 1
+    //     ? ""
+    //     : "vs "
+    // }
+  }
+  return Score;
+};
 
-export const getFixedHands = (): { computer: Card[], human: Card[] } => {
+// For testing scoring system
+export const getFixedHands = (): { computer: Card[]; human: Card[] } => {
   // Create computer's hand with diamond and spade suits
   const computerHand: Card[] = [
     { suit: "diamond", rank: "6", value: rankValues["6"] },
@@ -37,7 +49,7 @@ export const getFixedHands = (): { computer: Card[], human: Card[] } => {
     { suit: "spade", rank: "7", value: rankValues["7"] },
     // { suit: "spade", rank: "K", value: rankValues["K"] },
   ];
-  
+
   // Create human's hand with love and club suits
   const humanHand: Card[] = [
     { suit: "love", rank: "6", value: rankValues["6"] },
@@ -47,7 +59,7 @@ export const getFixedHands = (): { computer: Card[], human: Card[] } => {
     { suit: "club", rank: "7", value: rankValues["7"] },
     // { suit: "club", rank: "K", value: rankValues["K"] },
   ];
-  
+
   return { computer: computerHand, human: humanHand };
 };
 
@@ -103,7 +115,6 @@ const dealCards = (deck: Card[]): GameState => {
 
   return { human, computer, deck: deckCopy };
 };
-
 /**
  * AI helper that chooses a card based on the lead
  * If no lead card exists (i.e. leading), play strategically
@@ -162,4 +173,11 @@ const chooseCardAI = (
   }
 };
 
-export { createDeck, shuffleDeck, dealCards, chooseCardAI, suitSymbols };
+export {
+  createDeck,
+  shuffleDeck,
+  dealCards,
+  chooseCardAI,
+  suitSymbols,
+  gameScoreToString,
+};

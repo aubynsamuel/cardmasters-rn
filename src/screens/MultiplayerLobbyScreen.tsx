@@ -31,14 +31,14 @@ interface LobbyRoom {
 }
 
 export type RootStackParamList = {
-  OnlineGame: {
+  OnlineGameScreen: {
     roomId: string;
   };
 };
 
 type OnlineGameProps = NativeStackNavigationProp<
   RootStackParamList,
-  "OnlineGame"
+  "OnlineGameScreen"
 >;
 
 // Enhanced dummy data with more details
@@ -294,7 +294,7 @@ const MultiplayerLobbyScreen: React.FC = () => {
               <RoomItem
                 item={item}
                 onPress={() =>
-                  navigation.navigate("OnlineGame", { roomId: item.id })
+                  navigation.navigate("OnlineGameScreen", { roomId: item.id })
                 }
               />
             )}
@@ -310,7 +310,9 @@ const MultiplayerLobbyScreen: React.FC = () => {
       <Animated.View style={[styles.buttonContainer, buttonAnimatedStyle]}>
         <TouchableOpacity
           style={styles.createRoomButton}
-          onPress={() => navigation.navigate("OnlineGame", { roomId: "new" })}
+          onPress={() =>
+            navigation.navigate("OnlineGameScreen", { roomId: "new" })
+          }
           activeOpacity={0.8}
         >
           <LinearGradient
