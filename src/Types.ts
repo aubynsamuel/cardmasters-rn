@@ -7,11 +7,7 @@ interface Card {
   value: number;
 }
 
-interface GameState {
-  human: Card[];
-  computer: Card[];
-  deck: Card[];
-}
+type Deck = Card[];
 
 interface GameScore {
   playerName: string;
@@ -36,13 +32,48 @@ interface gameHistoryType {
   importance: boolean;
 }
 
+interface CardsGameState {
+  players: Player[];
+  currentPlays: Play[];
+  currentLeadCard: Card | null;
+  cardsPlayed: number;
+  message: string;
+  gameOver: boolean;
+  gameHistory: gameHistoryType[];
+  showStartButton: boolean;
+  isShuffling: boolean;
+  isDealing: boolean;
+  canPlayCard: boolean;
+  accumulatedPoints: number;
+  lastPlayedSuit: Suit | null;
+  currentControl: Player;
+  activePlayerIndex: number;
+  deck: Deck;
+  gameOverData: GameOverData;
+}
+
+interface GameOverData {
+  winner: Player;
+  score: GameScore[];
+  isCurrentPlayer: boolean;
+}
+
+type Callbacks = {
+  onStateChange: (state: CardsGameState) => void;
+  onRoundFinished: () => void;
+};
+
+
 export {
   Suit,
   Rank,
   Card,
-  GameState,
+  Deck,
   gameHistoryType,
   Player,
   Play,
   GameScore,
+  CardsGameState,
+  GameOverData,
+  Callbacks
 };

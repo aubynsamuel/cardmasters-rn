@@ -2,17 +2,18 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import React from "react";
 import DeckCard from "./DeckCard";
 import Colors from "../Colors";
-import { GameScore, GameState } from "../Types";
+import { Deck, GameScore } from "../Types";
 import { Ionicons } from "@expo/vector-icons";
 import { gameScoreToString } from "../functions/GameFunctions";
 
 interface TopRowInterface {
-  gameState: GameState;
+  deck: Deck;
   gameScoreList: GameScore[];
   setShowControlsOverlay: React.Dispatch<React.SetStateAction<boolean>>;
 }
+
 const TopRow: React.FC<TopRowInterface> = ({
-  gameState,
+  deck,
   gameScoreList,
   setShowControlsOverlay,
 }) => {
@@ -42,8 +43,8 @@ const TopRow: React.FC<TopRowInterface> = ({
             left: 0,
           }}
         >
-          {gameState.deck.map((deck, index) => (
-            <DeckCard index={index} key={index + deck.rank} />
+          {deck.map((deckItem, index) => (
+            <DeckCard index={index} key={index + deckItem.rank} />
           ))}
         </View>
       </View>

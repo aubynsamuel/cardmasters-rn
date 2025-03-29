@@ -94,7 +94,11 @@ const GameScreen: React.FC = () => {
       gameRef?.current?.players[0].score >= GAME_TO ||
       gameRef?.current?.players[1].score >= GAME_TO
     ) {
-      navigation.navigate("GameOver", gameRef.current.gameOverData);
+      navigation.navigate("GameOver", {
+        ...gameRef.current.gameOverData,
+        isCurrentPlayer:
+          gameRef.current.gameOverData.winner.id === gameState?.players[0].id,
+      });
     }
   }, [gameState?.cardsPlayed]);
 
@@ -196,7 +200,7 @@ const GameScreen: React.FC = () => {
         )}
 
         <TopRow
-          gameState={gameState.gameState}
+          deck={gameState.deck}
           setShowControlsOverlay={(value) => setShowControlsOverlay(value)}
           gameScoreList={[
             { playerName: currentUser.name, score: currentUser.score },

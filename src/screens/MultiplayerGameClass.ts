@@ -1,5 +1,4 @@
 import {
-  chooseCardAI,
   createDeck,
   dealCards,
   shuffleDeck,
@@ -13,41 +12,14 @@ import {
   GameScore,
   Suit,
   Deck,
+  Callbacks,
+  GameOverData,
+  CardsGameState,
 } from "../Types";
 
 export const GAME_TO = 10;
 
-export interface CardsGameUIState {
-  players: Player[];
-  currentPlays: Play[];
-  currentLeadCard: Card | null;
-  cardsPlayed: number;
-  message: string;
-  gameOver: boolean;
-  gameHistory: gameHistoryType[];
-  showStartButton: boolean;
-  isShuffling: boolean;
-  isDealing: boolean;
-  canPlayCard: boolean;
-  accumulatedPoints: number;
-  lastPlayedSuit: Suit | null;
-  currentControl: Player;
-  deck: Deck;
-  gameOverData: GameOverData;
-}
-
-export interface GameOverData {
-  winner: Player;
-  score: GameScore[];
-  isCurrentPlayer: boolean;
-}
-
-export type Callbacks = {
-  onStateChange: (state: CardsGameUIState) => void;
-  onRoundFinished: () => void;
-};
-
-class CardsGame {
+class MultiplayerCardsGame {
   players: Player[];
   currentPlays: Play[];
   currentLeadCard: Card | null;
@@ -63,11 +35,16 @@ class CardsGame {
   accumulatedPoints: number;
   lastPlayedSuit: Suit | null;
   currentControl: Player;
+  activePlayerIndex: number;
   deck: Deck;
   callbacks: Callbacks;
   gameOverData: GameOverData;
 
   constructor(players: Player[]) {
+    if (players.length < 2) {
+      throw new Error("Game requires at least 2 players");
+    }
+
     this.players = players;
     this.currentPlays = [];
     this.currentLeadCard = null;
@@ -76,14 +53,14 @@ class CardsGame {
     this.message = "";
     this.gameOver = false;
     this.gameHistory = [];
-    this.showStartButton = false;
+    this.showStartButton = true;
     this.isShuffling = false;
     this.isDealing = false;
     this.canPlayCard = false;
     this.accumulatedPoints = 0;
     this.lastPlayedSuit = null;
     this.currentControl = players[0];
-    // Initialize gameState with empty arrays:
+    this.activePlayerIndex = 0;
     this.deck = [];
     this.callbacks = {
       onStateChange: () => {},
@@ -96,13 +73,13 @@ class CardsGame {
     };
   }
 
-  // Register callbacks from the React component
+  // Register callbacks from the React component/websocket server
   setCallbacks(callbacks: Partial<Callbacks>): void {
     this.callbacks = { ...this.callbacks, ...callbacks };
   }
 
-  // Get current UI state for React component
-  getState(): CardsGameUIState {
+  // Get current UI state for React component/websocket server
+  getState(): CardsGameState {
     return {
       players: this.players,
       currentPlays: this.currentPlays,
@@ -118,34 +95,43 @@ class CardsGame {
       accumulatedPoints: this.accumulatedPoints,
       lastPlayedSuit: this.lastPlayedSuit,
       currentControl: this.currentControl,
+      activePlayerIndex: this.activePlayerIndex,
       deck: this.deck,
       gameOverData: this.gameOverData,
     };
   }
 
-  // Update state and notify React component
-  updateState(newState: Partial<CardsGameUIState>): void {
+  // Update state and notify React component/websocket server
+  updateState(newState: Partial<CardsGameState>): void {
     Object.assign(this, newState);
     this.callbacks.onStateChange(this.getState());
   }
 
   handleGameState(): void {
-    if (!this.deck || this.deck.length < this.players.length * 5) {
+    // Calculate minimum cards needed for all players
+    const minCardsNeeded = this.players.length * 5;
+
+    if (!this.deck || this.deck.length < minCardsNeeded) {
       let newDeck: Card[] = createDeck();
       newDeck = shuffleDeck(newDeck);
       this.deck = newDeck;
     }
+
     const { hands, deck } = dealCards(this.players, this.deck);
     this.deck = deck;
+
     const updatedPlayers = this.players.map((player, idx) => ({
       ...player,
       hands: hands[idx],
     }));
+
     this.players = updatedPlayers;
   }
 
   startGame(): void {
-    const needsShuffle = !this.deck || this.deck.length < 10;
+    const needsShuffle =
+      !this.deck || this.deck.length < this.players.length * 5;
+    this.activePlayerIndex = 0;
 
     this.updateState({
       cardsPlayed: 0,
@@ -153,11 +139,13 @@ class CardsGame {
       currentPlays: [],
       message: needsShuffle ? `Shuffling cards...` : "",
       gameOver: false,
-      showStartButton: this.currentControl.id === this.players[1].id,
+      showStartButton: false,
       gameHistory: [],
       isShuffling: needsShuffle,
       accumulatedPoints: 0,
       lastPlayedSuit: null,
+      currentControl: this.players[0],
+      activePlayerIndex: 0,
     });
 
     // Show the shuffling animation for 2 seconds
@@ -176,68 +164,25 @@ class CardsGame {
           // End dealing animation after cards are shown
           setTimeout(() => {
             this.updateState({
-              canPlayCard: this.currentControl.id === this.players[0].id,
+              canPlayCard: true,
               isDealing: false,
-              message:
-                this.currentControl.id === this.players[1].id
-                  ? "Press 'Start Game' to play"
-                  : "Play a card to start",
+              message: `${
+                this.players[this.activePlayerIndex].name
+              }'s turn to play`,
             });
-          }, 1500);
-        }, 500);
+          }, 1000);
+        }, 1000);
       },
       needsShuffle ? 2000 : 50
     );
   }
 
-  startPlaying(): void {
-    this.updateState({ showStartButton: false });
-    setTimeout(() => {
-      this.computerTurn();
-    }, 1500);
-  }
-
-  computerTurn(): void {
-    if (this.players[1].hands.length === 0) {
-      return;
-    }
-
-    const remainingRounds = 5 - this.cardsPlayed;
-    let cardToPlay: Card;
-
-    if (this.currentControl.id === this.players[1].id) {
-      cardToPlay = chooseCardAI(this.players[1].hands, null, remainingRounds);
-    } else {
-      if (!this.currentLeadCard) {
-        return;
-      }
-      cardToPlay = chooseCardAI(
-        this.players[1].hands,
-        this.currentLeadCard,
-        remainingRounds
-      );
-    }
-
-    const updatedPlayers = [...this.players];
-    const newHand = [...updatedPlayers[1].hands];
-    const cardIndex = newHand.findIndex(
-      (card) => card.suit === cardToPlay.suit && card.rank === cardToPlay.rank
-    );
-
-    if (cardIndex !== -1) {
-      newHand.splice(cardIndex, 1);
-      updatedPlayers[1] = { ...updatedPlayers[1], hands: newHand };
-      this.updateState({ players: updatedPlayers });
-    }
-
-    this.playCard(this.players[1], cardToPlay);
-    this.updateState({
-      canPlayCard: true,
-      message: "It's your turn to play.",
-    });
-  }
-
   playCard(player: Player, card: Card): void {
+    /** TODO: add a condition to check if currentPlays is equal to the length of players to avoid
+    double plays (a player playing more than one card in a round)
+    might rather check to see if that player has already played since that will
+    be a better check to avoiding double plays */
+    // TODO: return true if play was and false if play wasn't
     const newPlays: Play[] = [...this.currentPlays, { player, card }];
     const newLeadCard =
       this.currentLeadCard === null ? card : this.currentLeadCard;
@@ -255,10 +200,21 @@ class CardsGame {
       gameHistory: newHistory,
     });
 
-    // If two cards have been played, finish the round
-    if (newPlays.length === 2) {
+    // Move to next player or finish round if all players have played
+    if (newPlays.length === this.players.length) {
       this.finishRound();
+    } else {
+      this.moveToNextPlayer();
     }
+  }
+
+  moveToNextPlayer(): void {
+    const nextPlayerIndex = (this.activePlayerIndex + 1) % this.players.length;
+
+    this.updateState({
+      activePlayerIndex: nextPlayerIndex,
+      message: `${this.players[nextPlayerIndex].name}'s turn to play`,
+    });
   }
 
   calculateCardPoints(card: Card): number {
@@ -269,104 +225,91 @@ class CardsGame {
 
   resetRound(): void {
     this.updateState({
-      canPlayCard: false,
       currentLeadCard: null,
       currentPlays: [],
     });
   }
 
-  humanPlayCard(card: Card, index: number): boolean {
+  playerPlayCard(playerId: number, card: Card, index: number): boolean {
     if (this.gameOver) {
       return false;
     }
 
-    if (
-      this.currentControl.id === this.players[1].id &&
-      !this.currentLeadCard
-    ) {
-      return false;
-    }
-
-    if (!this.canPlayCard) {
+    // Check if it's this player's turn
+    const playerIndex = this.players.findIndex((p) => p.id === playerId);
+    if (playerIndex !== this.activePlayerIndex) {
+      //  TODO: Show an alert to the player that its not their turn to play
       return false;
     }
 
     // Enforce following suit if necessary
     if (this.currentLeadCard) {
       const requiredSuit = this.currentLeadCard.suit;
-      const hasRequired = this.players[0].hands.some(
+      const hasRequired = this.players[playerIndex].hands.some(
         (c) => c.suit === requiredSuit
       );
 
       if (hasRequired && card.suit !== requiredSuit) {
+        // TODO: Show an alert to the player that they must play the required suit if they have it
         return false;
-      } else {
-        this.updateState({ canPlayCard: false });
       }
-    } else {
-      this.updateState({ canPlayCard: false });
     }
 
+    // Remove the card from the player's hand
+    // TODO: Make playCard return if play was successful before removing card from players hand
     const updatedPlayers = [...this.players];
-    const newHand = [...updatedPlayers[0].hands];
+    const newHand = [...updatedPlayers[playerIndex].hands];
     newHand.splice(index, 1);
-    updatedPlayers[0] = { ...updatedPlayers[0], hands: newHand };
+    updatedPlayers[playerIndex] = {
+      ...updatedPlayers[playerIndex],
+      hands: newHand,
+    };
     this.updateState({ players: updatedPlayers });
 
+    // Play the card
+    // TODO: Must be performed before attempting to remove card from players hand
     setTimeout(() => {
-      this.playCard(this.players[0], card);
-
-      const isLeading = this.currentPlays.length === 1;
-      if (isLeading) {
-        this.currentCard = card;
-        this.updateState({ message: `${this.players[1].name} is thinking...` });
-        setTimeout(() => this.computerTurn(), 1000);
-      }
+      this.playCard(this.players[playerIndex], card);
     }, 300);
 
     return true;
   }
 
   finishRound(): void {
-    const [firstPlay, secondPlay] = this.currentPlays;
-    let newControl: Player;
-    let resultMessage: string = "";
-    let pointsEarned = 0;
-
-    if (!this.currentLeadCard) {
+    if (this.currentPlays.length === 0 || !this.currentLeadCard) {
       return;
     }
 
     const leadSuit = this.currentLeadCard.suit;
-    const followerCard = secondPlay.card;
 
-    if (
-      followerCard.suit === leadSuit &&
-      followerCard.value > this.currentLeadCard.value
-    ) {
-      newControl = secondPlay.player;
-      resultMessage =
-        secondPlay.player.id === this.players[1].id
-          ? `${this.players[1].name} wins the round.`
-          : "You win the round.";
-    } else {
-      newControl = firstPlay.player;
-      resultMessage =
-        firstPlay.player.id === this.players[0].id
-          ? "You win the round."
-          : `${this.players[1].name} wins the round.`;
+    // Find the winner of the round
+    let winningPlayIndex = 0;
+    let highestValue = this.currentPlays[0].card.value;
+
+    for (let i = 1; i < this.currentPlays.length; i++) {
+      const play = this.currentPlays[i];
+      // Only compare cards of the lead suit
+      if (play.card.suit === leadSuit && play.card.value > highestValue) {
+        winningPlayIndex = i;
+        highestValue = play.card.value;
+      }
     }
+
+    const winningPlay = this.currentPlays[winningPlayIndex];
+    const winningPlayer = winningPlay.player;
+    const winningCard = winningPlay.card;
+
+    const newControl = winningPlayer;
+    const resultMessage = `${winningPlayer.name} wins the round.`;
 
     let newAccumulatedPoints = this.accumulatedPoints;
     let newLastPlayedSuit = this.lastPlayedSuit;
+    let pointsEarned = 0;
 
     if (this.currentControl.id !== newControl.id) {
       newAccumulatedPoints = 0;
       newLastPlayedSuit = null;
     }
-
-    const winningCard: Card =
-      newControl.id === firstPlay.player.id ? firstPlay.card : secondPlay.card;
 
     const isControlTransfer =
       this.currentControl.id !== newControl.id &&
@@ -407,8 +350,14 @@ class CardsGame {
       },
     ];
 
+    // Set the active player to the winner for the next round
+    const winnerIndex = this.players.findIndex(
+      (p) => p.id === winningPlayer.id
+    );
+
     this.updateState({
       currentControl: newControl,
+      activePlayerIndex: winnerIndex,
       message: resultMessage,
       gameHistory: newHistory,
       accumulatedPoints: newAccumulatedPoints,
@@ -425,20 +374,10 @@ class CardsGame {
       if (newRoundsPlayed >= 5) {
         this.handleGameOver(newControl, newAccumulatedPoints, pointsEarned);
       } else {
-        if (newControl.id === this.players[1].id) {
-          this.updateState({
-            canPlayCard: false,
-            message: `${this.players[1].name} is playing.`,
-          });
-          setTimeout(() => {
-            this.computerTurn();
-          }, 1000);
-        } else {
-          this.updateState({
-            canPlayCard: true,
-            message: "It's your turn to play.",
-          });
-        }
+        this.updateState({
+          canPlayCard: true,
+          message: `${this.players[winnerIndex].name}'s turn to play`,
+        });
       }
     }, 1500);
   }
@@ -451,50 +390,76 @@ class CardsGame {
     this.updateState({
       canPlayCard: false,
       gameOver: true,
-      showStartButton: false,
+      showStartButton: true,
     });
 
     const finalPoints =
       newAccumulatedPoints === 0 ? pointsEarned : newAccumulatedPoints;
     const updatedPlayers = [...this.players];
-    let humanScore: number, computerScore: number;
 
-    if (newControl.id === this.players[1].id) {
-      computerScore = this.players[1].score + finalPoints;
-      humanScore = this.players[0].score;
-      updatedPlayers[1] = { ...updatedPlayers[1], score: computerScore };
-    } else {
-      computerScore = this.players[1].score;
-      humanScore = this.players[0].score + finalPoints;
-      updatedPlayers[0] = { ...updatedPlayers[0], score: humanScore };
-    }
+    // Update the winning player's score
+    const winnerIndex = updatedPlayers.findIndex((p) => p.id === newControl.id);
+    updatedPlayers[winnerIndex] = {
+      ...updatedPlayers[winnerIndex],
+      score: updatedPlayers[winnerIndex].score + finalPoints,
+    };
 
     this.updateState({
       players: updatedPlayers,
-      message:
-        newControl.id === this.players[0].id
-          ? `🏆 You won this game with ${finalPoints} points! 🏆`
-          : `🏆 ${this.players[1].name} won this game with ${finalPoints} points! 🏆`,
+      message: `🏆 ${newControl.name} won this game with ${finalPoints} points! 🏆`,
     });
 
-    if (computerScore < GAME_TO && humanScore < GAME_TO) {
+    // Check if any player has reached the winning score
+    const gameWinner = updatedPlayers.find((p) => p.score >= GAME_TO);
+
+    if (!gameWinner) {
       setTimeout(() => {
         this.startGame();
-      }, 1000);
+      }, 3000);
     } else {
+      // Game over, someone has won the entire match
+      const scores: GameScore[] = updatedPlayers.map((p) => ({
+        playerName: p.name,
+        score: p.score,
+      }));
+
       this.updateState({
-        message: `Game Over ${this.currentControl.name} won`,
+        message: `Game Over! ${gameWinner.name} won the match!`,
         gameOverData: {
-          winner: this.currentControl,
-          score: [
-            { playerName: this.players[0].name, score: humanScore },
-            { playerName: this.players[1].name, score: computerScore },
-          ],
-          isCurrentPlayer: this.currentControl.id === this.players[0].id,
+          winner: gameWinner,
+          score: scores,
+          isCurrentPlayer: false, // This doesn't make sense in multiplayer context
         },
       });
     }
   }
+
+  // Reset the entire game, for use after a complete match
+  resetGame(): void {
+    const resetPlayers = this.players.map((player) => ({
+      ...player,
+      score: 0,
+      hands: [],
+    }));
+
+    this.players = resetPlayers;
+    this.currentPlays = [];
+    this.currentLeadCard = null;
+    this.currentCard = null;
+    this.cardsPlayed = 0;
+    this.gameOver = false;
+    this.gameHistory = [];
+    this.showStartButton = true;
+    this.accumulatedPoints = 0;
+    this.lastPlayedSuit = null;
+    this.currentControl = resetPlayers[0];
+    this.activePlayerIndex = 0;
+    this.deck = [];
+
+    this.updateState({
+      message: "New game ready to start!",
+    });
+  }
 }
 
-export default CardsGame;
+export default MultiplayerCardsGame;

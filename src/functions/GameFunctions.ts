@@ -1,7 +1,7 @@
 import {
   Card,
   GameScore,
-  GameState,
+  Player,
   Rank,
   Suit,
 } from "../Types";
@@ -84,37 +84,46 @@ const shuffleDeck = (deck: Card[]): Card[] => {
 };
 
 // Deal 5 cards each (first 3 then 2 cards) for 2 players
-const dealCards = (deck: Card[]): GameState => {
-  const human: Card[] = [];
-  const computer: Card[] = [];
+// New, generalized dealing function:
+const dealCards = (
+  players: Player[],
+  deck: Card[]
+): { hands: Card[][]; deck: Card[] } => {
   const deckCopy = [...deck];
+  // Create an array of hands, one per player
+  const hands: Card[][] = players.map(() => []);
 
-  // First round: 3 cards each
-  for (let i = 0; i < 3; i++) {
-    human.push(deckCopy.shift()!);
-  }
-  for (let i = 0; i < 3; i++) {
-    computer.push(deckCopy.shift()!);
-  }
-
-  // Second round: 2 cards each
-  for (let i = 0; i < 2; i++) {
-    human.push(deckCopy.shift()!);
-  }
-  for (let i = 0; i < 2; i++) {
-    computer.push(deckCopy.shift()!);
+  // First round: deal 3 cards to each player
+  for (let round = 0; round < 3; round++) {
+    for (let i = 0; i < players.length; i++) {
+      hands[i].push(deckCopy.shift()!);
+    }
   }
 
-  for (const humanCard of human) {
-    for (const computerCard of computer) {
-      if (humanCard === computerCard) {
-        console.error("Duplicate Card found", humanCard, computerCard);
+  // Second round: deal 2 cards to each player
+  for (let round = 0; round < 2; round++) {
+    for (let i = 0; i < players.length; i++) {
+      hands[i].push(deckCopy.shift()!);
+    }
+  }
+
+  // (Optional duplicate-check across all hands)
+  for (let i = 0; i < players.length; i++) {
+    for (let j = i + 1; j < players.length; j++) {
+      for (const cardI of hands[i]) {
+        for (const cardJ of hands[j]) {
+          if (cardI === cardJ) {
+            console.error("Duplicate Card found", cardI, cardJ);
+          }
+        }
       }
     }
   }
 
-  return { human, computer, deck: deckCopy };
+  return { hands, deck: deckCopy };
 };
+
+
 /**
  * AI helper that chooses a card based on the lead
  * If no lead card exists (i.e. leading), play strategically
