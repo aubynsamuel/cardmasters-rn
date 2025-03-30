@@ -1,27 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
   StyleSheet,
-  Dimensions,
   ActivityIndicator,
+  Alert,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
-  withSpring,
-  interpolate,
-  Extrapolate,
-} from "react-native-reanimated";
+import { useSocket } from "../SocketContext";
+import { useAuth } from "../AuthContext";
+import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { Player } from "../Types";
 
+// Room interface
 interface LobbyRoom {
   id: string;
   name: string;
@@ -30,305 +25,264 @@ interface LobbyRoom {
   status: "waiting" | "playing" | "full";
 }
 
-export type RootStackParamList = {
-  OnlineGameScreen: {
+type RootStackParamList = {
+  RoomScreen: {
     roomId: string;
+    initialRoomData: {
+      id: string;
+      name: string;
+      players: Player[];
+      maxPlayers: number;
+      status: string;
+      ownerId: string;
+    };
   };
 };
 
-type OnlineGameProps = NativeStackNavigationProp<
+type LobbyNavigation = NativeStackNavigationProp<
   RootStackParamList,
-  "OnlineGameScreen"
+  "RoomScreen"
 >;
 
-// Enhanced dummy data with more details
-const dummyRooms: LobbyRoom[] = [
-  {
-    id: "1",
-    name: "Card Masters",
-    players: 2,
-    maxPlayers: 4,
-    status: "waiting",
-  },
-  { id: "2", name: "Quick Game", players: 3, maxPlayers: 4, status: "playing" },
-  {
-    id: "3",
-    name: "Beginners Only",
-    players: 1,
-    maxPlayers: 2,
-    status: "waiting",
-  },
-  { id: "4", name: "High Stakes", players: 4, maxPlayers: 4, status: "full" },
-  {
-    id: "5",
-    name: "Tournament Room",
-    players: 2,
-    maxPlayers: 8,
-    status: "waiting",
-  },
-];
+interface RoomItemProps {
+  item: LobbyRoom;
+}
 
-const AnimatedStatusBadge: React.FC<{ status: string }> = ({ status }) => {
-  const scale = useSharedValue(0.8);
-  const opacity = useSharedValue(0);
-
-  useEffect(() => {
-    scale.value = withSpring(1, { damping: 10 });
-    opacity.value = withTiming(1, { duration: 150 });
-  }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
-
-  const getStatusColor = () => {
-    switch (status) {
-      case "waiting":
-        return ["#4CAF50", "#2E7D32"];
-      case "playing":
-        return ["#FF9800", "#F57C00"];
-      case "full":
-        return ["#9E9E9E", "#616161"];
-      default:
-        return ["#4CAF50", "#2E7D32"];
-    }
-  };
-
-  const getStatusText = () => {
-    switch (status) {
-      case "waiting":
-        return "Waiting";
-      case "playing":
-        return "In Game";
-      case "full":
-        return "Full";
-      default:
-        return "Waiting";
-    }
-  };
-
-  return (
-    <Animated.View style={[styles.badgeContainer, animatedStyle]}>
-      <LinearGradient
-        colors={getStatusColor() as never}
-        style={styles.badgeGradient}
-      >
-        <Text style={styles.badgeText}>{getStatusText()}</Text>
-      </LinearGradient>
-    </Animated.View>
-  );
-};
-
-const RoomItem: React.FC<{ item: LobbyRoom; onPress: () => void }> = ({
-  item,
-  onPress,
-}) => {
-  const scale = useSharedValue(1);
-  const opacity = useSharedValue(0);
-
-  useEffect(() => {
-    opacity.value = withTiming(1, { duration: 250 });
-  }, []);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    opacity: opacity.value,
-    transform: [{ scale: scale.value }],
-  }));
-
-  // const handlePressIn = () => {
-  //   scale.value = withTiming(0.95, { duration: 50 });
-  // };
-
-  // const handlePressOut = () => {
-  //   scale.value = withTiming(1, { duration: 100 });
-  // };
-
-  const isJoinable = item.status !== "full";
-
-  return (
-    <Animated.View style={[styles.roomItemContainer, animatedStyle]}>
-      <TouchableOpacity
-        style={[styles.roomButton, !isJoinable && styles.disabledRoom]}
-        onPress={isJoinable ? onPress : undefined}
-        // onPressIn={handlePressIn}
-        // onPressOut={handlePressOut}
-        activeOpacity={0.8}
-        disabled={!isJoinable}
-      >
-        <LinearGradient
-          colors={isJoinable ? ["#0a8132", "#076324"] : ["#607D8B", "#455A64"]}
-          style={styles.roomGradient}
-        >
-          <View style={styles.roomContent}>
-            <View style={styles.roomInfo}>
-              <Text style={styles.roomName}>{item.name}</Text>
-              <Text style={styles.roomPlayers}>
-                <Ionicons name="people" size={16} color="#e0f2e9" />{" "}
-                {item.players}/{item.maxPlayers}
-              </Text>
-            </View>
-            <AnimatedStatusBadge status={item.status} />
-          </View>
-        </LinearGradient>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-};
-
-const EmptyRoomsList: React.FC = () => {
-  return (
-    <View style={styles.emptyContainer}>
-      <Ionicons name="game-controller-outline" size={60} color="#e0f2e9" />
-      <Text style={styles.emptyText}>No rooms available</Text>
-      <Text style={styles.emptySubText}>
-        Create a new room to start playing!
-      </Text>
-    </View>
-  );
-};
-
-const MultiplayerLobbyScreen: React.FC = () => {
-  const navigation = useNavigation<OnlineGameProps>();
+const MultiplayerLobbyScreen = () => {
+  const navigation = useNavigation<LobbyNavigation>();
   const [rooms, setRooms] = useState<LobbyRoom[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  // Track the room the user is already in (if any)
+  const [currentRoomId, setCurrentRoomId] = useState<string | null>(null);
+  const { socket, isConnected } = useSocket();
+  const { userData } = useAuth();
 
-  const headerOpacity = useSharedValue(0);
-  const listOpacity = useSharedValue(0);
-  const buttonOpacity = useSharedValue(0);
-  const buttonTranslateY = useSharedValue(30);
+  // Socket event handlers
+  const handleLobbyRoomsUpdate = useCallback(
+    (updatedRooms: React.SetStateAction<LobbyRoom[]>) => {
+      setRooms(updatedRooms);
+      setIsLoading(false);
+    },
+    []
+  );
 
-  useEffect(() => {
-    // Simulate loading rooms from server
-    const timer = setTimeout(() => {
-      setRooms(dummyRooms);
-      setLoading(false);
+  const handleRoomJoined = useCallback(
+    ({
+      roomId,
+      room,
+    }: {
+      roomId: string;
+      room: {
+        id: string;
+        name: string;
+        players: Player[];
+        maxPlayers: number;
+        status: string;
+        ownerId: string;
+      };
+    }) => {
+      console.log(`Joined room ${roomId}`);
+      setCurrentRoomId(roomId);
+      navigation.navigate("RoomScreen", {
+        roomId,
+        initialRoomData: room,
+      });
+    },
+    [navigation]
+  );
 
-      // Start animations
-      headerOpacity.value = withTiming(1, { duration: 300 });
-      listOpacity.value = withDelay(300, withTiming(1, { duration: 400 }));
-      buttonOpacity.value = withDelay(500, withTiming(1, { duration: 300 }));
-      buttonTranslateY.value = withDelay(500, withSpring(0, { damping: 14 }));
-    }, 500);
-    return () => clearTimeout(timer);
-  }, []);
+  const handleJoinError = useCallback(
+    (error: { message: string | undefined }) => {
+      Alert.alert("Error Joining Room", error.message);
+    },
+    []
+  );
 
-  const refreshRooms = () => {
-    setRefreshing(true);
-    setTimeout(() => {
-      setRooms([...dummyRooms]);
-      setRefreshing(false);
-    }, 500);
+  const handleCreateError = useCallback(
+    (error: { message: string | undefined }) => {
+      Alert.alert("Error Creating Room", error.message);
+    },
+    []
+  );
+
+  // Set up socket listeners when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (socket && isConnected) {
+        console.log("Setting up lobby listeners");
+        setIsLoading(true);
+
+        socket.on("lobby_rooms", handleLobbyRoomsUpdate);
+        socket.on("room_joined", handleRoomJoined);
+        socket.on("join_error", handleJoinError);
+        socket.on("create_error", handleCreateError);
+
+        // Immediately request the latest lobby rooms
+        socket.emit("request_lobby_rooms");
+
+        return () => {
+          console.log("Cleaning up lobby listeners");
+          socket.off("lobby_rooms", handleLobbyRoomsUpdate);
+          socket.off("room_joined", handleRoomJoined);
+          socket.off("join_error", handleJoinError);
+          socket.off("create_error", handleCreateError);
+        };
+      } else {
+        setIsLoading(false);
+        setRooms([]);
+      }
+    }, [
+      socket,
+      isConnected,
+      handleLobbyRoomsUpdate,
+      handleRoomJoined,
+      handleJoinError,
+      handleCreateError,
+    ])
+  );
+
+  // Actions
+  const handleCreateRoom = () => {
+    if (socket && isConnected) {
+      const playerName = userData?.displayName || "Player";
+      socket.emit("create_room", { playerName });
+    } else {
+      Alert.alert("Not Connected", "Unable to connect to game server.");
+    }
   };
 
-  const headerAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: headerOpacity.value,
-    transform: [
-      {
-        translateY: interpolate(
-          headerOpacity.value,
-          [0, 1],
-          [-20, 0],
-          Extrapolate.CLAMP
-        ),
-      },
-    ],
-  }));
+  const handleJoinRoom = (roomId: string) => {
+    // If the user is already in the room, navigate directly
+    if (currentRoomId === roomId) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "RoomScreen", params: { roomId } }],
+      });
+    } else if (socket && isConnected) {
+      const playerName = userData?.displayName || "Player";
+      socket.emit("join_room", { roomId, playerName });
+    } else {
+      Alert.alert("Not Connected", "Unable to connect to game server.");
+    }
+  };
 
-  const listAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: listOpacity.value,
-  }));
+  // Refresh room list
+  const handleRefresh = () => {
+    if (socket && isConnected) {
+      setIsLoading(true);
+      socket.emit("request_lobby_rooms");
+    }
+  };
 
-  const buttonAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: buttonOpacity.value,
-    transform: [{ translateY: buttonTranslateY.value }],
-  }));
+  // Render a room item
+  const renderRoomItem = ({ item }: RoomItemProps) => (
+    <TouchableOpacity
+      style={styles.roomItemContainer}
+      onPress={() => handleJoinRoom(item.id)}
+      disabled={item.status !== "waiting"}
+    >
+      <LinearGradient
+        colors={
+          item.status === "waiting"
+            ? ["#4CAF50", "#2E7D32"]
+            : ["#757575", "#424242"]
+        }
+        style={styles.roomItemGradient}
+      >
+        <View style={styles.roomInfo}>
+          <Text style={styles.roomName}>{item.name}</Text>
+          <Text style={styles.roomPlayers}>
+            Players: {item.players} / {item.maxPlayers}
+          </Text>
+        </View>
+        <View style={styles.badgeContainer}>
+          <LinearGradient
+            colors={
+              item.status === "waiting"
+                ? ["#FFA000", "#FF6F00"]
+                : ["#757575", "#424242"]
+            }
+            style={styles.badgeGradient}
+          >
+            <Text style={styles.badgeText}>{item.status.toUpperCase()}</Text>
+          </LinearGradient>
+        </View>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
 
   return (
     <LinearGradient colors={["#076324", "#076345"]} style={styles.container}>
-      {/* Background decorative elements */}
-      <View style={styles.decorationContainer}>
-        {Array(5)
-          .fill(0)
-          .map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.cardDecoration,
-                {
-                  top: 100 + i * 120,
-                  left: i % 2 === 0 ? -20 : Dimensions.get("window").width - 40,
-                  transform: [{ rotate: `${i * 35}deg` }],
-                  opacity: 0.15,
-                },
-              ]}
-            />
-          ))}
-      </View>
-
-      <Animated.View style={[styles.headerContainer, headerAnimatedStyle]}>
+      <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.title}>Multiplayer Lobby</Text>
-        <TouchableOpacity style={styles.refreshButton} onPress={refreshRooms}>
+
+        <View>
+          <Text style={styles.title}>Game Lobby</Text>
+          <Text style={styles.connectionStatus}>
+            Status: {isConnected ? "Connected" : "Disconnected"}
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.refreshButton}
+          onPress={handleRefresh}
+          disabled={!isConnected}
+        >
           <Ionicons name="refresh" size={24} color="#fff" />
         </TouchableOpacity>
-      </Animated.View>
+      </View>
 
-      <Animated.View style={[styles.contentContainer, listAnimatedStyle]}>
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#e0f2e9" />
-            <Text style={styles.loadingText}>Loading rooms...</Text>
-          </View>
+      <View style={styles.contentContainer}>
+        {isLoading ? (
+          <ActivityIndicator
+            size="large"
+            color="#4CAF50"
+            style={styles.loader}
+          />
+        ) : rooms.length === 0 && isConnected ? (
+          <Text style={styles.noRoomsText}>
+            No available rooms. Create one!
+          </Text>
+        ) : !isConnected ? (
+          <Text style={styles.noRoomsText}>Connecting to server...</Text>
         ) : (
           <FlatList
             data={rooms}
+            renderItem={renderRoomItem}
             keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <RoomItem
-                item={item}
-                onPress={() =>
-                  navigation.navigate("OnlineGameScreen", { roomId: item.id })
-                }
-              />
-            )}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            onRefresh={refreshRooms}
-            refreshing={refreshing}
-            ListEmptyComponent={EmptyRoomsList}
+            contentContainerStyle={styles.listContentContainer}
           />
         )}
-      </Animated.View>
+      </View>
 
-      <Animated.View style={[styles.buttonContainer, buttonAnimatedStyle]}>
+      {/* Create Room Button */}
+      <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.createRoomButton}
-          onPress={() =>
-            navigation.navigate("OnlineGameScreen", { roomId: "new" })
-          }
-          activeOpacity={0.8}
+          onPress={handleCreateRoom}
+          disabled={!isConnected}
         >
           <LinearGradient
-            colors={["#FF9800", "#F57C00"]}
+            colors={
+              isConnected ? ["#1E88E5", "#0D47A1"] : ["#BDBDBD", "#9E9E9E"]
+            }
             style={styles.createButtonGradient}
           >
             <Ionicons
-              name="add-circle"
-              size={20}
-              color="#fff"
+              name="add-circle-outline"
+              size={24}
+              color="#ffffff"
               style={styles.buttonIcon}
             />
-            <Text style={styles.createButtonText}>Create New Room</Text>
+            <Text style={styles.createButtonText}>Create Room</Text>
           </LinearGradient>
         </TouchableOpacity>
-      </Animated.View>
+      </View>
     </LinearGradient>
   );
 };
@@ -337,26 +291,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  decorationContainer: {
-    ...StyleSheet.absoluteFillObject,
-    overflow: "hidden",
-  },
-  cardDecoration: {
-    position: "absolute",
-    width: 80,
-    height: 110,
-    borderRadius: 10,
-    backgroundColor: "#ffffff",
-    borderWidth: 2,
-    borderColor: "rgba(255, 255, 255, 0.5)",
-  },
   headerContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 40,
     paddingBottom: 15,
+  },
+  contentContainer: {
+    flex: 1,
   },
   backButton: {
     width: 40,
@@ -383,22 +327,16 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 3,
   },
-  contentContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
+  connectionStatus: {
+    color: "#FFF",
+    textAlign: "center",
+    marginTop: 5,
+    opacity: 0.8,
   },
-  listContent: {
-    paddingBottom: 90,
-  },
-  loadingContainer: {
+  loader: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  },
-  loadingText: {
-    fontSize: 16,
-    color: "#e0f2e9",
-    marginTop: 15,
   },
   roomItemContainer: {
     marginBottom: 15,
@@ -410,21 +348,12 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-  roomButton: {
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  disabledRoom: {
-    opacity: 0.8,
-  },
-  roomGradient: {
-    borderRadius: 12,
-  },
-  roomContent: {
-    padding: 16,
+  roomItemGradient: {
+    padding: 15,
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    justifyContent: "space-between",
+    borderRadius: 12,
   },
   roomInfo: {
     flex: 1,
@@ -454,10 +383,7 @@ const styles = StyleSheet.create({
     color: "#ffffff",
   },
   buttonContainer: {
-    position: "absolute",
-    bottom: 20,
-    left: 20,
-    right: 20,
+    padding: 20,
   },
   createRoomButton: {
     borderRadius: 12,
@@ -483,23 +409,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingVertical: 50,
+  listContentContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 20,
   },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#ffffff",
-    marginTop: 15,
-  },
-  emptySubText: {
-    fontSize: 14,
-    color: "#e0f2e9",
-    marginTop: 5,
+  noRoomsText: {
     textAlign: "center",
+    marginTop: 100,
+    fontSize: 18,
+    color: "#e0f2e9",
   },
 });
 

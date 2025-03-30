@@ -1,7 +1,52 @@
-const http = require("http");
-const { Server } = require("socket.io");
+import http from "http";
+import { Server, Socket } from "socket.io";
+import { CardsGameState, Callbacks, Card, Player } from "../src/Types";
+
 // Import the game class (adjust the path as needed)
-const MultiplayerCardsGame = require("./MultiplayerGameClass").default;
+import MultiplayerCardsGame from "./MultiplayerGameClass";
+
+interface Room {
+  id: string;
+  name: string;
+  players: Player[];
+  maxPlayers: number;
+  status: "waiting" | "playing" | "finished";
+  ownerId: string;
+}
+
+interface LobbyRoom {
+  id: string;
+  name: string;
+  players: number;
+  maxPlayers: number;
+  status: string;
+}
+
+// Event payload types
+interface CreateRoomPayload {
+  playerName: string;
+  roomName?: string;
+}
+
+interface JoinRoomPayload {
+  roomId: string;
+  playerName: string;
+}
+
+interface LeaveRoomPayload {
+  roomId: string;
+}
+
+interface StartGamePayload {
+  roomId: string;
+}
+
+interface PlayCardPayload {
+  roomId: string;
+  playerId: string;
+  card: Card;
+  cardIndex: number;
+}
 
 // Basic server setup - you might integrate this with Express etc. if needed
 const server = http.createServer();
@@ -16,18 +61,17 @@ const io = new Server(server, {
 });
 
 // In-memory storage for rooms. Consider a database for persistence.
-// Structure: { roomId: { id, name, players: [{id, name}], maxPlayers, status, ownerId } }
-const rooms = {};
+const rooms: Record<string, Room> = {};
 // Keep track of which room each socket is in for easier cleanup on disconnect
-const socketRoomMap = {}; // { socketId: roomId }
+const socketRoomMap: Record<string, string> = {}; // { socketId: roomId }
 
 // Store game instances keyed by roomId
-const gameInstances = {};
+const gameInstances: Record<string, CardsGameState> = {};
 
 // --- Helper Functions ---
 
 // Get rooms suitable for the lobby (waiting and not full)
-function getLobbyRooms() {
+function getLobbyRooms(): LobbyRoom[] {
   return Object.values(rooms)
     .filter((room) => room.status === "waiting") // Only show waiting rooms
     .map((room) => ({
@@ -41,13 +85,13 @@ function getLobbyRooms() {
 }
 
 // Broadcast updated lobby room list to all connected clients
-function broadcastLobbyUpdate() {
+function broadcastLobbyUpdate(): void {
   io.emit("lobby_rooms", getLobbyRooms());
   // console.log('Lobby updated:', getLobbyRooms()); // For debugging
 }
 
 // Handle player disconnection
-function handleDisconnect(socket) {
+function handleDisconnect(socket: Socket): void {
   console.log("User disconnected:", socket.id);
   const roomId = socketRoomMap[socket.id]; // Find which room the socket was in
 
@@ -101,7 +145,7 @@ function handleDisconnect(socket) {
 
 // --- Socket Event Listeners ---
 
-io.on("connection", (socket) => {
+io.on("connection", (socket: Socket) => {
   console.log("A user connected:", socket.id);
 
   // Send initial list of rooms to the newly connected client
@@ -113,7 +157,7 @@ io.on("connection", (socket) => {
   });
 
   // Listener: Create a new room
-  socket.on("create_room", ({ playerName, roomName }) => {
+  socket.on("create_room", ({ playerName, roomName }: CreateRoomPayload) => {
     // Prevent user from creating multiple rooms or joining while in another
     if (socketRoomMap[socket.id]) {
       socket.emit("create_error", { message: "You are already in a room." });
@@ -123,7 +167,7 @@ io.on("connection", (socket) => {
     const roomId = `room_${Date.now()}_${Math.random()
       .toString(36)
       .substring(2, 7)}`;
-    const newRoom = {
+    const newRoom: Room = {
       id: roomId,
       name: roomName || `${playerName}'s Game`,
       players: [
@@ -146,7 +190,7 @@ io.on("connection", (socket) => {
   });
 
   // Listener: Join an existing room
-  socket.on("join_room", ({ roomId, playerName }) => {
+  socket.on("join_room", ({ roomId, playerName }: JoinRoomPayload) => {
     if (socketRoomMap[socket.id]) {
       socket.emit("join_error", { message: "You are already in a room." });
       return;
@@ -163,7 +207,7 @@ io.on("connection", (socket) => {
         return;
       }
 
-      const joiningPlayer = {
+      const joiningPlayer: RoomPlayer = {
         id: socket.id,
         name: playerName || `Player_${socket.id.substring(0, 4)}`,
       };
@@ -188,7 +232,7 @@ io.on("connection", (socket) => {
   });
 
   // Listener: Leave a room
-  socket.on("leave_room", ({ roomId }) => {
+  socket.on("leave_room", ({ roomId }: LeaveRoomPayload) => {
     if (socketRoomMap[socket.id] === roomId && rooms[roomId]) {
       handleDisconnect(socket);
     } else {
@@ -197,24 +241,37 @@ io.on("connection", (socket) => {
   });
 
   // Listener: Start the game (only owner can start)
-  socket.on("start_game", ({ roomId }) => {
+  socket.on("start_game", ({ roomId }: StartGamePayload) => {
     const room = rooms[roomId];
     if (room && room.ownerId === socket.id && room.status === "waiting") {
       if (room.players.length >= 2 && room.players.length <= 4) {
         room.status = "playing";
         console.log(`Game starting in room ${roomId}`);
 
+        // Convert room players to game players
+        const gamePlayers = room.players.map((p) => ({
+          id: p.id,
+          name: p.name,
+          hands: [] as Card[],
+          score: 0,
+        }));
+
         // Create a new game instance for this room.
-        const game = new MultiplayerCardsGame(room.players);
-        game.setCallbacks({
-          onStateChange: (newState) => {
+        const game = new MultiplayerCardsGame(gamePlayers);
+
+        // Set up callbacks with proper typing
+        const callbacks: Callbacks = {
+          onStateChange: (newState: CardsGameState) => {
             io.to(roomId).emit("game_state_update", newState);
           },
           onRoundFinished: () => {
             // Optionally, send a round-finished notification.
             io.to(roomId).emit("round_finished", {});
           },
-        });
+        };
+
+        game.setCallbacks(callbacks);
+
         // Save the game instance for later use (e.g., handling card plays)
         gameInstances[roomId] = game;
 
@@ -244,17 +301,20 @@ io.on("connection", (socket) => {
   });
 
   // Listener: Player plays a card
-  socket.on("play_card", ({ roomId, playerId, card, cardIndex }) => {
-    const game = gameInstances[roomId];
-    if (game) {
-      const valid = game.playerPlayCard(playerId, card, cardIndex);
-      if (!valid) {
-        socket.emit("play_error", { message: "Invalid card play." });
+  socket.on(
+    "play_card",
+    ({ roomId, playerId, card, cardIndex }: PlayCardPayload) => {
+      const game = gameInstances[roomId];
+      if (game) {
+        const valid = game.playerPlayCard(playerId, card, cardIndex);
+        if (!valid) {
+          socket.emit("play_error", { message: "Invalid card play." });
+        }
+      } else {
+        socket.emit("play_error", { message: "Game not found." });
       }
-    } else {
-      socket.emit("play_error", { message: "Game not found." });
     }
-  });
+  );
 
   // Listener: Client disconnected
   socket.on("disconnect", () => {

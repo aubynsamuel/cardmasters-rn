@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -23,11 +23,12 @@ import OpponentCard from "../components/OpponentCard";
 import TopRow from "../components/TopRow";
 import GameControls from "../components/GameControls";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import AnimatedScoreDisplay from "../components/AnimatedScoreDisplay";
 import { CardsGameState, GameScore, Player } from "../Types";
-import CardsGame, { GAME_TO } from "../gameLogic/MultiplayerGameClass";
+import { GAME_TO } from "../gameLogic/MultiplayerGameClass";
+import { useSocket } from "../SocketContext";
 
 type GameScreenStackParamList = {
   GameOver: {
@@ -43,74 +44,77 @@ type GameScreenProps = NativeStackNavigationProp<
   "GameOver"
 >;
 
+interface RoomData {
+  id: string;
+  name: string;
+  players: Player[];
+  maxPlayers: number;
+  status: "waiting" | "playing" | "full";
+  ownerId: string;
+}
+
 const MultiPlayerGameScreen: React.FC = () => {
   const navigation = useNavigation<GameScreenProps>();
+  const route = useRoute();
   const { width, height } = useWindowDimensions();
   const styles = getStyles(width, height);
+  const { isConnected, socket } = useSocket();
 
-  const initialPlayers = [
-    {
-      hands: [],
-      id: 1234,
-      name: "Maame Ekua",
-      score: 0,
-    },
-    {
-      hands: [],
-      id: 5678,
-      name: "Ruth",
-      score: 0,
-    },
-  ];
+  // Get roomId from route params
+  const { roomId } = route.params || {};
 
-  const gameRef = useRef<CardsGame | null>(null);
   const [gameState, setGameState] = useState<CardsGameState | null>(null);
   const [showControlsOverlay, setShowControlsOverlay] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const computerControlScale = useSharedValue(0);
   const humanControlScale = useSharedValue(0);
 
-  // const ref = useRef<number>(null);
-  // console.log(`Re-rendered ${ref.current++} times`);
-
   useEffect(() => {
-    if (!gameRef.current) {
-      gameRef.current = new CardsGame(initialPlayers);
+    if (socket && isConnected) {
+      const handleGameStateUpdate = (newState: CardsGameState) => {
+        console.log("Game state update received:", newState);
+        setGameState(newState);
+        setIsLoading(false);
+      };
 
-      gameRef.current.setCallbacks({
-        onStateChange: (newState: CardsGameState) => {
-          setGameState({ ...newState });
-        },
-      });
+      socket.on("game_state_update", handleGameStateUpdate);
 
-      setGameState(gameRef.current.getState());
-      gameRef.current.startGame();
+      // Request initial game state if needed
+      if (roomId) {
+        console.log("Requesting initial game state for room:", roomId);
+        socket.emit("request_game_state", { roomId });
+      }
+
+      // Cleanup listener on unmount
+      return () => {
+        socket.off("game_state_update", handleGameStateUpdate);
+      };
     }
-
-    return () => {
-      gameRef.current = null;
-    };
-  }, []);
-
-  useEffect(() => {
-    if (!gameRef.current) return;
-
-    if (
-      gameRef?.current?.players[0].score >= GAME_TO ||
-      gameRef?.current?.players[1].score >= GAME_TO
-    ) {
-      navigation.navigate("GameOver", {
-        ...gameRef.current.gameOverData,
-        isCurrentPlayer:
-          gameRef.current.gameOverData.winner.id === gameState?.players[0].id,
-      });
-    }
-  }, [gameState?.cardsPlayed]);
+  }, [socket, isConnected, roomId]);
 
   useEffect(() => {
     if (!gameState) return;
 
-    if (gameState.currentControl.id === gameState.players[1].id)
+    if (
+      gameState.players[0]?.score >= GAME_TO ||
+      gameState.players[1]?.score >= GAME_TO
+    ) {
+      // Make sure gameOverData exists before navigating
+      if (gameState.gameOverData) {
+        navigation.navigate("GameOver", {
+          ...gameState.gameOverData,
+          isCurrentPlayer:
+            gameState.gameOverData.winner.id === gameState?.players[0].id,
+        });
+      }
+    }
+  }, [gameState?.cardsPlayed, gameState?.players]);
+
+  useEffect(() => {
+    if (!gameState || !gameState.currentControl) return;
+
+    if (gameState.currentControl.id === gameState.players[1]?.id)
       computerControlScale.value = withSpring(1.2, {
         duration: 500,
         stiffness: 300,
@@ -121,7 +125,7 @@ const MultiPlayerGameScreen: React.FC = () => {
         stiffness: 300,
       });
 
-    if (gameState.currentControl.id === gameState.players[0].id)
+    if (gameState.currentControl.id === gameState.players[0]?.id)
       humanControlScale.value = withSpring(1.2, {
         duration: 500,
         stiffness: 300,
@@ -131,9 +135,9 @@ const MultiPlayerGameScreen: React.FC = () => {
         duration: 500,
         stiffness: 300,
       });
-  }, [gameState?.currentControl]);
+  }, [gameState?.currentControl, gameState?.players]);
 
-  if (!gameState) {
+  if (isLoading || !gameState || !gameState.players) {
     return (
       <View style={styles.container}>
         <Text style={styles.message}>Loading game...</Text>
@@ -141,8 +145,20 @@ const MultiPlayerGameScreen: React.FC = () => {
     );
   }
 
-  const currentUser = gameState.players[0];
-  const opponent = gameState.players[1];
+  // Make sure we have the currentUser and opponent before rendering
+  const currentUser = gameState.players[0] || {
+    name: "You",
+    id: "player1",
+    hands: [],
+    score: 0,
+  };
+
+  const opponent = gameState.players[1] || {
+    name: "Opponent",
+    id: "player2",
+    hands: [],
+    score: 0,
+  };
 
   return (
     <GestureHandlerRootView>
@@ -196,7 +212,10 @@ const MultiPlayerGameScreen: React.FC = () => {
               </View>
               <GameControls
                 showStartButton={gameState.showStartButton}
-                startNewGame={() => gameRef.current?.startGame()}
+                startNewGame={() => {
+                  // Add new game functionality if needed
+                  socket?.emit("request_new_game", { roomId });
+                }}
                 gameOver={gameState.gameOver}
                 onClose={() => setShowControlsOverlay(false)}
               />
@@ -205,7 +224,7 @@ const MultiPlayerGameScreen: React.FC = () => {
         )}
 
         <TopRow
-          deck={gameState.deck}
+          deck={gameState.deck || []}
           setShowControlsOverlay={(value) => setShowControlsOverlay(value)}
           gameScoreList={[
             { playerName: currentUser.name, score: currentUser.score },
@@ -218,9 +237,10 @@ const MultiPlayerGameScreen: React.FC = () => {
           {/* Opponents's Hand at the Top */}
           <View style={[styles.computerSection]}>
             <AnimatedScoreDisplay
-              points={gameState.accumulatedPoints}
+              points={gameState.accumulatedPoints || 0}
               visible={
                 gameState.accumulatedPoints > 0 &&
+                gameState.currentControl &&
                 gameState.currentControl.id === opponent.id
               }
             />
@@ -235,20 +255,21 @@ const MultiPlayerGameScreen: React.FC = () => {
               </Animated.View>
             </Text>
             <View style={styles.hand}>
-              {opponent.hands.map((card, index) => (
-                <Animated.View
-                  key={`opponent-card-${card.suit}-${card.rank}`}
-                  entering={
-                    gameState.isDealing
-                      ? FlipInEasyX.delay(
-                          (index + opponent.hands.length) * 200
-                        ).duration(300)
-                      : undefined
-                  }
-                >
-                  <OpponentCard />
-                </Animated.View>
-              ))}
+              {opponent.hands &&
+                opponent.hands.map((card, index) => (
+                  <Animated.View
+                    key={`opponent-card-${index}`}
+                    entering={
+                      gameState.isDealing
+                        ? FlipInEasyX.delay(
+                            (index + (opponent.hands?.length || 0)) * 200
+                          ).duration(300)
+                        : undefined
+                    }
+                  >
+                    <OpponentCard />
+                  </Animated.View>
+                ))}
             </View>
           </View>
 
@@ -256,14 +277,15 @@ const MultiPlayerGameScreen: React.FC = () => {
           <View style={[styles.gameResultSection]}>
             <View style={styles.messageContainer}>
               <Text numberOfLines={2} style={[styles.message]}>
-                {gameState.message}
+                {gameState.message || "Game in progress..."}
               </Text>
             </View>
 
             {/* Current Play Cards */}
             <View style={styles.currentRound}>
               {/* Opponent's Play Spot */}
-              {gameState.currentPlays.find(
+              {gameState.currentPlays &&
+              gameState.currentPlays.find(
                 (play) => play.player.id === opponent.id
               ) ? (
                 <SlotCard
@@ -278,7 +300,8 @@ const MultiPlayerGameScreen: React.FC = () => {
               )}
 
               {/* Human Play Spot */}
-              {gameState.currentPlays.find(
+              {gameState.currentPlays &&
+              gameState.currentPlays.find(
                 (play) => play.player.id === currentUser.id
               ) ? (
                 <SlotCard
@@ -297,9 +320,10 @@ const MultiPlayerGameScreen: React.FC = () => {
           {/* Human's Hand at the Bottom */}
           <View style={[styles.humanSection]}>
             <AnimatedScoreDisplay
-              points={gameState.accumulatedPoints}
+              points={gameState.accumulatedPoints || 0}
               visible={
                 gameState.accumulatedPoints > 0 &&
+                gameState.currentControl &&
                 gameState.currentControl.id === currentUser.id
               }
             />
@@ -314,31 +338,37 @@ const MultiPlayerGameScreen: React.FC = () => {
               </Animated.View>
             </Text>
             <View style={styles.hand}>
-              {currentUser.hands.map((card, index) => (
-                <Animated.View
-                  key={`currentUser-card-${card.suit}-${card.rank}`}
-                  entering={
-                    gameState.isDealing
-                      ? FlipInEasyX.delay(
-                          (index + opponent.hands.length) * 200
-                        ).duration(300)
-                      : undefined
-                  }
-                >
-                  <CardComponent
-                    card={card}
-                    playCard={() =>
-                      gameRef.current?.playerPlayCard(1234, card, index)
+              {currentUser.hands &&
+                currentUser.hands.map((card, index) => (
+                  <Animated.View
+                    key={`currentUser-card-${index}`}
+                    entering={
+                      gameState.isDealing
+                        ? FlipInEasyX.delay(
+                            (index + (opponent.hands?.length || 0)) * 200
+                          ).duration(300)
+                        : undefined
                     }
-                    width={width}
-                  />
-                </Animated.View>
-              ))}
+                  >
+                    <CardComponent
+                      card={card}
+                      playCard={() => {
+                        socket?.emit("play_card", {
+                          roomId: roomId,
+                          playerId: currentUser.id,
+                          card,
+                          cardIndex: index,
+                        });
+                      }}
+                      width={width}
+                    />
+                  </Animated.View>
+                ))}
             </View>
           </View>
         </View>
 
-        <GameHistory gameHistory={gameState.gameHistory} width={width} />
+        <GameHistory gameHistory={gameState.gameHistory || []} width={width} />
       </SafeAreaView>
     </GestureHandlerRootView>
   );

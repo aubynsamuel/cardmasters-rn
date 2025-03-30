@@ -14,7 +14,7 @@
     "expo-env.d.ts",
     "App.ts",
     "PlayedCardsComCardComponent.tsx",
-    "server/server.js",
+    "server/server.ts",
     "src/gameLogic/SinglePlayerGameClass.tsx",
     "src/screens/CustomGameHook.ts",
     "src/screens/GameScreen.tsx",
