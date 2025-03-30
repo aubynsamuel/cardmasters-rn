@@ -15,8 +15,9 @@
     "App.ts",
     "PlayedCardsComCardComponent.tsx",
     "server/server.js",
-    "src/screens/GameClass.ts",
+    "src/gameLogic/SinglePlayerGameClass.tsx",
     "src/screens/CustomGameHook.ts",
-    "src/screens/GameScreen.tsx"
+    "src/screens/GameScreen.tsx",
+    "src/gameLogic/MultiplayerGameClass.txr"
   ]
 }

@@ -1,28 +1,13 @@
 import { StyleSheet, View } from "react-native";
 import React from "react";
-import Animated, { FlipInEasyX } from "react-native-reanimated";
 import DiagonalStripes from "./DiagonalStripes";
 import Colors from "../Colors";
 
-interface opponentCardInterface {
-  index: number;
-  isDealing: boolean;
-}
-const OpponentCard: React.FC<opponentCardInterface> = ({
-  index,
-  isDealing,
-}) => {
+const OpponentCard: React.FC = () => {
   return (
-    <Animated.View
-      key={`opponent-card-${index}`}
-      entering={
-        isDealing ? FlipInEasyX.delay(index * 200).duration(300) : undefined
-      }
-    >
-      <View style={styles.cardBack}>
-        <DiagonalStripes />
-      </View>
-    </Animated.View>
+    <View style={styles.cardBack}>
+      <DiagonalStripes />
+    </View>
   );
 };
 

@@ -27,10 +27,19 @@ import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import AnimatedScoreDisplay from "../components/AnimatedScoreDisplay";
 import { GameScore, Player } from "../Types";
-import CardsGame, { CardsGameUIState, GAME_TO } from "./GameClass";
+import CardsGame, {
+  CardsGameUIState,
+  GAME_TO,
+} from "../gameLogic/SinglePlayerGameClass";
+import { useAuth } from "../AuthContext";
 
 type GameScreenStackParamList = {
-  GameOver: { winner: Player; score: GameScore[]; isCurrentPlayer: boolean };
+  GameOver: {
+    winner: Player;
+    score: GameScore[];
+    isCurrentPlayer: boolean;
+    isMultiPlayer: boolean;
+  };
 };
 
 type GameScreenProps = NativeStackNavigationProp<
@@ -42,18 +51,19 @@ const GameScreen: React.FC = () => {
   const navigation = useNavigation<GameScreenProps>();
   const { width, height } = useWindowDimensions();
   const styles = getStyles(width, height);
+  const { userData, userId } = useAuth();
 
   const initialPlayers = [
     {
       hands: [],
-      id: 1234,
-      name: "Samuel",
+      id: userId || 1234,
+      name: userData?.displayName || "You",
       score: 0,
     },
     {
       hands: [],
       id: 5678,
-      name: "Opponent",
+      name: "Computer",
       score: 0,
     },
   ];
@@ -94,11 +104,7 @@ const GameScreen: React.FC = () => {
       gameRef?.current?.players[0].score >= GAME_TO ||
       gameRef?.current?.players[1].score >= GAME_TO
     ) {
-      navigation.navigate("GameOver", {
-        ...gameRef.current.gameOverData,
-        isCurrentPlayer:
-          gameRef.current.gameOverData.winner.id === gameState?.players[0].id,
-      });
+      navigation.navigate("GameOver", gameRef.current.gameOverData);
     }
   }, [gameState?.cardsPlayed]);
 
@@ -231,11 +237,18 @@ const GameScreen: React.FC = () => {
             </Text>
             <View style={styles.hand}>
               {opponent.hands.map((card, index) => (
-                <OpponentCard
-                  index={index}
-                  isDealing={gameState.isDealing}
-                  key={`opponent-card-${index}`}
-                />
+                <Animated.View
+                  key={`opponent-card-${card.suit}-${card.rank}`}
+                  entering={
+                    gameState.isDealing
+                      ? FlipInEasyX.delay(
+                          (index + opponent.hands.length) * 200
+                        ).duration(300)
+                      : undefined
+                  }
+                >
+                  <OpponentCard />
+                </Animated.View>
               ))}
             </View>
           </View>
@@ -292,7 +305,7 @@ const GameScreen: React.FC = () => {
               }
             />
             <Text style={styles.sectionHeader}>
-              You
+              {currentUser.name}
               <Animated.View
                 style={{
                   transform: [{ scale: humanControlScale }],
@@ -316,8 +329,6 @@ const GameScreen: React.FC = () => {
                   <CardComponent
                     card={card}
                     playCard={() => gameRef.current?.humanPlayCard(card, index)}
-                    isDealt={gameState.isDealing}
-                    dealDelay={index * 200}
                     width={width}
                   />
                 </Animated.View>

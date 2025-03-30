@@ -17,7 +17,7 @@ interface GameScore {
 // type Player = "You" | "Computer" | string;
 interface Player {
   name: string;
-  id: number;
+  id: number | string;
   hands: Card[];
   score: number;
 }
@@ -43,7 +43,6 @@ interface CardsGameState {
   showStartButton: boolean;
   isShuffling: boolean;
   isDealing: boolean;
-  canPlayCard: boolean;
   accumulatedPoints: number;
   lastPlayedSuit: Suit | null;
   currentControl: Player;
@@ -56,13 +55,13 @@ interface GameOverData {
   winner: Player;
   score: GameScore[];
   isCurrentPlayer: boolean;
+  isMultiPlayer: boolean;
 }
 
 type Callbacks = {
   onStateChange: (state: CardsGameState) => void;
   onRoundFinished: () => void;
 };
-
 
 export {
   Suit,
@@ -75,5 +74,5 @@ export {
   GameScore,
   CardsGameState,
   GameOverData,
-  Callbacks
+  Callbacks,
 };

@@ -13,7 +13,7 @@ import {
   Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useAuth } from "./AuthContext";
+import { useAuth } from "../AuthContext";
 import { FirebaseError } from "firebase/app";
 import { useNavigation } from "@react-navigation/native";
 

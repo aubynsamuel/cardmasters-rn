@@ -2,11 +2,11 @@ import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
 interface OnlineGameScreenRouteProp {
-  route : {params:{roomId:string}}
-};
+  route: { params: { roomId: string } };
+}
 
-const OnlineGameScreen: React.FC< OnlineGameScreenRouteProp > = ({ route }) => {
-  const { roomId } = route.params ;
+const RoomScreen: React.FC<OnlineGameScreenRouteProp> = ({ route }) => {
+  const { roomId } = route.params;
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Online Game Room: {roomId}</Text>
@@ -23,4 +23,4 @@ const styles = StyleSheet.create({
   title: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
 });
 
-export default OnlineGameScreen;
+export default RoomScreen;

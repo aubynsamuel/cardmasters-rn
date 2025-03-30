@@ -4,7 +4,7 @@ import DeckCard from "./DeckCard";
 import Colors from "../Colors";
 import { Deck, GameScore } from "../Types";
 import { Ionicons } from "@expo/vector-icons";
-import { gameScoreToString } from "../functions/GameFunctions";
+import { gameScoreToString } from "../gameLogic/GameUtils";
 
 interface TopRowInterface {
   deck: Deck;
@@ -51,9 +51,22 @@ const TopRow: React.FC<TopRowInterface> = ({
 
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
         {/* Score */}
-        <Text style={{ color: Colors.mainTextColor, fontWeight: "bold" }}>
-          {gameScoreToString(gameScoreList)}
-        </Text>
+        <View
+          style={{
+            padding: 5,
+            height: 80,
+            justifyContent: "center",
+          }}
+        >
+          <Text
+            style={{
+              color: Colors.mainTextColor,
+              fontWeight: "bold",
+            }}
+          >
+            {gameScoreToString(gameScoreList)}
+          </Text>
+        </View>
 
         {/* Controls */}
         <TouchableOpacity

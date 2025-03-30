@@ -26,11 +26,16 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import AnimatedScoreDisplay from "../components/AnimatedScoreDisplay";
-import { GameScore, Player } from "../Types";
-import CardsGame, { CardsGameUIState, GAME_TO } from "./GameClass";
+import { CardsGameState, GameScore, Player } from "../Types";
+import CardsGame, { GAME_TO } from "../gameLogic/MultiplayerGameClass";
 
 type GameScreenStackParamList = {
-  GameOver: { winner: Player; score: GameScore[]; isCurrentPlayer: boolean };
+  GameOver: {
+    winner: Player;
+    score: GameScore[];
+    isCurrentPlayer: boolean;
+    isMultiPlayer: boolean;
+  };
 };
 
 type GameScreenProps = NativeStackNavigationProp<
@@ -47,19 +52,19 @@ const MultiPlayerGameScreen: React.FC = () => {
     {
       hands: [],
       id: 1234,
-      name: "Samuel",
+      name: "Maame Ekua",
       score: 0,
     },
     {
       hands: [],
       id: 5678,
-      name: "Opponent",
+      name: "Ruth",
       score: 0,
     },
   ];
 
   const gameRef = useRef<CardsGame | null>(null);
-  const [gameState, setGameState] = useState<CardsGameUIState | null>(null);
+  const [gameState, setGameState] = useState<CardsGameState | null>(null);
   const [showControlsOverlay, setShowControlsOverlay] = useState(false);
 
   const computerControlScale = useSharedValue(0);
@@ -73,7 +78,7 @@ const MultiPlayerGameScreen: React.FC = () => {
       gameRef.current = new CardsGame(initialPlayers);
 
       gameRef.current.setCallbacks({
-        onStateChange: (newState: CardsGameUIState) => {
+        onStateChange: (newState: CardsGameState) => {
           setGameState({ ...newState });
         },
       });
@@ -94,7 +99,11 @@ const MultiPlayerGameScreen: React.FC = () => {
       gameRef?.current?.players[0].score >= GAME_TO ||
       gameRef?.current?.players[1].score >= GAME_TO
     ) {
-      navigation.navigate("GameOver", gameRef.current.gameOverData);
+      navigation.navigate("GameOver", {
+        ...gameRef.current.gameOverData,
+        isCurrentPlayer:
+          gameRef.current.gameOverData.winner.id === gameState?.players[0].id,
+      });
     }
   }, [gameState?.cardsPlayed]);
 
@@ -227,11 +236,18 @@ const MultiPlayerGameScreen: React.FC = () => {
             </Text>
             <View style={styles.hand}>
               {opponent.hands.map((card, index) => (
-                <OpponentCard
-                  index={index}
-                  isDealing={gameState.isDealing}
-                  key={`opponent-card-${index}`}
-                />
+                <Animated.View
+                  key={`opponent-card-${card.suit}-${card.rank}`}
+                  entering={
+                    gameState.isDealing
+                      ? FlipInEasyX.delay(
+                          (index + opponent.hands.length) * 200
+                        ).duration(300)
+                      : undefined
+                  }
+                >
+                  <OpponentCard />
+                </Animated.View>
               ))}
             </View>
           </View>
@@ -288,7 +304,7 @@ const MultiPlayerGameScreen: React.FC = () => {
               }
             />
             <Text style={styles.sectionHeader}>
-              You
+              {currentUser.name}
               <Animated.View
                 style={{
                   transform: [{ scale: humanControlScale }],
@@ -311,9 +327,9 @@ const MultiPlayerGameScreen: React.FC = () => {
                 >
                   <CardComponent
                     card={card}
-                    playCard={() => gameRef.current?.humanPlayCard(card, index)}
-                    isDealt={gameState.isDealing}
-                    dealDelay={index * 200}
+                    playCard={() =>
+                      gameRef.current?.playerPlayCard(1234, card, index)
+                    }
                     width={width}
                   />
                 </Animated.View>
@@ -321,20 +337,6 @@ const MultiPlayerGameScreen: React.FC = () => {
             </View>
           </View>
         </View>
-
-        {gameState.showStartButton && (
-          <View style={{ width: "100%", alignItems: "center" }}>
-            <TouchableOpacity
-              style={styles.startButton}
-              onPress={() => {
-                gameRef.current?.startPlaying();
-              }}
-              activeOpacity={0.8}
-            >
-              <Text style={styles.overlayButtonText}>{"Start Game"}</Text>
-            </TouchableOpacity>
-          </View>
-        )}
 
         <GameHistory gameHistory={gameState.gameHistory} width={width} />
       </SafeAreaView>

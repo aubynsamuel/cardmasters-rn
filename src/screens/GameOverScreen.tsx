@@ -17,8 +17,8 @@ import Animated, {
   withDelay,
   Easing,
 } from "react-native-reanimated";
-import { gameScoreToString } from "../functions/GameFunctions";
-import { GameOverData } from "./GameClass";
+import { gameScoreToString } from "../gameLogic/GameUtils";
+import { GameOverData } from "../gameLogic/SinglePlayerGameClass";
 
 interface GameOverScreenProps {
   route: {
@@ -29,7 +29,7 @@ interface GameOverScreenProps {
 const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
-  const { winner, score, isCurrentPlayer } = route.params;
+  const { winner, score, isCurrentPlayer, isMultiPlayer } = route.params;
   const styles = getStyles(width);
 
   // Animation values
@@ -164,7 +164,14 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
             onPress={() =>
               navigation.reset({
                 index: 0,
-                routes: [{ name: "Game" as never }],
+                routes: [
+                  {
+                    // return to room if it multiplayer game
+                    name: isMultiPlayer
+                      ? ("MultiPlayerGameScreen" as never)
+                      : ("Game" as never),
+                  },
+                ],
               })
             }
             activeOpacity={0.8}

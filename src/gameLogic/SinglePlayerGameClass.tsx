@@ -4,7 +4,7 @@ import {
   dealCards,
   shuffleDeck,
   suitSymbols,
-} from "../functions/GameFunctions";
+} from "./GameUtils";
 import {
   Card,
   gameHistoryType,
@@ -28,18 +28,19 @@ export interface CardsGameUIState {
   showStartButton: boolean;
   isShuffling: boolean;
   isDealing: boolean;
-  canPlayCard: boolean;
   accumulatedPoints: number;
   lastPlayedSuit: Suit | null;
   currentControl: Player;
   deck: Deck;
   gameOverData: GameOverData;
+  canPlayCard: boolean;
 }
 
 export interface GameOverData {
   winner: Player;
   score: GameScore[];
   isCurrentPlayer: boolean;
+  isMultiPlayer: boolean;
 }
 
 export type Callbacks = {
@@ -59,13 +60,13 @@ class CardsGame {
   showStartButton: boolean;
   isShuffling: boolean;
   isDealing: boolean;
-  canPlayCard: boolean;
   accumulatedPoints: number;
   lastPlayedSuit: Suit | null;
   currentControl: Player;
   deck: Deck;
   callbacks: Callbacks;
   gameOverData: GameOverData;
+  canPlayCard: boolean;
 
   constructor(players: Player[]) {
     this.players = players;
@@ -79,7 +80,6 @@ class CardsGame {
     this.showStartButton = false;
     this.isShuffling = false;
     this.isDealing = false;
-    this.canPlayCard = false;
     this.accumulatedPoints = 0;
     this.lastPlayedSuit = null;
     this.currentControl = players[0];
@@ -93,7 +93,9 @@ class CardsGame {
       winner: this.players[0],
       score: [],
       isCurrentPlayer: false,
+      isMultiPlayer: false,
     };
+    this.canPlayCard = false;
   }
 
   // Register callbacks from the React component
@@ -114,12 +116,12 @@ class CardsGame {
       showStartButton: this.showStartButton,
       isShuffling: this.isShuffling,
       isDealing: this.isDealing,
-      canPlayCard: this.canPlayCard,
       accumulatedPoints: this.accumulatedPoints,
       lastPlayedSuit: this.lastPlayedSuit,
       currentControl: this.currentControl,
       deck: this.deck,
       gameOverData: this.gameOverData,
+      canPlayCard: this.canPlayCard,
     };
   }
 
@@ -173,10 +175,10 @@ class CardsGame {
 
         // Deal cards with animation
         setTimeout(() => {
+          this.canPlayCard = this.currentControl.id === this.players[0].id;
           // End dealing animation after cards are shown
           setTimeout(() => {
             this.updateState({
-              canPlayCard: this.currentControl.id === this.players[0].id,
               isDealing: false,
               message:
                 this.currentControl.id === this.players[1].id
@@ -231,8 +233,8 @@ class CardsGame {
     }
 
     this.playCard(this.players[1], cardToPlay);
+    this.canPlayCard = true;
     this.updateState({
-      canPlayCard: true,
       message: "It's your turn to play.",
     });
   }
@@ -268,8 +270,8 @@ class CardsGame {
   }
 
   resetRound(): void {
+    this.canPlayCard = false;
     this.updateState({
-      canPlayCard: false,
       currentLeadCard: null,
       currentPlays: [],
     });
@@ -280,14 +282,24 @@ class CardsGame {
       return false;
     }
 
-    if (
-      this.currentControl.id === this.players[1].id &&
-      !this.currentLeadCard
-    ) {
+    if (!this.canPlayCard) {
       return false;
     }
 
-    if (!this.canPlayCard) {
+    // If no one has played this round, only currentControl can play.
+    if (
+      this.currentPlays.length === 0 &&
+      this.currentControl.id !== this.players[0].id
+    ) {
+      // Optionally: trigger an alert that only the round leader may start.
+      return false;
+    }
+
+    // If this player has already played this round, disallow double play.
+    if (
+      this.currentPlays.some((play) => play.player.id === this.players[0].id)
+    ) {
+      // Optionally: trigger an alert that they've already played.
       return false;
     }
 
@@ -299,12 +311,13 @@ class CardsGame {
       );
 
       if (hasRequired && card.suit !== requiredSuit) {
+        // Optionally: trigger an alert that they must play the required suit.
         return false;
       } else {
-        this.updateState({ canPlayCard: false });
+        this.canPlayCard = false;
       }
     } else {
-      this.updateState({ canPlayCard: false });
+      this.canPlayCard = false;
     }
 
     const updatedPlayers = [...this.players];
@@ -426,16 +439,16 @@ class CardsGame {
         this.handleGameOver(newControl, newAccumulatedPoints, pointsEarned);
       } else {
         if (newControl.id === this.players[1].id) {
+          this.canPlayCard = false;
           this.updateState({
-            canPlayCard: false,
             message: `${this.players[1].name} is playing.`,
           });
           setTimeout(() => {
             this.computerTurn();
           }, 1000);
         } else {
+          this.canPlayCard = true;
           this.updateState({
-            canPlayCard: true,
             message: "It's your turn to play.",
           });
         }
@@ -448,8 +461,8 @@ class CardsGame {
     newAccumulatedPoints: number,
     pointsEarned: number
   ): void {
+    this.canPlayCard = false;
     this.updateState({
-      canPlayCard: false,
       gameOver: true,
       showStartButton: false,
     });
@@ -491,6 +504,7 @@ class CardsGame {
             { playerName: this.players[1].name, score: computerScore },
           ],
           isCurrentPlayer: this.currentControl.id === this.players[0].id,
+          isMultiPlayer: false,
         },
       });
     }

@@ -239,6 +239,15 @@ const MainMenuScreen: React.FC = () => {
               </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
+          <View>
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate("MultiplayerGameScreen" as never)
+              }
+            >
+              <Text>MultiPlayerGameScreen</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
     </View>

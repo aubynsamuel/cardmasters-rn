@@ -1,9 +1,8 @@
 import { TextStyle, Text, StyleSheet, View } from "react-native";
-import { suitSymbols } from "../functions/GameFunctions";
+import { suitSymbols } from "../gameLogic/GameUtils";
 import { Card } from "../Types";
-import React, { useEffect } from "react";
+import React from "react";
 import Animated, {
-  FlipInEasyX,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -19,35 +18,14 @@ import {
 interface CardComponentInterface {
   card: Card;
   playCard: () => boolean | undefined;
-  isDealt?: boolean;
-  dealDelay?: number;
   width: number;
 }
 
-const CardComponent = ({
-  card,
-  playCard,
-  isDealt = false,
-  dealDelay = 0,
-  width,
-}: CardComponentInterface) => {
+const CardComponent = ({ card, playCard, width }: CardComponentInterface) => {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
-  const scale = useSharedValue(isDealt ? 0.5 : 1);
-  const rotate = useSharedValue(isDealt ? "45deg" : "0deg");
+  const scale = useSharedValue(1);
   const ctx = useSharedValue({ startX: 0, startY: 0 });
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isDealt) {
-      timer = setTimeout(() => {
-        scale.value = withSpring(1);
-        rotate.value = withTiming("0deg", { duration: 300 });
-        // Play card slide sound here if you have sound effects
-      }, dealDelay);
-    }
-    return () => clearTimeout(timer);
-  }, []);
 
   function visualEffectForUnsuccessfulPlays() {
     const afterEffect = playCard();
@@ -60,7 +38,6 @@ const CardComponent = ({
   const panGesture = Gesture.Pan()
     .onStart(() => {
       ctx.value = { startX: translateX.value, startY: translateY.value };
-      // eslint-disable-next-line react-compiler/react-compiler
       scale.value = withTiming(1.1, { duration: 150 });
     })
     .onUpdate((event) => {
@@ -92,7 +69,6 @@ const CardComponent = ({
       { translateX: translateX.value },
       { translateY: translateY.value },
       { scale: scale.value },
-      { rotate: rotate.value },
     ],
   }));
 
@@ -100,25 +76,19 @@ const CardComponent = ({
     <GestureDetector gesture={panGesture}>
       <Animated.View style={[cardAnimation]}>
         <TouchableWithoutFeedback onPress={playCard}>
-          <Animated.View
-            entering={
-              isDealt ? FlipInEasyX.delay(dealDelay).duration(400) : undefined
-            }
+          <View
+            style={[
+              styles.cardContainer,
+              {
+                backgroundColor: "white",
+              },
+            ]}
           >
-            <View
-              style={[
-                styles.cardContainer,
-                {
-                  backgroundColor: "white",
-                },
-              ]}
-            >
-              <Text style={[styles.cardRank, colorStyle]}>{card.rank}</Text>
-              <Text style={[styles.cardSymbol, colorStyle]}>
-                {suitSymbols[card.suit]}
-              </Text>
-            </View>
-          </Animated.View>
+            <Text style={[styles.cardRank, colorStyle]}>{card.rank}</Text>
+            <Text style={[styles.cardSymbol, colorStyle]}>
+              {suitSymbols[card.suit]}
+            </Text>
+          </View>
         </TouchableWithoutFeedback>
       </Animated.View>
     </GestureDetector>

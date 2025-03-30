@@ -1,9 +1,4 @@
-import {
-  createDeck,
-  dealCards,
-  shuffleDeck,
-  suitSymbols,
-} from "../functions/GameFunctions";
+import { createDeck, dealCards, shuffleDeck, suitSymbols } from "./GameUtils";
 import {
   Card,
   gameHistoryType,
@@ -31,10 +26,12 @@ class MultiplayerCardsGame {
   showStartButton: boolean;
   isShuffling: boolean;
   isDealing: boolean;
-  canPlayCard: boolean;
   accumulatedPoints: number;
   lastPlayedSuit: Suit | null;
+  /** currentControl: the player who won the previous round*/
   currentControl: Player;
+  /** activePlayerIndex indicates the “first” player for the round,
+   *  but isn’t used for turn enforcement after currentControl’s move. */
   activePlayerIndex: number;
   deck: Deck;
   callbacks: Callbacks;
@@ -56,7 +53,6 @@ class MultiplayerCardsGame {
     this.showStartButton = true;
     this.isShuffling = false;
     this.isDealing = false;
-    this.canPlayCard = false;
     this.accumulatedPoints = 0;
     this.lastPlayedSuit = null;
     this.currentControl = players[0];
@@ -70,6 +66,7 @@ class MultiplayerCardsGame {
       winner: this.players[0],
       score: [],
       isCurrentPlayer: false,
+      isMultiPlayer: true,
     };
   }
 
@@ -91,7 +88,6 @@ class MultiplayerCardsGame {
       showStartButton: this.showStartButton,
       isShuffling: this.isShuffling,
       isDealing: this.isDealing,
-      canPlayCard: this.canPlayCard,
       accumulatedPoints: this.accumulatedPoints,
       lastPlayedSuit: this.lastPlayedSuit,
       currentControl: this.currentControl,
@@ -131,6 +127,7 @@ class MultiplayerCardsGame {
   startGame(): void {
     const needsShuffle =
       !this.deck || this.deck.length < this.players.length * 5;
+    // Reset activePlayerIndex for new round; currentControl remains as the leader from previous round.
     this.activePlayerIndex = 0;
 
     this.updateState({
@@ -163,12 +160,10 @@ class MultiplayerCardsGame {
         setTimeout(() => {
           // End dealing animation after cards are shown
           setTimeout(() => {
+            // Inform that it's the currentControl's turn to start the round.
             this.updateState({
-              canPlayCard: true,
               isDealing: false,
-              message: `${
-                this.players[this.activePlayerIndex].name
-              }'s turn to play`,
+              message: `${this.currentControl.name} will play first`,
             });
           }, 1000);
         }, 1000);
@@ -177,15 +172,74 @@ class MultiplayerCardsGame {
     );
   }
 
+  /**
+   * - If no card has been played in the round (currentPlays is empty),
+   *   only the currentControl is allowed to play.
+   * - Once currentControl has played, any player who has not yet played this round is allowed.
+   * - A player is prevented from playing more than once in the same round.
+   */
+  playerPlayCard(playerId: number, card: Card, index: number): boolean {
+    if (this.gameOver) {
+      return false;
+    }
+
+    // Determine which player is attempting the play.
+    const playerIndex = this.players.findIndex((p) => p.id === playerId);
+    if (playerIndex === -1) {
+      return false;
+    }
+
+    // If no one has played this round, only currentControl can play.
+    if (this.currentPlays.length === 0 && this.currentControl.id !== playerId) {
+      // Optionally: trigger an alert that only the round leader may start.
+      return false;
+    }
+
+    // If this player has already played this round, disallow double play.
+    if (this.currentPlays.some((play) => play.player.id === playerId)) {
+      // Optionally: trigger an alert that they've already played.
+      return false;
+    }
+
+    // Enforce following suit if necessary.
+    if (this.currentLeadCard) {
+      const requiredSuit = this.currentLeadCard.suit;
+      const hasRequired = this.players[playerIndex].hands.some(
+        (c) => c.suit === requiredSuit
+      );
+      if (hasRequired && card.suit !== requiredSuit) {
+        // Optionally: trigger an alert that they must play the required suit.
+        return false;
+      }
+    }
+
+    // Remove the card from the player's hand.
+    const updatedPlayers = [...this.players];
+    const newHand = [...updatedPlayers[playerIndex].hands];
+    newHand.splice(index, 1);
+    updatedPlayers[playerIndex] = {
+      ...updatedPlayers[playerIndex],
+      hands: newHand,
+    };
+    this.updateState({ players: updatedPlayers });
+
+    // Delay slightly to simulate play action.
+    setTimeout(() => {
+      this.playCard(this.players[playerIndex], card);
+    }, 300);
+
+    return true;
+  }
+
+  /**
+   * Registers a played card.
+   * After currentControl’s card is played (i.e. when currentPlays was empty),
+   * any subsequent player can play once until all players have played.
+   */
   playCard(player: Player, card: Card): void {
-    /** TODO: add a condition to check if currentPlays is equal to the length of players to avoid
-    double plays (a player playing more than one card in a round)
-    might rather check to see if that player has already played since that will
-    be a better check to avoiding double plays */
-    // TODO: return true if play was and false if play wasn't
     const newPlays: Play[] = [...this.currentPlays, { player, card }];
     const newLeadCard =
-      this.currentLeadCard === null ? card : this.currentLeadCard;
+      this.currentPlays.length === 0 ? card : this.currentLeadCard;
     const newHistory: gameHistoryType[] = [
       ...this.gameHistory,
       {
@@ -200,21 +254,16 @@ class MultiplayerCardsGame {
       gameHistory: newHistory,
     });
 
-    // Move to next player or finish round if all players have played
+    // If all players have played, finish the round.
     if (newPlays.length === this.players.length) {
       this.finishRound();
     } else {
-      this.moveToNextPlayer();
+      // We no longer enforce a strict next-player turn order.
+      // The UI should simply allow any player who hasn't played to make a move.
+      this.updateState({
+        message: `Waiting for opponents to play...`,
+      });
     }
-  }
-
-  moveToNextPlayer(): void {
-    const nextPlayerIndex = (this.activePlayerIndex + 1) % this.players.length;
-
-    this.updateState({
-      activePlayerIndex: nextPlayerIndex,
-      message: `${this.players[nextPlayerIndex].name}'s turn to play`,
-    });
   }
 
   calculateCardPoints(card: Card): number {
@@ -230,51 +279,6 @@ class MultiplayerCardsGame {
     });
   }
 
-  playerPlayCard(playerId: number, card: Card, index: number): boolean {
-    if (this.gameOver) {
-      return false;
-    }
-
-    // Check if it's this player's turn
-    const playerIndex = this.players.findIndex((p) => p.id === playerId);
-    if (playerIndex !== this.activePlayerIndex) {
-      //  TODO: Show an alert to the player that its not their turn to play
-      return false;
-    }
-
-    // Enforce following suit if necessary
-    if (this.currentLeadCard) {
-      const requiredSuit = this.currentLeadCard.suit;
-      const hasRequired = this.players[playerIndex].hands.some(
-        (c) => c.suit === requiredSuit
-      );
-
-      if (hasRequired && card.suit !== requiredSuit) {
-        // TODO: Show an alert to the player that they must play the required suit if they have it
-        return false;
-      }
-    }
-
-    // Remove the card from the player's hand
-    // TODO: Make playCard return if play was successful before removing card from players hand
-    const updatedPlayers = [...this.players];
-    const newHand = [...updatedPlayers[playerIndex].hands];
-    newHand.splice(index, 1);
-    updatedPlayers[playerIndex] = {
-      ...updatedPlayers[playerIndex],
-      hands: newHand,
-    };
-    this.updateState({ players: updatedPlayers });
-
-    // Play the card
-    // TODO: Must be performed before attempting to remove card from players hand
-    setTimeout(() => {
-      this.playCard(this.players[playerIndex], card);
-    }, 300);
-
-    return true;
-  }
-
   finishRound(): void {
     if (this.currentPlays.length === 0 || !this.currentLeadCard) {
       return;
@@ -282,13 +286,13 @@ class MultiplayerCardsGame {
 
     const leadSuit = this.currentLeadCard.suit;
 
-    // Find the winner of the round
+    // Determine the winning play among plays that follow the lead suit.
     let winningPlayIndex = 0;
     let highestValue = this.currentPlays[0].card.value;
 
     for (let i = 1; i < this.currentPlays.length; i++) {
       const play = this.currentPlays[i];
-      // Only compare cards of the lead suit
+      // Only compare cards of the lead suit.
       if (play.card.suit === leadSuit && play.card.value > highestValue) {
         winningPlayIndex = i;
         highestValue = play.card.value;
@@ -299,6 +303,7 @@ class MultiplayerCardsGame {
     const winningPlayer = winningPlay.player;
     const winningCard = winningPlay.card;
 
+    // Set currentControl for the next round.
     const newControl = winningPlayer;
     const resultMessage = `${winningPlayer.name} wins the round.`;
 
@@ -350,7 +355,7 @@ class MultiplayerCardsGame {
       },
     ];
 
-    // Set the active player to the winner for the next round
+    // Set activePlayerIndex to the winner for the next round.
     const winnerIndex = this.players.findIndex(
       (p) => p.id === winningPlayer.id
     );
@@ -374,9 +379,9 @@ class MultiplayerCardsGame {
       if (newRoundsPlayed >= 5) {
         this.handleGameOver(newControl, newAccumulatedPoints, pointsEarned);
       } else {
+        // In the next round, currentControl must start.
         this.updateState({
-          canPlayCard: true,
-          message: `${this.players[winnerIndex].name}'s turn to play`,
+          message: `${this.currentControl.name} will play first`,
         });
       }
     }, 1500);
@@ -388,7 +393,6 @@ class MultiplayerCardsGame {
     pointsEarned: number
   ): void {
     this.updateState({
-      canPlayCard: false,
       gameOver: true,
       showStartButton: true,
     });
@@ -397,7 +401,7 @@ class MultiplayerCardsGame {
       newAccumulatedPoints === 0 ? pointsEarned : newAccumulatedPoints;
     const updatedPlayers = [...this.players];
 
-    // Update the winning player's score
+    // Update the winning player's score.
     const winnerIndex = updatedPlayers.findIndex((p) => p.id === newControl.id);
     updatedPlayers[winnerIndex] = {
       ...updatedPlayers[winnerIndex],
@@ -409,7 +413,7 @@ class MultiplayerCardsGame {
       message: `🏆 ${newControl.name} won this game with ${finalPoints} points! 🏆`,
     });
 
-    // Check if any player has reached the winning score
+    // Check if any player has reached the winning score.
     const gameWinner = updatedPlayers.find((p) => p.score >= GAME_TO);
 
     if (!gameWinner) {
@@ -417,7 +421,7 @@ class MultiplayerCardsGame {
         this.startGame();
       }, 3000);
     } else {
-      // Game over, someone has won the entire match
+      // Game over, someone has won the entire match.
       const scores: GameScore[] = updatedPlayers.map((p) => ({
         playerName: p.name,
         score: p.score,
@@ -428,13 +432,14 @@ class MultiplayerCardsGame {
         gameOverData: {
           winner: gameWinner,
           score: scores,
-          isCurrentPlayer: false, // This doesn't make sense in multiplayer context
+          isCurrentPlayer: false,
+          isMultiPlayer: true,
         },
       });
     }
   }
 
-  // Reset the entire game, for use after a complete match
+  // Reset the entire game, for use after a complete match.
   resetGame(): void {
     const resetPlayers = this.players.map((player) => ({
       ...player,

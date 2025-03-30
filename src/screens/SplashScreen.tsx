@@ -67,7 +67,7 @@ const SplashScreen: React.FC = () => {
       //     navigation.reset({ index: 0, routes: [{ name: "Auth" as never }] });
       //   }
       // }
-    }, 3500);
+    }, 3000);
 
     return () => clearTimeout(timer);
   }, [navigation, isAuthenticated, isLoading]);
