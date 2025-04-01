@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
+  BackHandler,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -18,18 +19,35 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { gameScoreToString } from "../gameLogic/GameUtils";
-import { GameOverData } from "../gameLogic/SinglePlayerGameClass";
+import { Player, Room } from "../Types";
 
 interface GameOverScreenProps {
   route: {
-    params: GameOverData;
+    params: {
+      winner: Player;
+      isCurrentPlayer: boolean;
+      isMultiPlayer: boolean;
+      score: {
+        playerName: string;
+        score: number;
+      }[];
+      roomId: string;
+      initialRoomData: Room;
+    };
   };
 }
 
 const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
-  const { winner, score, isCurrentPlayer, isMultiPlayer } = route.params;
+  const {
+    winner,
+    score,
+    isCurrentPlayer,
+    isMultiPlayer,
+    initialRoomData,
+    roomId,
+  } = route.params;
   const styles = getStyles(width);
 
   // Animation values
@@ -60,10 +78,19 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
     confettiOpacity.value = withDelay(200, withTiming(1, { duration: 500 }));
   }, []);
 
+  useEffect(() => {
+    const onBackPress = () => {
+      handleNavigation();
+      return true;
+    };
+    BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    return () =>
+      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+  }, []);
+
   // Animated styles
   const titleStyle = useAnimatedStyle(() => ({
     opacity: titleOpacity.value,
-    // transform: [{ scale: interpolateScale(titleOpacity.value) }],
   }));
 
   const containerStyle = useAnimatedStyle(() => ({
@@ -77,22 +104,37 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
 
   const buttonsStyle = useAnimatedStyle(() => ({
     opacity: buttonsOpacity.value,
-    // transform: [{ translateY: interpolateTranslateY(buttonsOpacity.value) }],
   }));
 
   const confettiStyle = useAnimatedStyle(() => ({
     opacity: confettiOpacity.value,
   }));
 
-  // Helper functions
-  // const interpolateScale = (value: number) => {
-  //   return 0.7 + value * 0.3;
-  // };
-
-  // const interpolateTranslateY = (value: number) => {
-  //   return (1 - value) * 30;
-  // };
-
+  const handleNavigation = () => {
+    if (isMultiPlayer) {
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: "RoomScreen" as never,
+            params: {
+              roomId,
+              initialRoomData,
+            },
+          },
+        ],
+      });
+    } else {
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: "Game" as never,
+          },
+        ],
+      });
+    }
+  };
   return (
     <LinearGradient
       colors={["#076345", "#0a8132"]}
@@ -161,19 +203,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
         <Animated.View style={[styles.buttonsContainer, buttonsStyle]}>
           <TouchableOpacity
             style={styles.button}
-            onPress={() =>
-              navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    // return to room if it multiplayer game
-                    name: isMultiPlayer
-                      ? ("MultiPlayerGameScreen" as never)
-                      : ("Game" as never),
-                  },
-                ],
-              })
-            }
+            onPress={handleNavigation}
             activeOpacity={0.8}
           >
             <LinearGradient
@@ -186,33 +216,37 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
                 color="#FFF"
                 style={styles.buttonIcon}
               />
-              <Text style={styles.buttonText}>Play Again</Text>
+              <Text style={styles.buttonText}>
+                {!isMultiPlayer ? "Play Again" : "Return to room"}
+              </Text>
             </LinearGradient>
           </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={() =>
-              navigation.reset({
-                index: 0,
-                routes: [{ name: "MainMenu" as never }],
-              })
-            }
-            activeOpacity={0.8}
-          >
-            <LinearGradient
-              colors={["#4CAF50", "#2E7D32"]}
-              style={styles.buttonGradient}
+          {!isMultiPlayer && (
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() =>
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "MainMenu" as never }],
+                })
+              }
+              activeOpacity={0.8}
             >
-              <Ionicons
-                name="home"
-                size={20}
-                color="#FFF"
-                style={styles.buttonIcon}
-              />
-              <Text style={styles.buttonText}>Return to Main Menu</Text>
-            </LinearGradient>
-          </TouchableOpacity>
+              <LinearGradient
+                colors={["#4CAF50", "#2E7D32"]}
+                style={styles.buttonGradient}
+              >
+                <Ionicons
+                  name="home"
+                  size={20}
+                  color="#FFF"
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.buttonText}>Return to Main Menu</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
         </Animated.View>
       </Animated.View>
     </LinearGradient>

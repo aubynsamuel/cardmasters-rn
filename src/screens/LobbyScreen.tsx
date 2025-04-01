@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,6 +7,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Alert,
+  BackHandler,
 } from "react-native";
 import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
@@ -14,29 +15,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSocket } from "../SocketContext";
 import { useAuth } from "../AuthContext";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Player } from "../Types";
-
-// Room interface
-interface LobbyRoom {
-  id: string;
-  name: string;
-  players: number;
-  maxPlayers: number;
-  status: "waiting" | "playing" | "full";
-}
+import { LobbyRoom, RoomJoined } from "../Types";
 
 type RootStackParamList = {
-  RoomScreen: {
-    roomId: string;
-    initialRoomData: {
-      id: string;
-      name: string;
-      players: Player[];
-      maxPlayers: number;
-      status: string;
-      ownerId: string;
-    };
-  };
+  RoomScreen: RoomJoined;
 };
 
 type LobbyNavigation = NativeStackNavigationProp<
@@ -52,40 +34,42 @@ const MultiplayerLobbyScreen = () => {
   const navigation = useNavigation<LobbyNavigation>();
   const [rooms, setRooms] = useState<LobbyRoom[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  // Track the room the user is already in (if any)
-  const [currentRoomId, setCurrentRoomId] = useState<string | null>(null);
   const { socket, isConnected } = useSocket();
-  const { userData } = useAuth();
+  const { userData, userId } = useAuth();
 
-  // Socket event handlers
-  const handleLobbyRoomsUpdate = useCallback(
-    (updatedRooms: React.SetStateAction<LobbyRoom[]>) => {
-      setRooms(updatedRooms);
-      setIsLoading(false);
-    },
-    []
-  );
+  useEffect(() => {
+    const onBackPress = () => {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MainMenu" as never }],
+      });
+      console.log("Hardware Back Press From Lobby");
+      return true;
+    };
+    BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    return () =>
+      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+  }, []);
+  const handleLobbyRoomsUpdate = useCallback((updatedRooms: LobbyRoom[]) => {
+    setRooms(updatedRooms);
+    setIsLoading(false);
+  }, []);
 
-  const handleRoomJoined = useCallback(
-    ({
-      roomId,
-      room,
-    }: {
-      roomId: string;
-      room: {
-        id: string;
-        name: string;
-        players: Player[];
-        maxPlayers: number;
-        status: string;
-        ownerId: string;
-      };
-    }) => {
+  const handleRoomCreated = useCallback(
+    ({ roomId, room }: RoomJoined) => {
+      // Even handler for creating and joining a room
       console.log(`Joined room ${roomId}`);
-      setCurrentRoomId(roomId);
-      navigation.navigate("RoomScreen", {
-        roomId,
-        initialRoomData: room,
+      navigation.reset({
+        index: 0,
+        routes: [
+          {
+            name: "RoomScreen",
+            params: {
+              roomId,
+              initialRoomData: room,
+            },
+          },
+        ],
       });
     },
     [navigation]
@@ -105,25 +89,51 @@ const MultiplayerLobbyScreen = () => {
     []
   );
 
-  // Set up socket listeners when screen is focused
+  const handleJoinRoom = (roomId: string) => {
+    if (!socket || !isConnected) {
+      Alert.alert("Not Connected", "Unable to connect to game server.");
+      return;
+    }
+    const playerName = userData?.displayName || "Player2";
+    socket.emit("join_room", { roomId, playerName, userId });
+  };
+
+  const handleCreateRoom = () => {
+    if (!socket || !isConnected) {
+      Alert.alert("Not Connected", "Unable to connect to game server.");
+      return;
+    }
+
+    const playerName = userData?.displayName || "Player1";
+    const roomName = `${playerName}'s Game`; // You could make this customizable
+
+    socket.emit("create_room", { playerName, roomName, userId });
+  };
+
+  const handleRefresh = () => {
+    if (socket && isConnected) {
+      setIsLoading(true);
+      socket.emit("request_lobby_rooms");
+    }
+  };
+
   useFocusEffect(
     useCallback(() => {
       if (socket && isConnected) {
-        console.log("Setting up lobby listeners");
+        // console.log("Setting up lobby listeners");
         setIsLoading(true);
 
         socket.on("lobby_rooms", handleLobbyRoomsUpdate);
-        socket.on("room_joined", handleRoomJoined);
+        socket.on("room_created", handleRoomCreated);
         socket.on("join_error", handleJoinError);
         socket.on("create_error", handleCreateError);
 
-        // Immediately request the latest lobby rooms
         socket.emit("request_lobby_rooms");
 
         return () => {
-          console.log("Cleaning up lobby listeners");
+          // console.log("Cleaning up lobby listeners");
           socket.off("lobby_rooms", handleLobbyRoomsUpdate);
-          socket.off("room_joined", handleRoomJoined);
+          socket.off("room_created", handleRoomCreated);
           socket.off("join_error", handleJoinError);
           socket.off("create_error", handleCreateError);
         };
@@ -135,46 +145,12 @@ const MultiplayerLobbyScreen = () => {
       socket,
       isConnected,
       handleLobbyRoomsUpdate,
-      handleRoomJoined,
+      handleRoomCreated,
       handleJoinError,
       handleCreateError,
     ])
   );
 
-  // Actions
-  const handleCreateRoom = () => {
-    if (socket && isConnected) {
-      const playerName = userData?.displayName || "Player";
-      socket.emit("create_room", { playerName });
-    } else {
-      Alert.alert("Not Connected", "Unable to connect to game server.");
-    }
-  };
-
-  const handleJoinRoom = (roomId: string) => {
-    // If the user is already in the room, navigate directly
-    if (currentRoomId === roomId) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "RoomScreen", params: { roomId } }],
-      });
-    } else if (socket && isConnected) {
-      const playerName = userData?.displayName || "Player";
-      socket.emit("join_room", { roomId, playerName });
-    } else {
-      Alert.alert("Not Connected", "Unable to connect to game server.");
-    }
-  };
-
-  // Refresh room list
-  const handleRefresh = () => {
-    if (socket && isConnected) {
-      setIsLoading(true);
-      socket.emit("request_lobby_rooms");
-    }
-  };
-
-  // Render a room item
   const renderRoomItem = ({ item }: RoomItemProps) => (
     <TouchableOpacity
       style={styles.roomItemContainer}
@@ -200,6 +176,8 @@ const MultiplayerLobbyScreen = () => {
             colors={
               item.status === "waiting"
                 ? ["#FFA000", "#FF6F00"]
+                : item.status === "playing"
+                ? ["#2196F3", "#1565C0"]
                 : ["#757575", "#424242"]
             }
             style={styles.badgeGradient}
@@ -216,7 +194,12 @@ const MultiplayerLobbyScreen = () => {
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() =>
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "MainMenu" as never }],
+            })
+          }
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>

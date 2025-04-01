@@ -4,7 +4,7 @@ import { useAuth } from "../AuthContext";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
-const ProfileScreen: React.FC = () => {
+const ProfileScreen = () => {
   const navigation = useNavigation();
   const { userEmail, userData, logout } = useAuth();
 
@@ -24,7 +24,7 @@ const ProfileScreen: React.FC = () => {
         onPress={() => navigation.goBack()}
         activeOpacity={0.5}
       >
-        <Ionicons name="arrow-back" size={25} />
+        <Ionicons name="arrow-back" size={25} color={"#fff"} />
       </TouchableOpacity>
 
       <View style={{ flex: 1, justifyContent: "center" }}>
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     // justifyContent: "center",
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#076324",
   },
   profileCard: {
     backgroundColor: "white",

@@ -15,7 +15,7 @@ import {
   Deck,
 } from "../Types";
 
-export const GAME_TO = 10;
+export const GAME_TO = 2;
 
 export interface CardsGameUIState {
   players: Player[];
@@ -277,13 +277,16 @@ class CardsGame {
     });
   }
 
-  humanPlayCard(card: Card, index: number): boolean {
+  humanPlayCard(card: Card, index: number): { error: string; message: string } {
     if (this.gameOver) {
-      return false;
+      return { error: "Game is over", message: " No more plays allowed." };
     }
 
     if (!this.canPlayCard) {
-      return false;
+      return {
+        error: "Error",
+        message: "It is not your turn to play.",
+      };
     }
 
     // If no one has played this round, only currentControl can play.
@@ -292,7 +295,10 @@ class CardsGame {
       this.currentControl.id !== this.players[0].id
     ) {
       // Optionally: trigger an alert that only the round leader may start.
-      return false;
+      return {
+        error: "Error",
+        message: "Only the round leader can play first.",
+      };
     }
 
     // If this player has already played this round, disallow double play.
@@ -300,7 +306,10 @@ class CardsGame {
       this.currentPlays.some((play) => play.player.id === this.players[0].id)
     ) {
       // Optionally: trigger an alert that they've already played.
-      return false;
+      return {
+        error: "Error",
+        message: "You have already played in this round.",
+      };
     }
 
     // Enforce following suit if necessary
@@ -312,7 +321,10 @@ class CardsGame {
 
       if (hasRequired && card.suit !== requiredSuit) {
         // Optionally: trigger an alert that they must play the required suit.
-        return false;
+        return {
+          error: "Invalid Move",
+          message: `You must play a ${requiredSuit} card if you have one.`,
+        };
       } else {
         this.canPlayCard = false;
       }
@@ -337,7 +349,7 @@ class CardsGame {
       }
     }, 300);
 
-    return true;
+    return { error: "", message: "" };
   }
 
   finishRound(): void {

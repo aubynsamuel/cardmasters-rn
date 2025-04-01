@@ -7,80 +7,102 @@ import {
   FlatList,
   Alert,
   ActivityIndicator,
+  BackHandler,
 } from "react-native";
 import {
   useRoute,
   useNavigation,
   useFocusEffect,
+  RouteProp,
 } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { useSocket } from "../SocketContext";
-import { Player } from "../Types";
+import {
+  Player,
+  Room,
+  OwnerChangedPayload,
+  PlayerJoinedPayload,
+  PlayerLeftPayload,
+  GameStartedPayload,
+  ErrorPayload,
+} from "../Types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-
-// Interface for room data
-interface RoomData {
-  id: string;
-  name: string;
-  players: Player[];
-  maxPlayers: number;
-  status: "waiting" | "playing" | "full";
-  ownerId: string;
-}
 
 type RootStackParamList = {
   RoomScreen: {
     roomId: string;
-    initialRoomData: RoomData;
+    initialRoomData: Room;
   };
   MultiplayerLobby: undefined;
   MultiPlayerGameScreen: {
     roomId: string;
-    roomData: RoomData;
+    roomData: Room;
   };
 };
 
-type RoomNavigation = NativeStackNavigationProp<
-  RootStackParamList,
-  "RoomScreen" | "MultiplayerLobby" | "MultiPlayerGameScreen"
->;
+type RoomScreenRouteProp = RouteProp<RootStackParamList, "RoomScreen">;
+type RoomNavigation = NativeStackNavigationProp<RootStackParamList>;
 
 const RoomScreen = () => {
-  const route = useRoute();
+  const route = useRoute<RoomScreenRouteProp>();
   const navigation = useNavigation<RoomNavigation>();
   const { socket, isConnected } = useSocket();
-
   const { roomId, initialRoomData } = route.params;
-
-  const [roomState, setRoomState] = useState(initialRoomData);
+  const [roomState, setRoomState] = useState<Room | null>(
+    initialRoomData || null
+  );
+  // console.log("Room Data:", initialRoomData);
   const [isOwner, setIsOwner] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<
+    "connected" | "connecting" | "disconnected"
+  >(isConnected ? "connected" : "connecting");
 
-  // Set header title and determine if the current user is the room owner
   useEffect(() => {
     if (roomState && socket) {
       setIsOwner(roomState.ownerId === socket.id);
       navigation.setOptions({ title: roomState.name });
-    } else if (!isConnected) {
-      Alert.alert("Disconnected", "Lost connection. Returning to lobby.");
-      navigation.navigate("MultiplayerLobby");
     }
-  }, [roomState, socket, isConnected, navigation, roomId]);
+  }, [roomState, socket, navigation]);
 
-  // Remove the player from the room when navigating away if still waiting
   useEffect(() => {
-    const unsubscribe = navigation.addListener("beforeRemove", () => {
-      // Only leave if the game hasn't started (i.e. still waiting)
-      if (roomState && roomState.status === "waiting" && socket) {
-        socket.emit("leave_room", { roomId });
-      }
-    });
-    return unsubscribe;
-  }, [navigation, roomState, socket, roomId]);
+    setConnectionStatus(isConnected ? "connected" : "disconnected");
 
-  // Socket event handlers
-  const handlePlayerJoined = useCallback((data) => {
+    if (!isConnected && connectionStatus === "connected") {
+      Alert.alert(
+        "Connection Lost",
+        "Lost connection to the game server. Returning to lobby.",
+        [
+          {
+            text: "OK",
+            onPress: () =>
+              navigation.reset({
+                index: 0,
+                routes: [{ name: "MultiplayerLobby" }],
+              }),
+          },
+        ]
+      );
+    }
+  }, [isConnected, connectionStatus, navigation]);
+
+  useEffect(() => {
+    const onBackPress = () => {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MultiplayerLobby" }],
+      });
+      console.log("Hardware Back Press From RoomScreen");
+      socket?.emit("leave_room", { roomId });
+      return true;
+    };
+    BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    return () =>
+      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+  }, []);
+
+  const handlePlayerJoined = useCallback((data: PlayerJoinedPayload) => {
     console.log("Player joined:", data.playerName);
     setRoomState((prev) =>
       prev ? { ...prev, players: data.updatedPlayers } : null
@@ -88,13 +110,11 @@ const RoomScreen = () => {
   }, []);
 
   const handlePlayerLeft = useCallback(
-    (data) => {
-      console.log("Player left:", data.playerName);
-
-      if (data.userId === socket?.id) {
-        Alert.alert("Removed", "You are no longer in the room.");
-        navigation.navigate("MultiplayerLobby");
-        return;
+    (data: PlayerLeftPayload) => {
+      if (data.userId !== socket?.id) {
+        // TODO: Make a toast
+        Alert.alert("Player left", `${data.playerName} left the room`);
+        console.log("You are no longer in the room.");
       }
 
       setRoomState((prev) => {
@@ -106,7 +126,7 @@ const RoomScreen = () => {
   );
 
   const handleOwnerChanged = useCallback(
-    (data) => {
+    (data: OwnerChangedPayload) => {
       console.log("Owner changed to:", data.newOwnerId);
       setRoomState((prev) =>
         prev
@@ -131,44 +151,75 @@ const RoomScreen = () => {
   );
 
   const handleGameStarted = useCallback(
-    (data) => {
-      console.log("Game Started! Navigating...", data);
+    (data: GameStartedPayload) => {
+      // console.log("Game Started! Navigating...", data);
+      setIsLoading(false);
 
-      // Update room state with latest data from server
       if (data && data.roomData) {
         setRoomState(data.roomData);
       }
 
-      // Navigate to game screen with the room data
-      navigation.navigate("MultiPlayerGameScreen", {
-        roomId: roomId,
-        roomData: data.roomData || roomState,
+      navigation.navigate({
+        name: "MultiPlayerGameScreen",
+        params: {
+          roomId: roomId,
+          roomData: data.roomData || roomState,
+        },
       });
     },
     [navigation, roomId, roomState]
   );
 
-  const handleStartError = useCallback(
-    (error: { message: string | undefined }) => {
-      Alert.alert("Cannot Start Game", error.message);
-      setIsLoading(false);
-    },
-    []
-  );
+  const handleStartError = useCallback((error: ErrorPayload) => {
+    Alert.alert("Cannot Start Game", error.message);
+    setIsLoading(false);
+  }, []);
 
-  const handleLeaveError = useCallback(
-    (error: { message: string | undefined }) => {
-      Alert.alert("Error Leaving Room", error.message);
-      setIsLoading(false);
-    },
-    []
-  );
+  const handleLeaveError = useCallback((error: ErrorPayload) => {
+    Alert.alert("Error Leaving Room", error.message);
+    setIsLoading(false);
+  }, []);
 
-  // Set up socket listeners when screen is focused
+  const handleLeaveRoom = () => {
+    if (!socket || !isConnected || !roomId) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "MultiplayerLobby" }],
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    socket.emit("leave_room", { roomId });
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "MultiplayerLobby" }],
+    });
+  };
+
+  const handleStartGame = () => {
+    if (!socket || !isConnected || !roomId || !isOwner) return;
+
+    if (!roomState) return;
+
+    if (roomState.players.length < 2) {
+      Alert.alert("Cannot Start Game", "Need at least 2 players to start.");
+      return;
+    }
+
+    if (roomState.players.length > 4) {
+      Alert.alert("Cannot Start Game", "Maximum 4 players allowed.");
+      return;
+    }
+
+    setIsLoading(true);
+    socket.emit("start_game", { roomId });
+  };
+
   useFocusEffect(
     useCallback(() => {
       if (socket && isConnected && roomId) {
-        console.log(`Setting up room listeners for ${roomId}`);
+        // console.log(`Setting up room listeners for ${roomId}`);
 
         socket.on("player_joined", handlePlayerJoined);
         socket.on("player_left", handlePlayerLeft);
@@ -178,13 +229,27 @@ const RoomScreen = () => {
         socket.on("leave_error", handleLeaveError);
 
         const handleDisconnect = () => {
-          Alert.alert("Disconnected", "Lost connection. Returning to lobby.");
-          navigation.navigate("MultiplayerLobby");
+          setConnectionStatus("disconnected");
+          Alert.alert(
+            "Disconnected",
+            "Lost connection to the game server. Returning to lobby.",
+            [
+              {
+                text: "OK",
+                onPress: () =>
+                  navigation.reset({
+                    index: 0,
+                    routes: [{ name: "MultiplayerLobby" }],
+                  }),
+              },
+            ]
+          );
         };
+
         socket.on("disconnect", handleDisconnect);
 
         return () => {
-          console.log(`Cleaning up room listeners for ${roomId}`);
+          // console.log(`Cleaning up room listeners for ${roomId}`);
           socket.off("player_joined", handlePlayerJoined);
           socket.off("player_left", handlePlayerLeft);
           socket.off("owner_changed", handleOwnerChanged);
@@ -193,9 +258,6 @@ const RoomScreen = () => {
           socket.off("leave_error", handleLeaveError);
           socket.off("disconnect", handleDisconnect);
         };
-      } else if (!isConnected) {
-        Alert.alert("Disconnected", "Lost connection. Returning to lobby.");
-        navigation.navigate("MultiplayerLobby");
       }
     }, [
       socket,
@@ -211,21 +273,7 @@ const RoomScreen = () => {
     ])
   );
 
-  const handleLeaveRoom = () => {
-    if (!socket || !isConnected || !roomId) return;
-    setIsLoading(true);
-    socket.emit("leave_room", { roomId });
-    navigation.navigate("MultiplayerLobby");
-  };
-
-  const handleStartGame = () => {
-    if (!socket || !isConnected || !roomId || !isOwner) return;
-    setIsLoading(true);
-    socket.emit("start_game", { roomId });
-  };
-
-  // Render a player item
-  const renderPlayerItem = ({ item }) => (
+  const renderPlayerItem = ({ item }: { item: Player }) => (
     <View style={styles.playerItem}>
       <Ionicons
         name="person-circle-outline"
@@ -234,19 +282,44 @@ const RoomScreen = () => {
         style={styles.playerIcon}
       />
       <Text style={styles.playerName}>{item.name}</Text>
-      {item.id === roomState?.ownerId && (
+      {roomState && item.id === roomState.ownerId && (
         <Text style={styles.ownerText}>(Owner)</Text>
       )}
       {item.id === socket?.id && <Text style={styles.youText}>(You)</Text>}
     </View>
   );
 
-  // Loading state
+  if (connectionStatus === "disconnected") {
+    return (
+      <View style={styles.centeredContainer}>
+        <Ionicons name="wifi-outline" size={40} color="#e57373" />
+        <Text style={styles.errorText}>Connection Lost</Text>
+        <Text style={styles.subErrorText}>Returning to lobby...</Text>
+        <TouchableOpacity
+          style={styles.actionButton}
+          onPress={() =>
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "MultiplayerLobby" }],
+            })
+          }
+        >
+          <LinearGradient
+            colors={["#4CAF50", "#2E7D32"]}
+            style={styles.buttonGradient}
+          >
+            <Text style={styles.buttonText}>Return to Lobby</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   if (!roomState) {
     return (
-      <View style={styles.container}>
+      <View style={styles.centeredContainer}>
         <ActivityIndicator size="large" color="#4CAF50" />
-        <Text style={{ color: "white", marginTop: 10 }}>Loading Room...</Text>
+        <Text style={styles.loadingText}>Loading Room...</Text>
       </View>
     );
   }
@@ -262,10 +335,17 @@ const RoomScreen = () => {
         Players: {roomState.players.length} / {roomState.maxPlayers}
       </Text>
 
+      {isLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#4CAF50" />
+          <Text style={styles.loadingText}>Please wait...</Text>
+        </View>
+      )}
+
       <FlatList
         data={roomState.players}
         renderItem={renderPlayerItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         style={styles.playerList}
         contentContainerStyle={{ paddingBottom: 20 }}
       />
@@ -302,9 +382,12 @@ const RoomScreen = () => {
         )}
 
         {!isOwner && (
-          <Text style={styles.waitingText}>
-            Waiting for the owner to start...
-          </Text>
+          <View style={styles.waitingContainer}>
+            <ActivityIndicator size="small" color="#4CAF50" />
+            <Text style={styles.waitingText}>
+              Waiting for the owner to start...
+            </Text>
+          </View>
         )}
 
         <TouchableOpacity
@@ -333,9 +416,16 @@ const RoomScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#1a2a1f", // Dark background consistent with lobby
+    backgroundColor: "#1a2a1f",
     padding: 20,
-    paddingTop: 40, // Adjust as needed
+    paddingTop: 40,
+  },
+  centeredContainer: {
+    flex: 1,
+    backgroundColor: "#1a2a1f",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
   title: {
     fontSize: 28,
@@ -352,12 +442,12 @@ const styles = StyleSheet.create({
   },
   playerCountText: {
     fontSize: 18,
-    color: "#b0e0b0", // Light green
+    color: "#b0e0b0",
     textAlign: "center",
     marginBottom: 20,
   },
   playerList: {
-    flex: 1, // Takes up available space before buttons
+    flex: 1,
     marginBottom: 20,
   },
   playerItem: {
@@ -375,22 +465,22 @@ const styles = StyleSheet.create({
   playerName: {
     fontSize: 16,
     color: "#ffffff",
-    flex: 1, // Allow name to take space
+    flex: 1,
   },
   ownerText: {
     fontSize: 12,
-    color: "#FFD700", // Gold color for owner
+    color: "#FFD700",
     fontWeight: "bold",
     marginLeft: 5,
   },
   youText: {
     fontSize: 12,
-    color: "#81D4FA", // Light blue for "You"
+    color: "#81D4FA",
     fontWeight: "bold",
     marginLeft: 5,
   },
   buttonContainer: {
-    // Buttons at the bottom
+    marginTop: 10,
   },
   actionButton: {
     borderRadius: 10,
@@ -399,8 +489,7 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   disabledButton: {
-    // Optionally reduce opacity further or change background if not using gradient change
-    // opacity: 0.6,
+    opacity: 0.8,
   },
   buttonGradient: {
     flexDirection: "row",
@@ -419,12 +508,46 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
   },
+  waitingContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 20,
+  },
   waitingText: {
     color: "#a0a0a0",
     fontSize: 14,
     textAlign: "center",
-    marginBottom: 20,
+    marginLeft: 10,
     fontStyle: "italic",
+  },
+  loadingText: {
+    color: "white",
+    marginTop: 10,
+    fontSize: 16,
+  },
+  errorText: {
+    color: "#e57373",
+    fontSize: 18,
+    fontWeight: "bold",
+    marginTop: 10,
+  },
+  subErrorText: {
+    color: "#a0a0a0",
+    fontSize: 14,
+    marginTop: 5,
+    marginBottom: 20,
+  },
+  loadingOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
   },
 });
 

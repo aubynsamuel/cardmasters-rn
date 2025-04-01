@@ -17,7 +17,7 @@ interface GameScore {
 // type Player = "You" | "Computer" | string;
 interface Player {
   name: string;
-  id: number | string;
+  id: string;
   hands: Card[];
   score: number;
 }
@@ -46,7 +46,6 @@ interface CardsGameState {
   accumulatedPoints: number;
   lastPlayedSuit: Suit | null;
   currentControl: Player;
-  activePlayerIndex: number;
   deck: Deck;
   gameOverData: GameOverData;
 }
@@ -63,6 +62,84 @@ type Callbacks = {
   onRoundFinished: () => void;
 };
 
+type RoomStatus = "waiting" | "playing" | "finished";
+
+interface Room {
+  id: string;
+  name: string;
+  players: Player[];
+  maxPlayers: number;
+  status: RoomStatus;
+  ownerId: string;
+}
+
+interface LobbyRoom {
+  id: string;
+  name: string;
+  players: number;
+  maxPlayers: number;
+  status: string;
+}
+
+// Event payload types
+interface CreateRoomPayload {
+  playerName: string;
+  roomName?: string;
+  id: string;
+}
+
+interface JoinRoomPayload {
+  roomId: string;
+  playerName: string;
+  id: string;
+}
+
+interface LeaveRoomPayload {
+  roomId: string;
+}
+
+interface StartGamePayload {
+  roomId: string;
+}
+
+interface PlayCardPayload {
+  roomId: string;
+  playerId: string;
+  card: Card;
+  cardIndex: number;
+}
+
+interface RoomJoined {
+  roomId: string;
+  room: Room;
+}
+
+interface OwnerChangedPayload {
+  newOwnerId: string;
+  updatedPlayers: Player[];
+}
+
+interface PlayerJoinedPayload {
+  userId: string;
+  playerName: string;
+  updatedPlayers: Player[];
+}
+
+interface PlayerLeftPayload {
+  userId: string;
+  playerName: string;
+  updatedPlayers: Player[];
+}
+
+interface GameStartedPayload {
+  roomId: string;
+  roomData: Room;
+}
+
+interface ErrorPayload {
+  message: string;
+}
+
 export {
   Suit,
   Rank,
@@ -75,4 +152,18 @@ export {
   CardsGameState,
   GameOverData,
   Callbacks,
+  Room,
+  LobbyRoom,
+  CreateRoomPayload,
+  JoinRoomPayload,
+  LeaveRoomPayload,
+  StartGamePayload,
+  PlayCardPayload,
+  RoomJoined,
+  RoomStatus,
+  OwnerChangedPayload,
+  ErrorPayload,
+  GameStartedPayload,
+  PlayerJoinedPayload,
+  PlayerLeftPayload,
 };

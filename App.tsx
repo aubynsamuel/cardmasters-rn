@@ -8,19 +8,21 @@ import LobbyScreen from "./src/screens/LobbyScreen";
 import RoomScreen from "./src/screens/RoomScreen";
 import GameOverScreen from "./src/screens/GameOverScreen";
 import { StatusBar } from "expo-status-bar";
-import { View } from "react-native";
+import { LogBox, View } from "react-native";
 import MultiPlayerGameScreen from "./src/screens/MultiplayerGameScreen";
 import { AuthProvider } from "./src/AuthContext";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import { SocketProvider } from "./src/SocketContext";
+import AuthScreen from "./src/screens/AuthScreen";
 
 const Stack = createNativeStackNavigator();
 
 const App: React.FC = () => {
+  LogBox.ignoreAllLogs();
   return (
     <View style={{ backgroundColor: "#076324", flex: 1 }}>
-      <SocketProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <SocketProvider>
           <NavigationContainer>
             <StatusBar hidden={true} />
             <Stack.Navigator
@@ -38,15 +40,13 @@ const App: React.FC = () => {
                 options={{ navigationBarColor: "#076324" }}
               />
               <Stack.Screen name="MultiplayerLobby" component={LobbyScreen} />
-              <Stack.Screen
-                name="RoomScreen"
-                component={RoomScreen as React.FC}
-              />
+              <Stack.Screen name="RoomScreen" component={RoomScreen} />
               <Stack.Screen
                 name="MultiPlayerGameScreen"
                 component={MultiPlayerGameScreen}
               />
               <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+              <Stack.Screen name="Auth" component={AuthScreen} />
               <Stack.Screen
                 name="GameOver"
                 component={GameOverScreen as React.FC}
@@ -54,8 +54,8 @@ const App: React.FC = () => {
               />
             </Stack.Navigator>
           </NavigationContainer>
-        </AuthProvider>
-      </SocketProvider>
+        </SocketProvider>
+      </AuthProvider>
     </View>
   );
 };

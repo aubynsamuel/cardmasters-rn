@@ -1,4 +1,4 @@
-import { TextStyle, Text, StyleSheet, View } from "react-native";
+import { TextStyle, Text, StyleSheet, View, Alert } from "react-native";
 import { suitSymbols } from "../gameLogic/GameUtils";
 import { Card } from "../Types";
 import React from "react";
@@ -17,7 +17,7 @@ import {
 
 interface CardComponentInterface {
   card: Card;
-  playCard: () => boolean | undefined;
+  playCard: () => { error: string; message: string } | undefined;
   width: number;
 }
 
@@ -29,9 +29,12 @@ const CardComponent = ({ card, playCard, width }: CardComponentInterface) => {
 
   function visualEffectForUnsuccessfulPlays() {
     const afterEffect = playCard();
-    if (afterEffect === false) {
+    if (!afterEffect) return;
+    if (afterEffect?.error !== "" && afterEffect?.message !== "") {
+      // eslint-disable-next-line react-compiler/react-compiler
       translateX.value = withSpring(0, { duration: 500 });
       translateY.value = withSpring(0, { duration: 500 });
+      Alert.alert(afterEffect?.error, afterEffect.message);
     }
   }
 
@@ -75,7 +78,7 @@ const CardComponent = ({ card, playCard, width }: CardComponentInterface) => {
   return (
     <GestureDetector gesture={panGesture}>
       <Animated.View style={[cardAnimation]}>
-        <TouchableWithoutFeedback onPress={playCard}>
+        <TouchableWithoutFeedback onPress={visualEffectForUnsuccessfulPlays}>
           <View
             style={[
               styles.cardContainer,

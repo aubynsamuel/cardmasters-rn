@@ -4,6 +4,8 @@ import {
   Text,
   useWindowDimensions,
   TouchableOpacity,
+  BackHandler,
+  Alert,
 } from "react-native";
 import getStyles from "../Styles";
 import { StatusBar } from "expo-status-bar";
@@ -26,11 +28,19 @@ import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import AnimatedScoreDisplay from "../components/AnimatedScoreDisplay";
-import { CardsGameState, GameScore, Player } from "../Types";
+import {
+  CardsGameState,
+  GameScore,
+  GameStartedPayload,
+  Player,
+  PlayerLeftPayload,
+} from "../Types";
 import { GAME_TO } from "../gameLogic/MultiplayerGameClass";
 import { useSocket } from "../SocketContext";
+import { useAuth } from "../AuthContext";
 
 type GameScreenStackParamList = {
+  RoomScreen: GameStartedPayload;
   GameOver: {
     winner: Player;
     score: GameScore[];
@@ -41,71 +51,180 @@ type GameScreenStackParamList = {
 
 type GameScreenProps = NativeStackNavigationProp<
   GameScreenStackParamList,
-  "GameOver"
+  "GameOver",
+  "RoomScreen"
 >;
 
-interface RoomData {
-  id: string;
-  name: string;
-  players: Player[];
-  maxPlayers: number;
-  status: "waiting" | "playing" | "full";
-  ownerId: string;
-}
-
-const MultiPlayerGameScreen: React.FC = () => {
+const MultiPlayerGameScreen = () => {
   const navigation = useNavigation<GameScreenProps>();
   const route = useRoute();
   const { width, height } = useWindowDimensions();
   const styles = getStyles(width, height);
-  const { isConnected, socket } = useSocket();
-
-  // Get roomId from route params
-  const { roomId } = route.params || {};
-
+  const { isConnected, socket, socketId } = useSocket();
+  const { userId } = useAuth();
+  const { roomId, roomData } = route.params as GameStartedPayload;
   const [gameState, setGameState] = useState<CardsGameState | null>(null);
   const [showControlsOverlay, setShowControlsOverlay] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-
+  // console.log(gameState);
   const computerControlScale = useSharedValue(0);
   const humanControlScale = useSharedValue(0);
 
   useEffect(() => {
     if (socket && isConnected) {
       const handleGameStateUpdate = (newState: CardsGameState) => {
-        console.log("Game state update received:", newState);
-        setGameState(newState);
+        setGameState((prev) => ({ ...prev, ...newState }));
         setIsLoading(false);
       };
 
       socket.on("game_state_update", handleGameStateUpdate);
+      socket.on("player_left", handlePlayerLeft);
+      socket.on(
+        "play_error",
+        (data: {
+          valid: {
+            error: string;
+            message: string;
+          };
+        }) => {
+          Alert.alert(data.valid.error, data.valid.message);
+        }
+      );
 
-      // Request initial game state if needed
-      if (roomId) {
-        console.log("Requesting initial game state for room:", roomId);
-        socket.emit("request_game_state", { roomId });
-      }
+      const handleDisconnect = () => {
+        Alert.alert(
+          "Disconnected",
+          "Lost connection to the game server. Returning to lobby.",
+          [
+            {
+              text: "OK",
+              onPress: () =>
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "MultiplayerLobby" as never }],
+                }),
+            },
+          ]
+        );
+      };
 
-      // Cleanup listener on unmount
+      socket.on("disconnect", handleDisconnect);
+
       return () => {
         socket.off("game_state_update", handleGameStateUpdate);
+        socket.off("player_left", handlePlayerLeft);
+        socket.off("play_error");
+        socket.off("disconnect", handleDisconnect);
       };
     }
   }, [socket, isConnected, roomId]);
 
+  const handlePlayerLeft = (data: PlayerLeftPayload) => {
+    console.log("Player left:", data.playerName, "From GameScreen");
+
+    if (data.userId !== socket?.id) {
+      console.log("Another player left");
+      if (data.updatedPlayers && data.updatedPlayers.length >= 2) {
+        console.log(
+          "Game will continue with",
+          data.updatedPlayers.length,
+          "players"
+        );
+        Alert.alert(
+          `${data.playerName} left the game`,
+          "Game will continue with the remaining players."
+        );
+        setGameState((prevState) => {
+          if (!prevState) return null;
+          return {
+            ...prevState,
+            players: data.updatedPlayers,
+          };
+        });
+      } else {
+        console.log("Not enough players to continue");
+        Alert.alert(
+          `${data.playerName} left the game`,
+          "Not enough players to continue. Returning to lobby.",
+          [
+            {
+              text: "OK",
+              onPress: () => {
+                socket?.emit("leave_room", { roomId });
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: "MultiplayerLobby" as never }],
+                });
+              },
+            },
+          ]
+        );
+      }
+    }
+  };
+
+  const QuitGameAlert = () => {
+    Alert.alert("Quit Game", "Do you want to quit game", [
+      { text: "No", onPress: () => {} },
+      {
+        text: "Yes",
+        onPress: () => {
+          socket?.emit("leave_room", { roomId });
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "MultiplayerLobby" as never }],
+          });
+        },
+      },
+    ]);
+  };
+
+  useEffect(() => {
+    const onBackPress = () => {
+      QuitGameAlert();
+      return true;
+    };
+    BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    return () =>
+      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+  }, []);
+
   useEffect(() => {
     if (!gameState) return;
 
-    if (
-      gameState.players[0]?.score >= GAME_TO ||
-      gameState.players[1]?.score >= GAME_TO
-    ) {
-      // Make sure gameOverData exists before navigating
+    const currentPlayer = gameState.players.find(
+      (player) => player.id === userId || player.id === socketId
+    );
+
+    const opponentPlayer = gameState.players.find(
+      (player) => player.id !== userId && player.id !== socketId
+    );
+
+    if (!currentPlayer || !opponentPlayer) return;
+
+    if (gameState.players.some((p) => p.score >= GAME_TO)) {
+      socket?.emit("game_ended", { roomId });
+      const gameScoreList = gameState.players.map((player) => ({
+        playerName: player.name,
+        score: player.score,
+      }));
       if (gameState.gameOverData) {
-        navigation.navigate("GameOver", {
-          ...gameState.gameOverData,
-          isCurrentPlayer:
-            gameState.gameOverData.winner.id === gameState?.players[0].id,
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: "GameOver",
+              params: {
+                winner: gameState.gameOverData.winner,
+                isCurrentPlayer:
+                  gameState.gameOverData.winner.id === currentPlayer?.id,
+                isMultiPlayer: true,
+                score: gameScoreList,
+                roomId: roomId,
+                initialRoomData: roomData,
+              },
+            },
+          ],
         });
       }
     }
@@ -114,7 +233,15 @@ const MultiPlayerGameScreen: React.FC = () => {
   useEffect(() => {
     if (!gameState || !gameState.currentControl) return;
 
-    if (gameState.currentControl.id === gameState.players[1]?.id)
+    const currentPlayer = gameState.players.find(
+      (player) => player.id === userId || player.id === socketId
+    );
+
+    const opponentPlayer = gameState.players.find(
+      (player) => player.id !== userId && player.id !== socketId
+    );
+
+    if (gameState.currentControl.id === opponentPlayer?.id)
       computerControlScale.value = withSpring(1.2, {
         duration: 500,
         stiffness: 300,
@@ -125,7 +252,7 @@ const MultiPlayerGameScreen: React.FC = () => {
         stiffness: 300,
       });
 
-    if (gameState.currentControl.id === gameState.players[0]?.id)
+    if (gameState.currentControl.id === currentPlayer?.id)
       humanControlScale.value = withSpring(1.2, {
         duration: 500,
         stiffness: 300,
@@ -135,30 +262,58 @@ const MultiPlayerGameScreen: React.FC = () => {
         duration: 500,
         stiffness: 300,
       });
-  }, [gameState?.currentControl, gameState?.players]);
+  }, [gameState?.currentControl, gameState?.players, userId, socketId]);
 
   if (isLoading || !gameState || !gameState.players) {
     return (
-      <View style={styles.container}>
+      <View
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          alignItems: "center",
+          backgroundColor: "green",
+        }}
+      >
         <Text style={styles.message}>Loading game...</Text>
       </View>
     );
   }
 
-  // Make sure we have the currentUser and opponent before rendering
-  const currentUser = gameState.players[0] || {
+  // const handlePlayerLeft = useCallback(
+  //   (data: PlayerLeftPayload) => {
+  //     console.log("Player left:", data.playerName);
+
+  //     if (data.userId !== socket?.id) {
+  //       Alert.alert(`${data.playerName} left the game`);
+  //       navigation.navigate("MultiplayerLobby" as never);
+  //       return;
+  //     }
+  //   },
+  //   [socket, navigation]
+  // );
+
+  const currentUser = gameState.players.find(
+    (player) => player.id === userId || player.id === socketId
+  ) || {
     name: "You",
     id: "player1",
     hands: [],
     score: 0,
   };
 
-  const opponent = gameState.players[1] || {
+  const opponent = gameState.players.find(
+    (player) => player.id !== userId && player.id !== socketId
+  ) || {
     name: "Opponent",
     id: "player2",
     hands: [],
     score: 0,
   };
+
+  const gameScoreList = gameState.players.map((player) => ({
+    playerName: player.name,
+    score: player.score,
+  }));
 
   return (
     <GestureHandlerRootView>
@@ -212,12 +367,10 @@ const MultiPlayerGameScreen: React.FC = () => {
               </View>
               <GameControls
                 showStartButton={gameState.showStartButton}
-                startNewGame={() => {
-                  // Add new game functionality if needed
-                  socket?.emit("request_new_game", { roomId });
-                }}
                 gameOver={gameState.gameOver}
                 onClose={() => setShowControlsOverlay(false)}
+                onQuitGame={QuitGameAlert}
+                isMultiPlayer={true}
               />
             </View>
           </TouchableOpacity>
@@ -226,10 +379,7 @@ const MultiPlayerGameScreen: React.FC = () => {
         <TopRow
           deck={gameState.deck || []}
           setShowControlsOverlay={(value) => setShowControlsOverlay(value)}
-          gameScoreList={[
-            { playerName: currentUser.name, score: currentUser.score },
-            { playerName: opponent.name, score: opponent.score },
-          ]}
+          gameScoreList={gameScoreList}
         />
 
         {/* MAIN GAME AREA */}
@@ -258,7 +408,7 @@ const MultiPlayerGameScreen: React.FC = () => {
               {opponent.hands &&
                 opponent.hands.map((card, index) => (
                   <Animated.View
-                    key={`opponent-card-${index}`}
+                    key={`${opponent.id}-card-${card.suit}-${card.rank}`}
                     entering={
                       gameState.isDealing
                         ? FlipInEasyX.delay(
@@ -277,7 +427,7 @@ const MultiPlayerGameScreen: React.FC = () => {
           <View style={[styles.gameResultSection]}>
             <View style={styles.messageContainer}>
               <Text numberOfLines={2} style={[styles.message]}>
-                {gameState.message || "Game in progress..."}
+                {gameState.message}
               </Text>
             </View>
 
@@ -341,7 +491,7 @@ const MultiPlayerGameScreen: React.FC = () => {
               {currentUser.hands &&
                 currentUser.hands.map((card, index) => (
                   <Animated.View
-                    key={`currentUser-card-${index}`}
+                    key={`currentUser-card-${card.suit}-${card.rank}`}
                     entering={
                       gameState.isDealing
                         ? FlipInEasyX.delay(
@@ -359,6 +509,7 @@ const MultiPlayerGameScreen: React.FC = () => {
                           card,
                           cardIndex: index,
                         });
+                        return { error: "", message: "" };
                       }}
                       width={width}
                     />

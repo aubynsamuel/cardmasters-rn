@@ -17,7 +17,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import EnhancedShufflingAnimation from "../components/EnhancedShufflingAnimation";
 import { useAuth } from "../AuthContext";
 
-const SplashScreen: React.FC = () => {
+const SplashScreen = () => {
   const navigation = useNavigation();
   const { width, height } = useWindowDimensions();
   const opacity = useSharedValue(0);

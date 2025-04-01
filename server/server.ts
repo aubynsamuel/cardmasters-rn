@@ -1,58 +1,20 @@
-import http from "http";
+import * as http from "http";
 import { Server, Socket } from "socket.io";
-import { CardsGameState, Callbacks, Card, Player } from "../src/Types";
+import { CardsGameState, Callbacks, Player } from "../src/Types";
+import {
+  CreateRoomPayload,
+  JoinRoomPayload,
+  LeaveRoomPayload,
+  LobbyRoom,
+  PlayCardPayload,
+  Room,
+  StartGamePayload,
+} from "./types";
 
-// Import the game class (adjust the path as needed)
-import MultiplayerCardsGame from "./MultiplayerGameClass";
+import MultiplayerCardsGame from "../src/gameLogic/MultiplayerGameClass";
 
-interface Room {
-  id: string;
-  name: string;
-  players: Player[];
-  maxPlayers: number;
-  status: "waiting" | "playing" | "finished";
-  ownerId: string;
-}
-
-interface LobbyRoom {
-  id: string;
-  name: string;
-  players: number;
-  maxPlayers: number;
-  status: string;
-}
-
-// Event payload types
-interface CreateRoomPayload {
-  playerName: string;
-  roomName?: string;
-}
-
-interface JoinRoomPayload {
-  roomId: string;
-  playerName: string;
-}
-
-interface LeaveRoomPayload {
-  roomId: string;
-}
-
-interface StartGamePayload {
-  roomId: string;
-}
-
-interface PlayCardPayload {
-  roomId: string;
-  playerId: string;
-  card: Card;
-  cardIndex: number;
-}
-
-// Basic server setup - you might integrate this with Express etc. if needed
 const server = http.createServer();
 
-// Initialize Socket.IO Server with CORS configuration
-// Adjust origin for production!
 const io = new Server(server, {
   cors: {
     origin: "*", // Allows all origins for simplicity, restrict in production
@@ -60,41 +22,27 @@ const io = new Server(server, {
   },
 });
 
-// In-memory storage for rooms. Consider a database for persistence.
 const rooms: Record<string, Room> = {};
-// Keep track of which room each socket is in for easier cleanup on disconnect
-const socketRoomMap: Record<string, string> = {}; // { socketId: roomId }
+const socketRoomMap: Record<string, string> = {};
+const gameInstances: Record<string, MultiplayerCardsGame> = {};
 
-// Store game instances keyed by roomId
-const gameInstances: Record<string, CardsGameState> = {};
-
-// --- Helper Functions ---
-
-// Get rooms suitable for the lobby (waiting and not full)
 function getLobbyRooms(): LobbyRoom[] {
-  return Object.values(rooms)
-    .filter((room) => room.status === "waiting") // Only show waiting rooms
-    .map((room) => ({
-      id: room.id,
-      name: room.name,
-      players: room.players.length, // Send player count
-      maxPlayers: room.maxPlayers,
-      status: room.status,
-      // Add any other info needed for the lobby list item
-    }));
+  return Object.values(rooms).map((room) => ({
+    id: room.id,
+    name: room.name,
+    players: room.players.length,
+    maxPlayers: room.maxPlayers,
+    status: room.status,
+  }));
 }
 
-// Broadcast updated lobby room list to all connected clients
 function broadcastLobbyUpdate(): void {
   io.emit("lobby_rooms", getLobbyRooms());
-  // console.log('Lobby updated:', getLobbyRooms()); // For debugging
 }
 
-// Handle player disconnection
 function handleDisconnect(socket: Socket): void {
   console.log("User disconnected:", socket.id);
-  const roomId = socketRoomMap[socket.id]; // Find which room the socket was in
-
+  const roomId = socketRoomMap[socket.id];
   if (roomId && rooms[roomId]) {
     const room = rooms[roomId];
     const playerIndex = room.players.findIndex((p) => p.id === socket.id);
@@ -105,11 +53,15 @@ function handleDisconnect(socket: Socket): void {
         `${leavingPlayer?.name || "User"} (${socket.id}) left room ${roomId}`
       );
 
-      // Remove the socket mapping
       delete socketRoomMap[socket.id];
 
-      // If the room is now empty, delete it and its game instance if any.
-      if (room.players.length === 0 && room.status !== "playing") {
+      const game = gameInstances[roomId];
+      if (game) {
+        game.players = room.players;
+        console.log("Removed player from game", game.players.length);
+      } else console.log("Could not remove player");
+
+      if (room.players.length === 0) {
         console.log(`Room ${roomId} is empty, deleting.`);
         delete rooms[roomId];
         if (gameInstances[roomId]) {
@@ -119,13 +71,14 @@ function handleDisconnect(socket: Socket): void {
         // Notify remaining players
         io.to(roomId).emit("player_left", {
           userId: socket.id,
-          playerName: leavingPlayer?.name || "User", // Send name if available
-          updatedPlayers: room.players, // Send updated list
+          playerName: leavingPlayer?.name || "User",
+          updatedPlayers: room.players,
         });
+        console.log("Notified rest of players");
 
         // Handle ownership transfer if the owner left
         if (room.ownerId === socket.id && room.players.length > 0) {
-          room.ownerId = room.players[0].id; // Assign to the next player
+          room.ownerId = room.players[0].id;
           console.log(
             `Ownership of room ${roomId} transferred to ${room.players[0].name} (${room.ownerId})`
           );
@@ -157,40 +110,48 @@ io.on("connection", (socket: Socket) => {
   });
 
   // Listener: Create a new room
-  socket.on("create_room", ({ playerName, roomName }: CreateRoomPayload) => {
-    // Prevent user from creating multiple rooms or joining while in another
-    if (socketRoomMap[socket.id]) {
-      socket.emit("create_error", { message: "You are already in a room." });
-      return;
+  socket.on(
+    "create_room",
+    ({ playerName, roomName, id }: CreateRoomPayload) => {
+      // Prevent user from creating multiple rooms or joining while in another
+      if (socketRoomMap[socket.id]) {
+        socket.emit("create_error", { message: "You are already in a room." });
+        return;
+      }
+
+      const roomId = `room_${Date.now()}_${Math.random()
+        .toString(36)
+        .substring(2, 7)}`;
+
+      // Create a new player with the correct structure based on the Player interface
+      const newPlayer: Player = {
+        id: id || socket.id,
+        name: playerName || `Player_${socket.id.substring(0, 4)}`,
+        hands: [],
+        score: 0,
+      };
+
+      const newRoom: Room = {
+        id: roomId,
+        name: roomName || `${playerName}'s Game`,
+        players: [newPlayer],
+        maxPlayers: 4,
+        status: "waiting",
+        ownerId: socket.id,
+      };
+
+      rooms[roomId] = newRoom;
+      socket.join(roomId);
+      socketRoomMap[socket.id] = roomId;
+
+      console.log(`Room ${roomId} created by ${playerName} (${socket.id})`);
+      socket.emit("room_created", { roomId: roomId, room: rooms[roomId] });
+      broadcastLobbyUpdate();
     }
-
-    const roomId = `room_${Date.now()}_${Math.random()
-      .toString(36)
-      .substring(2, 7)}`;
-    const newRoom: Room = {
-      id: roomId,
-      name: roomName || `${playerName}'s Game`,
-      players: [
-        {
-          id: socket.id,
-          name: playerName || `Player_${socket.id.substring(0, 4)}`,
-        },
-      ],
-      maxPlayers: 4,
-      status: "waiting",
-      ownerId: socket.id,
-    };
-    rooms[roomId] = newRoom;
-    socket.join(roomId);
-    socketRoomMap[socket.id] = roomId;
-
-    console.log(`Room ${roomId} created by ${playerName} (${socket.id})`);
-    socket.emit("room_joined", { roomId: roomId, room: rooms[roomId] });
-    broadcastLobbyUpdate();
-  });
+  );
 
   // Listener: Join an existing room
-  socket.on("join_room", ({ roomId, playerName }: JoinRoomPayload) => {
+  socket.on("join_room", ({ roomId, playerName, id }: JoinRoomPayload) => {
     if (socketRoomMap[socket.id]) {
       socket.emit("join_error", { message: "You are already in a room." });
       return;
@@ -207,17 +168,21 @@ io.on("connection", (socket: Socket) => {
         return;
       }
 
-      const joiningPlayer: RoomPlayer = {
-        id: socket.id,
+      // Create a new joining player with the correct structure
+      const joiningPlayer: Player = {
+        id: id || socket.id,
         name: playerName || `Player_${socket.id.substring(0, 4)}`,
+        hands: [],
+        score: 0,
       };
+
       room.players.push(joiningPlayer);
       socket.join(roomId);
       socketRoomMap[socket.id] = roomId;
 
       console.log(`${joiningPlayer.name} (${socket.id}) joined room ${roomId}`);
 
-      socket.emit("room_joined", { roomId: roomId, room: room });
+      socket.emit("room_created", { roomId: roomId, room: room });
       socket.to(roomId).emit("player_joined", {
         userId: socket.id,
         playerName: joiningPlayer.name,
@@ -248,15 +213,10 @@ io.on("connection", (socket: Socket) => {
         room.status = "playing";
         console.log(`Game starting in room ${roomId}`);
 
-        // Convert room players to game players
-        const gamePlayers = room.players.map((p) => ({
-          id: p.id,
-          name: p.name,
-          hands: [] as Card[],
-          score: 0,
-        }));
+        // Players are already in the correct format with hands and score
+        const gamePlayers = room.players;
 
-        // Create a new game instance for this room.
+        // Create a new game instance for this room
         const game = new MultiplayerCardsGame(gamePlayers);
 
         // Set up callbacks with proper typing
@@ -265,14 +225,14 @@ io.on("connection", (socket: Socket) => {
             io.to(roomId).emit("game_state_update", newState);
           },
           onRoundFinished: () => {
-            // Optionally, send a round-finished notification.
+            // Optionally, send a round-finished notification
             io.to(roomId).emit("round_finished", {});
           },
         };
 
         game.setCallbacks(callbacks);
 
-        // Save the game instance for later use (e.g., handling card plays)
+        // Save the game instance for later use
         gameInstances[roomId] = game;
 
         // Start the game. The game will broadcast its initial state via onStateChange.
@@ -300,32 +260,68 @@ io.on("connection", (socket: Socket) => {
     }
   });
 
+  socket.on("game_ended", ({ roomId }: { roomId: string }) => {
+    const room = rooms[roomId];
+    if (room.status !== "waiting") {
+      room.status = "waiting";
+      console.log("Room Has Been Set To Waiting");
+    }
+  });
+
   // Listener: Player plays a card
   socket.on(
     "play_card",
     ({ roomId, playerId, card, cardIndex }: PlayCardPayload) => {
+      console.log(`Player ${playerId} played card ${card} in room ${roomId}`);
       const game = gameInstances[roomId];
       if (game) {
+        // Ensure the player ID matches what's expected in the game (playerId can be string or number)
         const valid = game.playerPlayCard(playerId, card, cardIndex);
-        if (!valid) {
-          socket.emit("play_error", { message: "Invalid card play." });
+        if (valid.error !== "" && valid.message !== "") {
+          socket.emit("play_error", { valid });
         }
       } else {
-        socket.emit("play_error", { message: "Game not found." });
+        socket.emit("play_error", {
+          valid: {
+            error: "Error",
+            message: "Game not found.",
+          },
+        });
       }
     }
   );
+
+  // Listener: Request to reset game
+  socket.on("reset_game", ({ roomId }: { roomId: string }) => {
+    const room = rooms[roomId];
+    const game = gameInstances[roomId];
+
+    if (room && game && room.ownerId === socket.id) {
+      game.resetGame();
+
+      // Update room status
+      room.status = "waiting";
+
+      // Notify all players
+      io.to(roomId).emit("game_reset", { roomId, roomData: room });
+      broadcastLobbyUpdate();
+    } else if (!room || !game) {
+      socket.emit("reset_error", { message: "Room or game not found." });
+    } else if (room.ownerId !== socket.id) {
+      socket.emit("reset_error", {
+        message: "Only the room owner can reset the game.",
+      });
+    }
+  });
 
   // Listener: Client disconnected
   socket.on("disconnect", () => {
     handleDisconnect(socket);
   });
-
-  // --- Additional game actions can be added here later ---
 });
 
 // Start the server
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () =>
   console.log(`WebSocket server listening on port ${PORT}`)
 );

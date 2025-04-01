@@ -4,6 +4,8 @@ import {
   Text,
   useWindowDimensions,
   TouchableOpacity,
+  BackHandler,
+  Alert,
 } from "react-native";
 import getStyles from "../Styles";
 import { StatusBar } from "expo-status-bar";
@@ -47,7 +49,7 @@ type GameScreenProps = NativeStackNavigationProp<
   "GameOver"
 >;
 
-const GameScreen: React.FC = () => {
+const GameScreen = () => {
   const navigation = useNavigation<GameScreenProps>();
   const { width, height } = useWindowDimensions();
   const styles = getStyles(width, height);
@@ -56,13 +58,13 @@ const GameScreen: React.FC = () => {
   const initialPlayers = [
     {
       hands: [],
-      id: userId || 1234,
+      id: userId || "1234",
       name: userData?.displayName || "You",
       score: 0,
     },
     {
       hands: [],
-      id: 5678,
+      id: "5678",
       name: "Computer",
       score: 0,
     },
@@ -95,6 +97,32 @@ const GameScreen: React.FC = () => {
     return () => {
       gameRef.current = null;
     };
+  }, []);
+
+  const QuitGameAlert = () => {
+    Alert.alert("Quit Game", "Do you want to quit game", [
+      { text: "No", onPress: () => {} },
+      {
+        text: "Yes",
+        onPress: () => {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "MainMenu" as never }],
+          });
+        },
+      },
+    ]);
+  };
+
+  useEffect(() => {
+    const onBackPress = () => {
+      QuitGameAlert();
+      console.log("Hardware Back Press From GameScreen");
+      return true;
+    };
+    BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    return () =>
+      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
   }, []);
 
   useEffect(() => {
@@ -200,6 +228,8 @@ const GameScreen: React.FC = () => {
                 startNewGame={() => gameRef.current?.startGame()}
                 gameOver={gameState.gameOver}
                 onClose={() => setShowControlsOverlay(false)}
+                onQuitGame={QuitGameAlert}
+                isMultiPlayer={false}
               />
             </View>
           </TouchableOpacity>

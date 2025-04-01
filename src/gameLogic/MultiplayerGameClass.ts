@@ -12,7 +12,7 @@ import {
   CardsGameState,
 } from "../Types";
 
-export const GAME_TO = 10;
+export const GAME_TO = 2;
 
 class MultiplayerCardsGame {
   players: Player[];
@@ -30,9 +30,6 @@ class MultiplayerCardsGame {
   lastPlayedSuit: Suit | null;
   /** currentControl: the player who won the previous round*/
   currentControl: Player;
-  /** activePlayerIndex indicates the “first” player for the round,
-   *  but isn’t used for turn enforcement after currentControl’s move. */
-  activePlayerIndex: number;
   deck: Deck;
   callbacks: Callbacks;
   gameOverData: GameOverData;
@@ -56,7 +53,6 @@ class MultiplayerCardsGame {
     this.accumulatedPoints = 0;
     this.lastPlayedSuit = null;
     this.currentControl = players[0];
-    this.activePlayerIndex = 0;
     this.deck = [];
     this.callbacks = {
       onStateChange: () => {},
@@ -91,7 +87,6 @@ class MultiplayerCardsGame {
       accumulatedPoints: this.accumulatedPoints,
       lastPlayedSuit: this.lastPlayedSuit,
       currentControl: this.currentControl,
-      activePlayerIndex: this.activePlayerIndex,
       deck: this.deck,
       gameOverData: this.gameOverData,
     };
@@ -127,8 +122,6 @@ class MultiplayerCardsGame {
   startGame(): void {
     const needsShuffle =
       !this.deck || this.deck.length < this.players.length * 5;
-    // Reset activePlayerIndex for new round; currentControl remains as the leader from previous round.
-    this.activePlayerIndex = 0;
 
     this.updateState({
       cardsPlayed: 0,
@@ -141,8 +134,6 @@ class MultiplayerCardsGame {
       isShuffling: needsShuffle,
       accumulatedPoints: 0,
       lastPlayedSuit: null,
-      currentControl: this.players[0],
-      activePlayerIndex: 0,
     });
 
     // Show the shuffling animation for 2 seconds
@@ -178,27 +169,37 @@ class MultiplayerCardsGame {
    * - Once currentControl has played, any player who has not yet played this round is allowed.
    * - A player is prevented from playing more than once in the same round.
    */
-  playerPlayCard(playerId: number, card: Card, index: number): boolean {
+  playerPlayCard(
+    playerId: string,
+    card: Card,
+    index: number
+  ): { error: string; message: string } {
     if (this.gameOver) {
-      return false;
+      return { error: "Game is over", message: " No more plays allowed." };
     }
 
     // Determine which player is attempting the play.
     const playerIndex = this.players.findIndex((p) => p.id === playerId);
     if (playerIndex === -1) {
-      return false;
+      return { error: "Error", message: "Player not found." };
     }
 
     // If no one has played this round, only currentControl can play.
     if (this.currentPlays.length === 0 && this.currentControl.id !== playerId) {
       // Optionally: trigger an alert that only the round leader may start.
-      return false;
+      return {
+        error: "Error",
+        message: "Only the round leader can play first.",
+      };
     }
 
     // If this player has already played this round, disallow double play.
     if (this.currentPlays.some((play) => play.player.id === playerId)) {
       // Optionally: trigger an alert that they've already played.
-      return false;
+      return {
+        error: "Error",
+        message: "You have already played in this round.",
+      };
     }
 
     // Enforce following suit if necessary.
@@ -209,7 +210,10 @@ class MultiplayerCardsGame {
       );
       if (hasRequired && card.suit !== requiredSuit) {
         // Optionally: trigger an alert that they must play the required suit.
-        return false;
+        return {
+          error: "Invalid Move",
+          message: `You must play a ${requiredSuit} card if you have one.`,
+        };
       }
     }
 
@@ -228,7 +232,7 @@ class MultiplayerCardsGame {
       this.playCard(this.players[playerIndex], card);
     }, 300);
 
-    return true;
+    return { error: "", message: "" };
   }
 
   /**
@@ -355,14 +359,8 @@ class MultiplayerCardsGame {
       },
     ];
 
-    // Set activePlayerIndex to the winner for the next round.
-    const winnerIndex = this.players.findIndex(
-      (p) => p.id === winningPlayer.id
-    );
-
     this.updateState({
       currentControl: newControl,
-      activePlayerIndex: winnerIndex,
       message: resultMessage,
       gameHistory: newHistory,
       accumulatedPoints: newAccumulatedPoints,
@@ -458,12 +456,12 @@ class MultiplayerCardsGame {
     this.accumulatedPoints = 0;
     this.lastPlayedSuit = null;
     this.currentControl = resetPlayers[0];
-    this.activePlayerIndex = 0;
     this.deck = [];
 
     this.updateState({
       message: "New game ready to start!",
     });
+    this.startGame();
   }
 }
 

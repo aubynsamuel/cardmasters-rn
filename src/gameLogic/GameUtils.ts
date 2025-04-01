@@ -1,10 +1,4 @@
-import {
-  Card,
-  GameScore,
-  Player,
-  Rank,
-  Suit,
-} from "../Types";
+import { Card, GameScore, Player, Rank, Suit } from "../Types";
 
 const suits: Suit[] = ["diamond", "spade", "love", "club"];
 const ranks: Rank[] = ["6", "7", "8", "9", "10", "J", "Q", "K"];
@@ -26,6 +20,7 @@ const suitSymbols: Record<Suit, string> = {
 };
 
 const gameScoreToString = (gameScoreList: GameScore[]) => {
+  // console.log(gameScoreList);
   let Score: string = "";
   for (const gameScore of gameScoreList) {
     Score += `${gameScore.playerName} : ${gameScore.score}\n`;
@@ -122,7 +117,6 @@ const dealCards = (
 
   return { hands, deck: deckCopy };
 };
-
 
 /**
  * AI helper that chooses a card based on the lead

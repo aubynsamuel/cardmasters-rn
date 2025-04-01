@@ -30,6 +30,7 @@ var suitSymbols = {
 };
 exports.suitSymbols = suitSymbols;
 var gameScoreToString = function (gameScoreList) {
+    // console.log(gameScoreList);
     var Score = "";
     for (var _i = 0, gameScoreList_1 = gameScoreList; _i < gameScoreList_1.length; _i++) {
         var gameScore = gameScoreList_1[_i];

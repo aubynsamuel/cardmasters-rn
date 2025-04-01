@@ -1,12 +1,13 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import React from "react";
-import { useNavigation } from "@react-navigation/native";
 
 interface GameControlsInterface {
   showStartButton: boolean;
-  startNewGame: () => void;
+  startNewGame?: () => void;
   gameOver: boolean;
   onClose?: () => void;
+  onQuitGame: () => void;
+  isMultiPlayer: boolean;
 }
 
 const GameControls: React.FC<GameControlsInterface> = ({
@@ -14,8 +15,9 @@ const GameControls: React.FC<GameControlsInterface> = ({
   startNewGame,
   gameOver,
   onClose,
+  onQuitGame,
+  isMultiPlayer = false,
 }) => {
-  const navigation = useNavigation();
   return (
     <View style={styles.overlayButtonsContainer}>
       {/* {showStartButton && (
@@ -30,27 +32,24 @@ const GameControls: React.FC<GameControlsInterface> = ({
           <Text style={styles.overlayButtonText}>{"Start Game"}</Text>
         </TouchableOpacity>
       )} */}
-      <TouchableOpacity
-        style={[styles.overlayButton, styles.newGameButton]}
-        onPress={() => {
-          startNewGame();
-          onClose?.();
-        }}
-        activeOpacity={0.7}
-      >
-        <Text style={styles.overlayButtonText}>
-          {gameOver || showStartButton ? "New Game" : "Restart Game"}
-        </Text>
-      </TouchableOpacity>
+      {!isMultiPlayer && (
+        <TouchableOpacity
+          style={[styles.overlayButton, styles.newGameButton]}
+          onPress={() => {
+            startNewGame?.();
+            onClose?.();
+          }}
+          activeOpacity={0.7}
+        >
+          <Text style={styles.overlayButtonText}>
+            {gameOver || showStartButton ? "New Game" : "Restart Game"}
+          </Text>
+        </TouchableOpacity>
+      )}
 
       <TouchableOpacity
         style={[styles.overlayButton, styles.QuitGameButton]}
-        onPress={() =>
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "MainMenu" as never }],
-          })
-        }
+        onPress={onQuitGame}
         activeOpacity={0.7}
       >
         <Text style={styles.overlayButtonText}>Quit Game</Text>

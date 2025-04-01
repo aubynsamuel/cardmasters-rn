@@ -17,7 +17,7 @@ import { useAuth } from "../AuthContext";
 import { FirebaseError } from "firebase/app";
 import { useNavigation } from "@react-navigation/native";
 
-const AuthScreen: React.FC = () => {
+const AuthScreen = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

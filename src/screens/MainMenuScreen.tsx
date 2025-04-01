@@ -18,12 +18,11 @@ import Animated, {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 
-const MainMenuScreen: React.FC = () => {
+const MainMenuScreen = () => {
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
-  const extendedStyles = getExtendedStyles();
+  const extendedStyles = getStyles();
 
-  // Shared values for animations
   const titleOpacity = useSharedValue(0);
   const titleScale = useSharedValue(0.8);
   const buttonOpacity1 = useSharedValue(0);
@@ -140,6 +139,7 @@ const MainMenuScreen: React.FC = () => {
       </Animated.View>
 
       <View style={extendedStyles.contentContainer}>
+        {/* Title */}
         <Animated.View
           style={[extendedStyles.titleContainer, animatedTitleStyle]}
         >
@@ -148,6 +148,7 @@ const MainMenuScreen: React.FC = () => {
         </Animated.View>
 
         <View style={extendedStyles.buttonContainer}>
+          {/* SinglePlayer Button */}
           <Animated.View
             style={[extendedStyles.buttonWrapper, animatedButtonStyle1]}
           >
@@ -171,6 +172,7 @@ const MainMenuScreen: React.FC = () => {
             </TouchableOpacity>
           </Animated.View>
 
+          {/* Multiplayer Button */}
           <Animated.View
             style={[extendedStyles.buttonWrapper, animatedButtonStyle2]}
           >
@@ -194,6 +196,7 @@ const MainMenuScreen: React.FC = () => {
             </TouchableOpacity>
           </Animated.View>
 
+          {/* Profile Button */}
           <Animated.View
             style={[extendedStyles.buttonWrapper, animatedButtonStyle3]}
           >
@@ -212,11 +215,12 @@ const MainMenuScreen: React.FC = () => {
                   color="#fff"
                   style={extendedStyles.buttonIcon}
                 />
-                <Text style={extendedStyles.buttonText}>ProfileScreen</Text>
+                <Text style={extendedStyles.buttonText}>Profile</Text>
               </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
 
+          {/* Settings Button */}
           <Animated.View
             style={[extendedStyles.buttonWrapper, animatedButtonStyle3]}
           >
@@ -239,22 +243,13 @@ const MainMenuScreen: React.FC = () => {
               </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
-          <View>
-            <TouchableOpacity
-              onPress={() =>
-                navigation.navigate("MultiplayerGameScreen" as never)
-              }
-            >
-              <Text>MultiPlayerGameScreen</Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </View>
     </View>
   );
 };
 
-const getExtendedStyles = () => {
+const getStyles = () => {
   const styles = StyleSheet.create({
     mainContainer: {
       flex: 1,

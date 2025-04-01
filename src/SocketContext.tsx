@@ -9,16 +9,19 @@ import { io, Socket } from "socket.io-client";
 
 // Replace with your server's actual IP/domain and port
 // Use your local IP address for testing on physical devices, not 'localhost'
-const SERVER_URL = "http://192.168.126.88:3000";
+// const SERVER_URL = "http://192.168.126.88:3000";
+const SERVER_URL = "http://192.168.58.88:3000";
 
 interface SocketContextProps {
   socket: Socket | null;
   isConnected: boolean;
+  socketId: string | undefined | null;
 }
 
 const SocketContext = createContext<SocketContextProps>({
   socket: null,
   isConnected: false,
+  socketId: null,
 });
 
 export const useSocket = () => useContext(SocketContext);
@@ -30,6 +33,7 @@ interface SocketProviderProps {
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
+  const [socketId, setSocketId] = useState<string | undefined | null>(null);
   // You might need user info here from Auth context to send when creating/joining rooms
   // const { userData } = useAuth();
 
@@ -42,6 +46,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
     newSocket.on("connect", () => {
       console.log("Socket connected:", newSocket.id);
+      setSocketId(newSocket.id);
       setIsConnected(true);
     });
 
@@ -65,7 +70,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   }, []); // Empty dependency array ensures this runs once on mount
 
   return (
-    <SocketContext.Provider value={{ socket, isConnected }}>
+    <SocketContext.Provider value={{ socket, isConnected, socketId }}>
       {children}
     </SocketContext.Provider>
   );
