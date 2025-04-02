@@ -30,7 +30,7 @@ var suitSymbols = {
 };
 exports.suitSymbols = suitSymbols;
 var gameScoreToString = function (gameScoreList) {
-    // console.log(gameScoreList);
+    // console.log("[GameUtils] ",gameScoreList);
     var Score = "";
     for (var _i = 0, gameScoreList_1 = gameScoreList; _i < gameScoreList_1.length; _i++) {
         var gameScore = gameScoreList_1[_i];
@@ -114,7 +114,7 @@ var dealCards = function (players, deck) {
                 for (var _b = 0, _c = hands[j]; _b < _c.length; _b++) {
                     var cardJ = _c[_b];
                     if (cardI === cardJ) {
-                        console.error("Duplicate Card found", cardI, cardJ);
+                        console.error("[GameUtils] Duplicate Card found", cardI, cardJ);
                     }
                 }
             }
@@ -132,7 +132,7 @@ exports.dealCards = dealCards;
 var chooseCardAI = function (hand, leadCard, remainingRounds) {
     // If AI is leading/ is in control (no lead card)
     if (!leadCard) {
-        // console.log("AI is leading");
+        // console.log("[GameUtils] AI is leading");
         if (remainingRounds <= 2) {
             // In final 2 rounds, play highest cards to secure control
             return __spreadArray([], hand, true).sort(function (a, b) { return b.value - a.value; })[0];
@@ -144,12 +144,12 @@ var chooseCardAI = function (hand, leadCard, remainingRounds) {
     }
     // If AI is following
     else {
-        // console.log("AI is following");
+        // console.log("[GameUtils] AI is following");
         var requiredSuit_1 = leadCard.suit;
         var cardsOfSuit = hand.filter(function (card) { return card.suit === requiredSuit_1; });
         // If AI has cards of the required suit
         if (cardsOfSuit.length > 0) {
-            // console.log("AI has the required suit");
+            // console.log("[GameUtils] AI has the required suit");
             // Find cards that can win
             var winningCards = cardsOfSuit.filter(function (card) { return card.value > leadCard.value; });
             if (winningCards.length > 0) {
@@ -170,7 +170,7 @@ var chooseCardAI = function (hand, leadCard, remainingRounds) {
         // If AI doesn't have required suit
         else {
             // Play lowest value card to minimize loss
-            // console.log("AI doesn't have the required suit");
+            // console.log("[GameUtils] AI doesn't have the required suit");
             return __spreadArray([], hand, true).sort(function (a, b) { return a.value - b.value; })[0];
         }
     }

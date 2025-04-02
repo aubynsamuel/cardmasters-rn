@@ -38,7 +38,7 @@ export const useLobby = () => {
         index: 0,
         routes: [{ name: "MainMenu" as never }],
       });
-      console.log("Hardware Back Press From Lobby");
+      console.log("[useLobby] Hardware Back Press From Lobby");
       return true;
     };
     BackHandler.addEventListener("hardwareBackPress", onBackPress);
@@ -54,7 +54,7 @@ export const useLobby = () => {
   const handleRoomCreated = useCallback(
     ({ roomId, room }: RoomJoined) => {
       // Event handler for creating and joining a room
-      console.log(`Joined room ${roomId}`);
+      console.log(`[useLobby] Joined room ${roomId}`);
       navigation.reset({
         index: 0,
         routes: [
@@ -81,7 +81,9 @@ export const useLobby = () => {
       });
 
       if (response.accepted && response.roomId && response.roomData) {
-        console.log(`Join request accepted for room ${response.roomId}`);
+        console.log(
+          `[useLobby] Join request accepted for room ${response.roomId}`
+        );
         navigation.reset({
           index: 0,
           routes: [
@@ -171,7 +173,7 @@ export const useLobby = () => {
   useFocusEffect(
     useCallback(() => {
       if (socket && isConnected) {
-        // console.log("Setting up lobby listeners");
+        // console.log("[useLobby] Setting up lobby listeners");
         setIsLoading(true);
 
         socket.on("lobby_rooms", handleLobbyRoomsUpdate);
@@ -183,7 +185,7 @@ export const useLobby = () => {
         socket.emit("request_lobby_rooms");
 
         return () => {
-          // console.log("Cleaning up lobby listeners");
+          // console.log("[useLobby] Cleaning up lobby listeners");
           socket.off("lobby_rooms", handleLobbyRoomsUpdate);
           socket.off("room_created", handleRoomCreated);
           socket.off("join_error", handleJoinError);

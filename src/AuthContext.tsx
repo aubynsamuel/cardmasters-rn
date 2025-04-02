@@ -73,7 +73,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setUserData(userDoc.data() as UserData);
       }
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      console.error("[AuthContext] Error fetching user data:", error);
     }
   };
 
@@ -89,7 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       await AsyncStorage.setItem("userId", user.uid);
       await AsyncStorage.setItem("userEmail", user.email || "");
     } catch (error) {
-      console.error("Error during login:", error);
+      console.error("[AuthContext] Error during login:", error);
       throw error;
     }
   };
@@ -119,7 +119,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       await AsyncStorage.setItem("userId", user.uid);
       await AsyncStorage.setItem("userEmail", email);
     } catch (error) {
-      console.error("Error during signup:", error);
+      console.error("[AuthContext] Error during signup:", error);
       throw error;
     }
   };
@@ -131,7 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       await AsyncStorage.removeItem("userId");
       await AsyncStorage.removeItem("userEmail");
     } catch (error) {
-      console.error("Error during logout:", error);
+      console.error("[AuthContext] Error during logout:", error);
       throw error;
     }
   };

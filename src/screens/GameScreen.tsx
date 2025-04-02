@@ -77,8 +77,9 @@ const GameScreen = () => {
   const computerControlScale = useSharedValue(0);
   const humanControlScale = useSharedValue(0);
 
-  // const ref = useRef<number>(null);
-  // console.log(`Re-rendered ${ref.current++} times`);
+  // useEffect(() => {
+  //   console.count(`[SinglePlayerGameScreen] Re-rendered`);
+  // });
 
   useEffect(() => {
     if (!gameRef.current) {
@@ -117,7 +118,9 @@ const GameScreen = () => {
   useEffect(() => {
     const onBackPress = () => {
       QuitGameAlert();
-      console.log("Hardware Back Press From GameScreen");
+      console.log(
+        "[SinglePlayerGameScreen] Hardware Back Press From GameScreen"
+      );
       return true;
     };
     BackHandler.addEventListener("hardwareBackPress", onBackPress);

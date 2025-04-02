@@ -20,7 +20,7 @@ const suitSymbols: Record<Suit, string> = {
 };
 
 const gameScoreToString = (gameScoreList: GameScore[]) => {
-  // console.log(gameScoreList);
+  // console.log("[GameUtils] ",gameScoreList);
   let Score: string = "";
   for (const gameScore of gameScoreList) {
     Score += `${gameScore.playerName} : ${gameScore.score}\n`;
@@ -108,7 +108,7 @@ const dealCards = (
       for (const cardI of hands[i]) {
         for (const cardJ of hands[j]) {
           if (cardI === cardJ) {
-            console.error("Duplicate Card found", cardI, cardJ);
+            console.error("[GameUtils] Duplicate Card found", cardI, cardJ);
           }
         }
       }
@@ -131,7 +131,7 @@ const chooseCardAI = (
 ): Card => {
   // If AI is leading/ is in control (no lead card)
   if (!leadCard) {
-    // console.log("AI is leading");
+    // console.log("[GameUtils] AI is leading");
     if (remainingRounds <= 2) {
       // In final 2 rounds, play highest cards to secure control
       return [...hand].sort((a, b) => b.value - a.value)[0];
@@ -142,13 +142,13 @@ const chooseCardAI = (
   }
   // If AI is following
   else {
-    // console.log("AI is following");
+    // console.log("[GameUtils] AI is following");
     const requiredSuit = leadCard.suit;
     const cardsOfSuit = hand.filter((card) => card.suit === requiredSuit);
 
     // If AI has cards of the required suit
     if (cardsOfSuit.length > 0) {
-      // console.log("AI has the required suit");
+      // console.log("[GameUtils] AI has the required suit");
       // Find cards that can win
       const winningCards = cardsOfSuit.filter(
         (card) => card.value > leadCard.value
@@ -170,7 +170,7 @@ const chooseCardAI = (
     // If AI doesn't have required suit
     else {
       // Play lowest value card to minimize loss
-      // console.log("AI doesn't have the required suit");
+      // console.log("[GameUtils] AI doesn't have the required suit");
       return [...hand].sort((a, b) => a.value - b.value)[0];
     }
   }

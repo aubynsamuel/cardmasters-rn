@@ -45,18 +45,18 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     });
 
     newSocket.on("connect", () => {
-      console.log("Socket connected:", newSocket.id);
+      console.log("[SocketContext] Socket connected:", newSocket.id);
       setSocketId(newSocket.id);
       setIsConnected(true);
     });
 
     newSocket.on("disconnect", () => {
-      console.log("Socket disconnected");
+      console.log("[SocketContext] Socket disconnected");
       setIsConnected(false);
     });
 
     newSocket.on("connect_error", (err) => {
-      console.error("Socket connection error:", err.message);
+      console.error("[SocketContext] Socket connection error:", err.message);
       // Handle connection errors (e.g., server down)
     });
 

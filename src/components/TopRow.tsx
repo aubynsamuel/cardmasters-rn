@@ -11,6 +11,7 @@ import Colors from "../Colors";
 import { Deck, GameScore } from "../Types";
 import { Ionicons } from "@expo/vector-icons";
 import { gameScoreToString } from "../gameLogic/GameUtils";
+import { LinearGradient } from "expo-linear-gradient";
 
 interface TopRowInterface {
   deck: Deck;
@@ -83,8 +84,14 @@ const TopRow: React.FC<TopRowInterface> = ({
           <TouchableOpacity
             style={styles.controlsButton}
             onPress={() => setShowControlsOverlay(true)}
+            activeOpacity={0.7}
           >
-            <Ionicons name="settings-outline" size={28} color="#FFFFFF" />
+            <LinearGradient
+              colors={[Colors.buttonBackground, "#054d1c"]}
+              style={styles.controlsGradient}
+            >
+              <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
+            </LinearGradient>
           </TouchableOpacity>
         </View>
       </View>
@@ -113,16 +120,17 @@ const TopRow: React.FC<TopRowInterface> = ({
 
 const styles = StyleSheet.create({
   controlsButton: {
-    // position: "absolute",
-    // bottom: 20,
-    // right: 20,
-    width: 40,
-    height: 40,
-    borderRadius: 30,
-    backgroundColor: Colors.buttonBackground,
+    borderRadius: 22,
+    elevation: 4,
+  },
+  controlsGradient: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 5,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.2)",
   },
 });
 

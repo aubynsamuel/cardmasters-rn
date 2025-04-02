@@ -67,60 +67,65 @@ const MultiPlayerGameScreen = () => {
   const [gameState, setGameState] = useState<CardsGameState | null>(null);
   const [showControlsOverlay, setShowControlsOverlay] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  // console.log(gameState);
+  // console.log("[MultiPlayerGameScreen] ", gameState);
   const computerControlScale = useSharedValue(0);
   const humanControlScale = useSharedValue(0);
 
   useEffect(() => {
     if (socket && isConnected) {
-      const handleGameStateUpdate = (newState: CardsGameState) => {
-        setGameState((prev) => ({ ...prev, ...newState }));
-        setIsLoading(false);
-      };
-
       socket.on("game_state_update", handleGameStateUpdate);
       socket.on("player_left", handlePlayerLeft);
-      socket.on("play_error", ({ valid }: validPlay) => {
-        // Alert.alert(valid.error, valid.message);
-        ToastAndroid.show(valid.message, 100);
-      });
-
-      const handleDisconnect = () => {
-        Alert.alert(
-          "Disconnected",
-          "Lost connection to the game server. Returning to lobby.",
-          [
-            {
-              text: "OK",
-              onPress: () =>
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: "MultiplayerLobby" as never }],
-                }),
-            },
-          ]
-        );
-      };
-
+      socket.on("play_error", handlePlayError);
       socket.on("disconnect", handleDisconnect);
 
       return () => {
         socket.off("game_state_update", handleGameStateUpdate);
         socket.off("player_left", handlePlayerLeft);
-        socket.off("play_error");
+        socket.off("play_error", handlePlayError);
         socket.off("disconnect", handleDisconnect);
       };
     }
   }, [socket, isConnected, roomId]);
 
+  const handlePlayError = ({ valid }: validPlay) => {
+    // Alert.alert(valid.error, valid.message);
+    ToastAndroid.show(valid.message, 100);
+  };
+
+  const handleGameStateUpdate = (newState: CardsGameState) => {
+    setGameState((prev) => ({ ...prev, ...newState }));
+    setIsLoading(false);
+  };
+
+  const handleDisconnect = () => {
+    Alert.alert(
+      "Disconnected",
+      "Lost connection to the game server. Returning to lobby.",
+      [
+        {
+          text: "OK",
+          onPress: () =>
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "MultiplayerLobby" as never }],
+            }),
+        },
+      ]
+    );
+  };
+
   const handlePlayerLeft = (data: PlayerLeftPayload) => {
-    console.log("Player left:", data.playerName, "From GameScreen");
+    console.log(
+      "[MultiPlayerGameScreen] Player left:",
+      data.playerName,
+      "From GameScreen"
+    );
 
     if (data.userId !== socket?.id) {
-      console.log("Another player left");
+      console.log("[MultiPlayerGameScreen] Another player left");
       if (data.updatedPlayers && data.updatedPlayers.length >= 2) {
         console.log(
-          "Game will continue with",
+          "[MultiPlayerGameScreen] Game will continue with",
           data.updatedPlayers.length,
           "players"
         );
@@ -136,7 +141,7 @@ const MultiPlayerGameScreen = () => {
           };
         });
       } else {
-        console.log("Not enough players to continue");
+        console.log("[MultiPlayerGameScreen] Not enough players to continue");
         Alert.alert(
           `${data.playerName} left the game`,
           "Not enough players to continue. Returning to lobby.",
@@ -275,7 +280,7 @@ const MultiPlayerGameScreen = () => {
 
   // const handlePlayerLeft = useCallback(
   //   (data: PlayerLeftPayload) => {
-  //     console.log("Player left:", data.playerName);
+  //     console.log("[MultiPlayerGameScreen] Player left:", data.playerName);
 
   //     if (data.userId !== socket?.id) {
   //       Alert.alert(`${data.playerName} left the game`);

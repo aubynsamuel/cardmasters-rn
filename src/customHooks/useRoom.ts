@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Alert, BackHandler } from "react-native";
+import { Alert, BackHandler, ToastAndroid } from "react-native";
 import {
   useRoute,
   useNavigation,
@@ -61,7 +61,7 @@ const useRoom = () => {
         index: 0,
         routes: [{ name: "MultiplayerLobby" }],
       });
-      console.log("Hardware Back Press From RoomScreen");
+      console.log("[useRoom] Hardware Back Press From RoomScreen");
       socket?.emit("leave_room", { roomId });
       return true;
     };
@@ -71,8 +71,8 @@ const useRoom = () => {
   }, []);
 
   const handlePlayerJoined = (data: PlayerJoinedPayload) => {
-    console.log("Player joined:", data.playerName);
-    console.log(data.updatedPlayers);
+    console.log("[useRoom] Player joined:", data.playerName);
+    console.log("[useRoom] ", data.updatedPlayers);
     setRoomState((prev) =>
       prev ? { ...prev, players: data.updatedPlayers } : null
     );
@@ -82,7 +82,7 @@ const useRoom = () => {
     (data: PlayerLeftPayload) => {
       if (data.userId !== socket?.id) {
         // Alert.alert("Player left", `${data.playerName} left the room`);
-        console.log("You are no longer in the room.");
+        console.log("[useRoom] You are no longer in the room.");
       }
 
       setRoomState((prev) => {
@@ -95,7 +95,7 @@ const useRoom = () => {
 
   const handleOwnerChanged = useCallback(
     (data: OwnerChangedPayload) => {
-      console.log("Owner changed to:", data.newOwnerId);
+      console.log("[useRoom] Owner changed to:", data.newOwnerId);
       setRoomState((prev) =>
         prev
           ? {
@@ -120,7 +120,7 @@ const useRoom = () => {
 
   const handleGameStarted = useCallback(
     (data: GameStartedPayload) => {
-      // console.log("Game Started! Navigating...", data);
+      // console.log("[useRoom] Started! Navigating...", data);
       setIsLoading(false);
 
       if (data && data.roomData) {
@@ -168,6 +168,11 @@ const useRoom = () => {
   const handleStartGame = (gameTo: number) => {
     if (!socket || !isConnected || !roomId || !isOwner) return;
 
+    if (gameTo < 1) {
+      ToastAndroid.show("Game to cannot be less than 1", ToastAndroid.SHORT);
+      return;
+    }
+
     if (!roomState) return;
 
     if (roomState.players.length < 2) {
@@ -189,7 +194,7 @@ const useRoom = () => {
     userId: string;
     playerName: string;
   }) => {
-    console.log("Join request received:", data.playerName);
+    console.log("[useRoom] Join request received:", data.playerName);
     Alert.alert("Join Request", `${data.playerName} wants to join the room.`, [
       {
         text: "Decline",
@@ -234,7 +239,7 @@ const useRoom = () => {
   useFocusEffect(
     useCallback(() => {
       if (socket && isConnected && roomId) {
-        // console.log(`Setting up room listeners for ${roomId}`);
+        // console.log(`[useRoom] Setting up room listeners for ${roomId}`);
 
         socket.on("player_joined", handlePlayerJoined);
         socket.on("player_left", handlePlayerLeft);
@@ -245,7 +250,7 @@ const useRoom = () => {
         socket.on("join_request", handleJoinRequest);
         socket.on("player_status_changed", handlePlayerStatusChanges);
         // socket.on("get_room_response", ({ room }) => {
-        //   console.log("Room from get data", room);
+        //   console.log("[useRoom] Room from get data", room);
         //   setRoomState(room);
         // });
 
@@ -256,7 +261,7 @@ const useRoom = () => {
         socket.on("disconnect", handleDisconnect);
 
         return () => {
-          // console.log(`Cleaning up room listeners for ${roomId}`);
+          // console.log(`[useRoom] Cleaning up room listeners for ${roomId}`);
           socket.off("player_joined", handlePlayerJoined);
           socket.off("player_left", handlePlayerLeft);
           socket.off("owner_changed", handleOwnerChanged);
