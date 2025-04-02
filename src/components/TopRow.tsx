@@ -1,4 +1,10 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  useWindowDimensions,
+} from "react-native";
 import React from "react";
 import DeckCard from "./DeckCard";
 import Colors from "../Colors";
@@ -10,73 +16,98 @@ interface TopRowInterface {
   deck: Deck;
   gameScoreList: GameScore[];
   setShowControlsOverlay: React.Dispatch<React.SetStateAction<boolean>>;
+  gameTo: number;
 }
 
 const TopRow: React.FC<TopRowInterface> = ({
   deck,
   gameScoreList,
   setShowControlsOverlay,
+  gameTo,
 }) => {
+  const { width } = useWindowDimensions();
   return (
-    <View
-      key={"TopRow"}
-      style={[
-        {
-          flex: 0.1,
-          justifyContent: "space-between",
-          flexDirection: "row",
-        },
-      ]}
-    >
-      {/* Remaining Deck */}
+    <>
       <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-        }}
+        key={"TopRow"}
+        style={[
+          {
+            flex: 0.1,
+            justifyContent: "space-between",
+            flexDirection: "row",
+          },
+        ]}
       >
-        <Text style={{ color: Colors.mainTextColor }}>Deck</Text>
+        {/* Remaining Deck */}
         <View
           style={{
             flexDirection: "row",
-            top: -35,
-            left: 0,
+            alignItems: "center",
           }}
         >
-          {deck.map((deckItem, index) => (
-            <DeckCard index={index} key={index + deckItem.rank} />
-          ))}
-        </View>
-      </View>
-
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        {/* Score */}
-        <View
-          style={{
-            padding: 5,
-            height: 80,
-            justifyContent: "center",
-          }}
-        >
-          <Text
+          <Text style={{ color: Colors.mainTextColor }}>Deck</Text>
+          <View
             style={{
-              color: Colors.mainTextColor,
-              fontWeight: "bold",
+              flexDirection: "row",
+              top: -35,
+              left: 0,
             }}
           >
-            {gameScoreToString(gameScoreList)}
-          </Text>
+            {deck.map((deckItem, index) => (
+              <DeckCard index={index} key={index + deckItem.rank} />
+            ))}
+          </View>
         </View>
 
-        {/* Controls */}
-        <TouchableOpacity
-          style={styles.controlsButton}
-          onPress={() => setShowControlsOverlay(true)}
-        >
-          <Ionicons name="settings-outline" size={28} color="#FFFFFF" />
-        </TouchableOpacity>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          {/* Score */}
+          <View
+            style={{
+              padding: 5,
+              height: 80,
+              justifyContent: "center",
+            }}
+          >
+            <Text
+              style={{
+                color: Colors.mainTextColor,
+                fontWeight: "bold",
+                lineHeight: 20,
+              }}
+            >
+              {gameScoreToString(gameScoreList)}
+            </Text>
+          </View>
+
+          {/* Controls */}
+          <TouchableOpacity
+            style={styles.controlsButton}
+            onPress={() => setShowControlsOverlay(true)}
+          >
+            <Ionicons name="settings-outline" size={28} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
       </View>
-    </View>
+      <View
+        style={{
+          width: "100%",
+          alignItems: "center",
+          top: width > 400 ? -10 : 8,
+        }}
+      >
+        <Text
+          style={{
+            backgroundColor: "#FFD700",
+            borderRadius: 10,
+            padding: 4,
+            fontWeight: "bold",
+            // color: "#0009",
+          }}
+        >
+          Game-To : {gameTo}
+        </Text>
+      </View>
+    </>
   );
 };
 

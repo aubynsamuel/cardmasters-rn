@@ -1,4 +1,4 @@
-import { TextStyle, Text, StyleSheet, View, Alert } from "react-native";
+import { TextStyle, Text, StyleSheet, View, ToastAndroid } from "react-native";
 import { suitSymbols } from "../gameLogic/GameUtils";
 import { Card } from "../Types";
 import React from "react";
@@ -34,7 +34,8 @@ const CardComponent = ({ card, playCard, width }: CardComponentInterface) => {
       // eslint-disable-next-line react-compiler/react-compiler
       translateX.value = withSpring(0, { duration: 500 });
       translateY.value = withSpring(0, { duration: 500 });
-      Alert.alert(afterEffect?.error, afterEffect.message);
+      // Alert.alert(afterEffect?.error, afterEffect.message);
+      ToastAndroid.show(afterEffect.message, 100);
     }
   }
 

@@ -1,3 +1,5 @@
+import { PlayerStatus } from "../server/types";
+
 type Suit = "diamond" | "spade" | "love" | "club";
 type Rank = "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K";
 
@@ -20,6 +22,7 @@ interface Player {
   id: string;
   hands: Card[];
   score: number;
+  status?: PlayerStatus; // Added status field
 }
 
 interface Play {
@@ -48,6 +51,7 @@ interface CardsGameState {
   currentControl: Player;
   deck: Deck;
   gameOverData: GameOverData;
+  gameTo: number;
 }
 
 interface GameOverData {
@@ -140,6 +144,13 @@ interface ErrorPayload {
   message: string;
 }
 
+interface validPlay {
+  valid: {
+    error: string;
+    message: string;
+  };
+}
+
 export {
   Suit,
   Rank,
@@ -166,4 +177,5 @@ export {
   GameStartedPayload,
   PlayerJoinedPayload,
   PlayerLeftPayload,
+  validPlay,
 };

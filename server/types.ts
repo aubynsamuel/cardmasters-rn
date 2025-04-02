@@ -1,4 +1,4 @@
-import { Card, Player } from "@/src/Types";
+import { Card, Player } from "../src/Types";
 
 interface Room {
   id: string;
@@ -36,6 +36,7 @@ interface LeaveRoomPayload {
 
 interface StartGamePayload {
   roomId: string;
+  gameTo: number;
 }
 
 interface PlayCardPayload {
@@ -43,6 +44,41 @@ interface PlayCardPayload {
   playerId: string;
   card: Card;
   cardIndex: number;
+}
+
+enum PlayerStatus {
+  NOT_READY = "NOT_READY",
+  READY = "READY",
+  IN_GAME = "IN_GAME",
+  VIEWING_RESULTS = "VIEWING_RESULTS",
+}
+
+interface JoinRequestPayload {
+  requestId: string;
+  userId: string;
+  playerName: string;
+}
+
+interface JoinRequestResponsePayload {
+  accepted: boolean;
+  requestId: string;
+  message: string;
+  roomId?: string;
+  roomData?: Room;
+}
+
+interface PlayerStatusChangedPayload {
+  userId: string;
+  playerName: string;
+  newStatus: PlayerStatus;
+  updatedPlayers: Player[];
+}
+interface JoinRequest {
+  requestId: string;
+  userId: string;
+  playerName: string;
+  roomId: string;
+  timeoutId: NodeJS.Timeout;
 }
 
 export {
@@ -53,4 +89,9 @@ export {
   LeaveRoomPayload,
   StartGamePayload,
   PlayCardPayload,
+  PlayerStatusChangedPayload,
+  JoinRequestPayload,
+  JoinRequestResponsePayload,
+  PlayerStatus,
+  JoinRequest,
 };

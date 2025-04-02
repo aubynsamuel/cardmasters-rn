@@ -20,11 +20,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.GAME_TO = void 0;
 var GameUtils_1 = require("./GameUtils");
-exports.GAME_TO = 2;
 var MultiplayerCardsGame = /** @class */ (function () {
-    function MultiplayerCardsGame(players) {
+    function MultiplayerCardsGame(players, gameTo) {
         if (players.length < 2) {
             throw new Error("Game requires at least 2 players");
         }
@@ -53,6 +51,7 @@ var MultiplayerCardsGame = /** @class */ (function () {
             isCurrentPlayer: false,
             isMultiPlayer: true,
         };
+        this.gameTo = gameTo;
     }
     // Register callbacks from the React component/websocket server
     MultiplayerCardsGame.prototype.setCallbacks = function (callbacks) {
@@ -76,6 +75,7 @@ var MultiplayerCardsGame = /** @class */ (function () {
             currentControl: this.currentControl,
             deck: this.deck,
             gameOverData: this.gameOverData,
+            gameTo: this.gameTo,
         };
     };
     // Update state and notify React component/websocket server
@@ -339,7 +339,7 @@ var MultiplayerCardsGame = /** @class */ (function () {
             message: "\uD83C\uDFC6 ".concat(newControl.name, " won this game with ").concat(finalPoints, " points! \uD83C\uDFC6"),
         });
         // Check if any player has reached the winning score.
-        var gameWinner = updatedPlayers.find(function (p) { return p.score >= exports.GAME_TO; });
+        var gameWinner = updatedPlayers.find(function (p) { return p.score >= _this.gameTo; });
         if (!gameWinner) {
             setTimeout(function () {
                 _this.startGame();

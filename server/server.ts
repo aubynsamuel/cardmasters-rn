@@ -9,6 +9,8 @@ import {
   PlayCardPayload,
   Room,
   StartGamePayload,
+  PlayerStatus,
+  JoinRequest,
 } from "./types";
 
 import MultiplayerCardsGame from "../src/gameLogic/MultiplayerGameClass";
@@ -25,6 +27,7 @@ const io = new Server(server, {
 const rooms: Record<string, Room> = {};
 const socketRoomMap: Record<string, string> = {};
 const gameInstances: Record<string, MultiplayerCardsGame> = {};
+const pendingJoinRequests: Record<string, JoinRequest> = {};
 
 function getLobbyRooms(): LobbyRoom[] {
   return Object.values(rooms).map((room) => ({
@@ -79,6 +82,11 @@ function handleDisconnect(socket: Socket): void {
         // Handle ownership transfer if the owner left
         if (room.ownerId === socket.id && room.players.length > 0) {
           room.ownerId = room.players[0].id;
+          const roomOwnerIndex = room.players.findIndex(
+            (p) => p.id === room.ownerId
+          );
+          room.players[roomOwnerIndex].status = PlayerStatus.READY;
+
           console.log(
             `Ownership of room ${roomId} transferred to ${room.players[0].name} (${room.ownerId})`
           );
@@ -94,6 +102,63 @@ function handleDisconnect(socket: Socket): void {
   } else {
     console.log(`Socket ${socket.id} was not in a tracked room.`);
   }
+
+  // Clean up any pending join requests from this socket
+  Object.keys(pendingJoinRequests).forEach((requestId) => {
+    if (pendingJoinRequests[requestId].userId === socket.id) {
+      clearTimeout(pendingJoinRequests[requestId].timeoutId);
+      delete pendingJoinRequests[requestId];
+    }
+  });
+}
+
+function updatePlayerStatus(
+  socket: Socket,
+  roomId: string,
+  playerId: string,
+  newStatus: PlayerStatus,
+  forceUpdate: boolean = false
+): boolean {
+  const room = rooms[roomId];
+  if (!room) {
+    socket.emit("status_error", { message: "Room not found." });
+    return false;
+  }
+
+  const playerIndex = room.players.findIndex((p) => p.id === playerId);
+  if (playerIndex === -1) {
+    socket.emit("status_error", { message: "Player not found in room." });
+    return false;
+  }
+
+  // Check if room owner is trying to change status away from READY
+  if (
+    playerId === room.ownerId &&
+    newStatus !== PlayerStatus.READY &&
+    newStatus !== PlayerStatus.IN_GAME &&
+    !forceUpdate
+  ) {
+    socket.emit("status_error", { message: "Room owner is always ready." });
+    return false;
+  }
+
+  // Update player status
+  const previousStatus = room.players[playerIndex].status;
+  room.players[playerIndex].status = newStatus;
+
+  console.log(
+    `Player ${room.players[playerIndex].name} status changed from ${previousStatus} to ${newStatus}`
+  );
+
+  // Notify all players in the room about status change
+  io.to(roomId).emit("player_status_changed", {
+    userId: playerId,
+    playerName: room.players[playerIndex].name,
+    newStatus,
+    updatedPlayers: room.players,
+  });
+
+  return true;
 }
 
 // --- Socket Event Listeners ---
@@ -108,6 +173,23 @@ io.on("connection", (socket: Socket) => {
   socket.on("request_lobby_rooms", () => {
     socket.emit("lobby_rooms", getLobbyRooms());
   });
+
+  socket.on("get_room", ({ roomId }: { roomId: string }) => {
+    const room = rooms[roomId];
+    io.to(roomId).emit("get_room_response", { room });
+  });
+
+  socket.on(
+    "update_player_status",
+    ({ roomId, status }: { roomId: string; status: PlayerStatus }) => {
+      if (socketRoomMap[socket.id] !== roomId) {
+        socket.emit("status_error", { message: "Not in the specified room." });
+        return;
+      }
+
+      updatePlayerStatus(socket, roomId, socket.id, status);
+    }
+  );
 
   // Listener: Create a new room
   socket.on(
@@ -129,6 +211,7 @@ io.on("connection", (socket: Socket) => {
         name: playerName || `Player_${socket.id.substring(0, 4)}`,
         hands: [],
         score: 0,
+        status: PlayerStatus.READY, // Owner is automatically ready
       };
 
       const newRoom: Room = {
@@ -150,51 +233,148 @@ io.on("connection", (socket: Socket) => {
     }
   );
 
-  // Listener: Join an existing room
-  socket.on("join_room", ({ roomId, playerName, id }: JoinRoomPayload) => {
-    if (socketRoomMap[socket.id]) {
-      socket.emit("join_error", { message: "You are already in a room." });
-      return;
-    }
-
-    const room = rooms[roomId];
-    if (
-      room &&
-      room.status === "waiting" &&
-      room.players.length < room.maxPlayers
-    ) {
-      if (room.players.some((p) => p.id === socket.id)) {
-        socket.emit("join_error", { message: "Already in this room" });
+  // Listener: Request to join a room
+  socket.on(
+    "request_join_room",
+    ({ roomId, playerName, id }: JoinRoomPayload) => {
+      if (socketRoomMap[socket.id]) {
+        socket.emit("join_error", { message: "You are already in a room." });
         return;
       }
 
-      // Create a new joining player with the correct structure
-      const joiningPlayer: Player = {
-        id: id || socket.id,
-        name: playerName || `Player_${socket.id.substring(0, 4)}`,
-        hands: [],
-        score: 0,
+      const room = rooms[roomId];
+      if (!room) {
+        socket.emit("join_error", { message: "Room not found" });
+        return;
+      }
+
+      if (room.status !== "waiting" || room.players.length >= room.maxPlayers) {
+        socket.emit("join_error", { message: "Room not available or full" });
+        return;
+      }
+
+      // Create a unique request ID
+      const requestId = `req_${Date.now()}_${Math.random()
+        .toString(36)
+        .substring(2, 7)}`;
+
+      // Send join request to room owner
+      io.to(room.ownerId).emit("join_request", {
+        requestId,
+        userId: socket.id,
+        playerName: playerName || `Player_${socket.id.substring(0, 4)}`,
+      });
+
+      // Set a timeout for auto-rejection after 5 seconds
+      const timeoutId = setTimeout(() => {
+        if (pendingJoinRequests[requestId]) {
+          // Auto-reject if owner hasn't responded
+          socket.emit("join_request_response", {
+            accepted: false,
+            requestId,
+            message: `Request to join ${room.name} timed out`,
+          });
+          delete pendingJoinRequests[requestId];
+        }
+      }, 5000);
+
+      // Store the request
+      pendingJoinRequests[requestId] = {
+        requestId,
+        playerName: playerName || `Player_${socket.id.substring(0, 4)}`,
+        roomId,
+        userId: id || socket.id,
+        timeoutId,
       };
 
-      room.players.push(joiningPlayer);
-      socket.join(roomId);
-      socketRoomMap[socket.id] = roomId;
-
-      console.log(`${joiningPlayer.name} (${socket.id}) joined room ${roomId}`);
-
-      socket.emit("room_created", { roomId: roomId, room: room });
-      socket.to(roomId).emit("player_joined", {
-        userId: socket.id,
-        playerName: joiningPlayer.name,
-        updatedPlayers: room.players,
-      });
-      broadcastLobbyUpdate();
-    } else {
-      socket.emit("join_error", {
-        message: room ? "Room not available or full" : "Room not found",
-      });
+      console.log(`Join request ${requestId} sent to room owner for ${roomId}`);
     }
-  });
+  );
+
+  // Listener: Owner responds to join request
+  socket.on(
+    "respond_to_join_request",
+    ({ requestId, accepted }: { requestId: string; accepted: boolean }) => {
+      const request = pendingJoinRequests[requestId];
+
+      if (!request) {
+        socket.emit("response_error", {
+          message: "Join request not found or expired",
+        });
+        return;
+      }
+
+      const room = rooms[request.roomId];
+
+      // Verify that the responder is the room owner
+      if (room && room.ownerId === socket.id) {
+        clearTimeout(request.timeoutId);
+
+        const userSocket = io.sockets.sockets.get(request.userId);
+        if (!userSocket) {
+          socket.emit("response_error", {
+            message: "Requesting user disconnected",
+          });
+          delete pendingJoinRequests[requestId];
+          return;
+        }
+
+        if (accepted) {
+          // Create a new joining player with the correct structure
+          const joiningPlayer: Player = {
+            id: request.userId,
+            name: request.playerName,
+            hands: [],
+            score: 0,
+            status: PlayerStatus.NOT_READY, // New players start not ready
+          };
+
+          room.players.push(joiningPlayer);
+          userSocket.join(request.roomId);
+          socketRoomMap[request.userId] = request.roomId;
+
+          console.log(
+            `${joiningPlayer.name} (${request.userId}) joined room ${request.roomId}`
+          );
+
+          userSocket.emit("room_created", {
+            roomId: request.roomId,
+            room: room,
+          });
+
+          io.to(request.roomId).emit("player_joined", {
+            userId: request.userId,
+            playerName: joiningPlayer.name,
+            updatedPlayers: room.players,
+          });
+
+          // Notify the requesting user of acceptance
+          userSocket.emit("join_request_response", {
+            accepted: true,
+            requestId,
+            message: "Request accepted",
+            roomId: request.roomId,
+            roomData: room,
+          });
+
+          broadcastLobbyUpdate();
+        } else {
+          // Notify the requesting user of rejection
+          userSocket.emit("join_request_response", {
+            accepted: false,
+            requestId,
+            message: `Request to join ${room.name} declined`,
+          });
+        }
+
+        delete pendingJoinRequests[requestId];
+      } else {
+        socket.emit("response_error", {
+          message: "Only the room owner can accept or reject join requests",
+        });
+      }
+    }
+  );
 
   // Listener: Leave a room
   socket.on("leave_room", ({ roomId }: LeaveRoomPayload) => {
@@ -206,41 +386,55 @@ io.on("connection", (socket: Socket) => {
   });
 
   // Listener: Start the game (only owner can start)
-  socket.on("start_game", ({ roomId }: StartGamePayload) => {
+  socket.on("start_game", ({ roomId, gameTo }: StartGamePayload) => {
     const room = rooms[roomId];
     if (room && room.ownerId === socket.id && room.status === "waiting") {
       if (room.players.length >= 2 && room.players.length <= 4) {
+        // Check if all players are ready
+        const allPlayersReady = room.players.every(
+          (player) =>
+            player.status === PlayerStatus.READY || player.id === room.ownerId
+        );
+
+        if (!allPlayersReady) {
+          socket.emit("start_error", {
+            message: "Cannot start game until all players are ready",
+          });
+          return;
+        }
+
         room.status = "playing";
         console.log(`Game starting in room ${roomId}`);
+
+        // Update player statuses to IN_GAME
+        room.players.forEach((player) => {
+          updatePlayerStatus(
+            socket,
+            roomId,
+            player.id,
+            PlayerStatus.IN_GAME,
+            true
+          );
+        });
 
         // Players are already in the correct format with hands and score
         const gamePlayers = room.players;
 
         // Create a new game instance for this room
-        const game = new MultiplayerCardsGame(gamePlayers);
+        const game = new MultiplayerCardsGame(gamePlayers, gameTo);
 
         // Set up callbacks with proper typing
         const callbacks: Callbacks = {
           onStateChange: (newState: CardsGameState) => {
             io.to(roomId).emit("game_state_update", newState);
           },
-          onRoundFinished: () => {
-            // Optionally, send a round-finished notification
-            io.to(roomId).emit("round_finished", {});
-          },
+          onRoundFinished: () => {},
         };
 
         game.setCallbacks(callbacks);
-
-        // Save the game instance for later use
         gameInstances[roomId] = game;
-
-        // Start the game. The game will broadcast its initial state via onStateChange.
         game.startGame();
-
-        // Send a game_started event to all players in the room
         io.to(roomId).emit("game_started", { roomId, roomData: room });
-
         broadcastLobbyUpdate();
       } else {
         socket.emit("start_error", {
@@ -262,8 +456,18 @@ io.on("connection", (socket: Socket) => {
 
   socket.on("game_ended", ({ roomId }: { roomId: string }) => {
     const room = rooms[roomId];
-    if (room.status !== "waiting") {
+    if (room && room.status !== "waiting") {
       room.status = "waiting";
+
+      // Reset all player statuses to NOT_READY except owner
+      room.players.forEach((player) => {
+        const newStatus =
+          player.id === room.ownerId
+            ? PlayerStatus.READY
+            : PlayerStatus.NOT_READY;
+
+        updatePlayerStatus(socket, roomId, player.id, newStatus, true);
+      });
       console.log("Room Has Been Set To Waiting");
     }
   });
@@ -290,29 +494,6 @@ io.on("connection", (socket: Socket) => {
       }
     }
   );
-
-  // Listener: Request to reset game
-  socket.on("reset_game", ({ roomId }: { roomId: string }) => {
-    const room = rooms[roomId];
-    const game = gameInstances[roomId];
-
-    if (room && game && room.ownerId === socket.id) {
-      game.resetGame();
-
-      // Update room status
-      room.status = "waiting";
-
-      // Notify all players
-      io.to(roomId).emit("game_reset", { roomId, roomData: room });
-      broadcastLobbyUpdate();
-    } else if (!room || !game) {
-      socket.emit("reset_error", { message: "Room or game not found." });
-    } else if (room.ownerId !== socket.id) {
-      socket.emit("reset_error", {
-        message: "Only the room owner can reset the game.",
-      });
-    }
-  });
 
   // Listener: Client disconnected
   socket.on("disconnect", () => {

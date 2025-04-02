@@ -242,6 +242,7 @@ const GameScreen = () => {
             { playerName: currentUser.name, score: currentUser.score },
             { playerName: opponent.name, score: opponent.score },
           ]}
+          gameTo={GAME_TO}
         />
 
         {/* MAIN GAME AREA */}

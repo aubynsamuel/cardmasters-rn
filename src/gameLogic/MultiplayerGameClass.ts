@@ -12,8 +12,6 @@ import {
   CardsGameState,
 } from "../Types";
 
-export const GAME_TO = 2;
-
 class MultiplayerCardsGame {
   players: Player[];
   currentPlays: Play[];
@@ -33,8 +31,9 @@ class MultiplayerCardsGame {
   deck: Deck;
   callbacks: Callbacks;
   gameOverData: GameOverData;
+  gameTo: number;
 
-  constructor(players: Player[]) {
+  constructor(players: Player[], gameTo: number) {
     if (players.length < 2) {
       throw new Error("Game requires at least 2 players");
     }
@@ -64,6 +63,7 @@ class MultiplayerCardsGame {
       isCurrentPlayer: false,
       isMultiPlayer: true,
     };
+    this.gameTo = gameTo;
   }
 
   // Register callbacks from the React component/websocket server
@@ -89,6 +89,7 @@ class MultiplayerCardsGame {
       currentControl: this.currentControl,
       deck: this.deck,
       gameOverData: this.gameOverData,
+      gameTo: this.gameTo,
     };
   }
 
@@ -412,7 +413,7 @@ class MultiplayerCardsGame {
     });
 
     // Check if any player has reached the winning score.
-    const gameWinner = updatedPlayers.find((p) => p.score >= GAME_TO);
+    const gameWinner = updatedPlayers.find((p) => p.score >= this.gameTo);
 
     if (!gameWinner) {
       setTimeout(() => {

@@ -210,7 +210,7 @@ const MainMenuScreen = () => {
                 style={extendedStyles.buttonGradient}
               >
                 <Ionicons
-                  name="settings"
+                  name="person-circle-sharp"
                   size={24}
                   color="#fff"
                   style={extendedStyles.buttonIcon}

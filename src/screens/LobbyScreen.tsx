@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React from "react";
 import {
   View,
   Text,
@@ -6,150 +6,26 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
-  BackHandler,
 } from "react-native";
-import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { useSocket } from "../SocketContext";
-import { useAuth } from "../AuthContext";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { LobbyRoom, RoomJoined } from "../Types";
-
-type RootStackParamList = {
-  RoomScreen: RoomJoined;
-};
-
-type LobbyNavigation = NativeStackNavigationProp<
-  RootStackParamList,
-  "RoomScreen"
->;
+import { LobbyRoom } from "../Types";
+import { useLobby } from "../customHooks/useLobby";
 
 interface RoomItemProps {
   item: LobbyRoom;
 }
 
 const MultiplayerLobbyScreen = () => {
-  const navigation = useNavigation<LobbyNavigation>();
-  const [rooms, setRooms] = useState<LobbyRoom[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { socket, isConnected } = useSocket();
-  const { userData, userId } = useAuth();
-
-  useEffect(() => {
-    const onBackPress = () => {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "MainMenu" as never }],
-      });
-      console.log("Hardware Back Press From Lobby");
-      return true;
-    };
-    BackHandler.addEventListener("hardwareBackPress", onBackPress);
-    return () =>
-      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
-  }, []);
-  const handleLobbyRoomsUpdate = useCallback((updatedRooms: LobbyRoom[]) => {
-    setRooms(updatedRooms);
-    setIsLoading(false);
-  }, []);
-
-  const handleRoomCreated = useCallback(
-    ({ roomId, room }: RoomJoined) => {
-      // Even handler for creating and joining a room
-      console.log(`Joined room ${roomId}`);
-      navigation.reset({
-        index: 0,
-        routes: [
-          {
-            name: "RoomScreen",
-            params: {
-              roomId,
-              initialRoomData: room,
-            },
-          },
-        ],
-      });
-    },
-    [navigation]
-  );
-
-  const handleJoinError = useCallback(
-    (error: { message: string | undefined }) => {
-      Alert.alert("Error Joining Room", error.message);
-    },
-    []
-  );
-
-  const handleCreateError = useCallback(
-    (error: { message: string | undefined }) => {
-      Alert.alert("Error Creating Room", error.message);
-    },
-    []
-  );
-
-  const handleJoinRoom = (roomId: string) => {
-    if (!socket || !isConnected) {
-      Alert.alert("Not Connected", "Unable to connect to game server.");
-      return;
-    }
-    const playerName = userData?.displayName || "Player2";
-    socket.emit("join_room", { roomId, playerName, userId });
-  };
-
-  const handleCreateRoom = () => {
-    if (!socket || !isConnected) {
-      Alert.alert("Not Connected", "Unable to connect to game server.");
-      return;
-    }
-
-    const playerName = userData?.displayName || "Player1";
-    const roomName = `${playerName}'s Game`; // You could make this customizable
-
-    socket.emit("create_room", { playerName, roomName, userId });
-  };
-
-  const handleRefresh = () => {
-    if (socket && isConnected) {
-      setIsLoading(true);
-      socket.emit("request_lobby_rooms");
-    }
-  };
-
-  useFocusEffect(
-    useCallback(() => {
-      if (socket && isConnected) {
-        // console.log("Setting up lobby listeners");
-        setIsLoading(true);
-
-        socket.on("lobby_rooms", handleLobbyRoomsUpdate);
-        socket.on("room_created", handleRoomCreated);
-        socket.on("join_error", handleJoinError);
-        socket.on("create_error", handleCreateError);
-
-        socket.emit("request_lobby_rooms");
-
-        return () => {
-          // console.log("Cleaning up lobby listeners");
-          socket.off("lobby_rooms", handleLobbyRoomsUpdate);
-          socket.off("room_created", handleRoomCreated);
-          socket.off("join_error", handleJoinError);
-          socket.off("create_error", handleCreateError);
-        };
-      } else {
-        setIsLoading(false);
-        setRooms([]);
-      }
-    }, [
-      socket,
-      isConnected,
-      handleLobbyRoomsUpdate,
-      handleRoomCreated,
-      handleJoinError,
-      handleCreateError,
-    ])
-  );
+  const {
+    handleCreateRoom,
+    handleJoinRoom,
+    handleRefresh,
+    isLoading,
+    rooms,
+    isConnected,
+    navigation,
+  } = useLobby();
 
   const renderRoomItem = ({ item }: RoomItemProps) => (
     <TouchableOpacity

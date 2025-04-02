@@ -15,7 +15,7 @@ import {
   Deck,
 } from "../Types";
 
-export const GAME_TO = 2;
+export const GAME_TO = 10;
 
 export interface CardsGameUIState {
   players: Player[];

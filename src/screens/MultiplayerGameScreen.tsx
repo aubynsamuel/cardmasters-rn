@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   BackHandler,
   Alert,
+  ToastAndroid,
 } from "react-native";
 import getStyles from "../Styles";
 import { StatusBar } from "expo-status-bar";
@@ -34,8 +35,8 @@ import {
   GameStartedPayload,
   Player,
   PlayerLeftPayload,
+  validPlay,
 } from "../Types";
-import { GAME_TO } from "../gameLogic/MultiplayerGameClass";
 import { useSocket } from "../SocketContext";
 import { useAuth } from "../AuthContext";
 
@@ -79,17 +80,10 @@ const MultiPlayerGameScreen = () => {
 
       socket.on("game_state_update", handleGameStateUpdate);
       socket.on("player_left", handlePlayerLeft);
-      socket.on(
-        "play_error",
-        (data: {
-          valid: {
-            error: string;
-            message: string;
-          };
-        }) => {
-          Alert.alert(data.valid.error, data.valid.message);
-        }
-      );
+      socket.on("play_error", ({ valid }: validPlay) => {
+        // Alert.alert(valid.error, valid.message);
+        ToastAndroid.show(valid.message, 100);
+      });
 
       const handleDisconnect = () => {
         Alert.alert(
@@ -202,7 +196,7 @@ const MultiPlayerGameScreen = () => {
 
     if (!currentPlayer || !opponentPlayer) return;
 
-    if (gameState.players.some((p) => p.score >= GAME_TO)) {
+    if (gameState.players.some((p) => p.score >= gameState.gameTo)) {
       socket?.emit("game_ended", { roomId });
       const gameScoreList = gameState.players.map((player) => ({
         playerName: player.name,
@@ -380,6 +374,7 @@ const MultiPlayerGameScreen = () => {
           deck={gameState.deck || []}
           setShowControlsOverlay={(value) => setShowControlsOverlay(value)}
           gameScoreList={gameScoreList}
+          gameTo={gameState.gameTo}
         />
 
         {/* MAIN GAME AREA */}
