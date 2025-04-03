@@ -18,13 +18,7 @@
       },
       "package": "com.aubynsamuel.cardmaster"
     },
-    "web": {
-      "bundler": "metro",
-      "output": "static",
-      "favicon": "./assets/images/favicon.png"
-    },
     "plugins": [
-      "expo-router",
       [
         "expo-splash-screen",
         {
@@ -36,13 +30,9 @@
       ]
     ],
     "experiments": {
-      "typedRoutes": true,
       "reactCompiler": true
     },
     "extra": {
-      "router": {
-        "origin": false
-      },
       "eas": {
         "projectId": "325d7b98-c9fb-4585-b631-5f07450c9a52"
       }

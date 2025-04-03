@@ -54,7 +54,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     });
 
     newSocket.on("connect_error", (err) => {
-      console.error("[SocketContext] Socket connection error:", err.message);
+      // console.error("[SocketContext] Socket connection error:", err.message);
       // Handle connection errors (e.g., server down)
     });
 

@@ -57,16 +57,16 @@ const SplashScreen = () => {
       opacity.value = withTiming(0, { duration: 400 });
       scale.value = withTiming(5, { duration: 400 });
 
-      // if (!isLoading) {
-      //   if (isAuthenticated) {
-      navigation.reset({
-        index: 0,
-        routes: [{ name: "MainMenu" as never }],
-      });
-      //   } else {
-      //     navigation.reset({ index: 0, routes: [{ name: "Auth" as never }] });
-      //   }
-      // }
+      if (!isLoading) {
+        if (isAuthenticated) {
+          navigation.reset({
+            index: 0,
+            routes: [{ name: "MainMenu" as never }],
+          });
+        } else {
+          navigation.reset({ index: 0, routes: [{ name: "Auth" as never }] });
+        }
+      }
     }, 3000);
 
     return () => clearTimeout(timer);

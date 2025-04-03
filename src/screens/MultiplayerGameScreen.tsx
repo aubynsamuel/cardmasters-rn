@@ -28,7 +28,7 @@ import GameControls from "../components/GameControls";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import AnimatedScoreDisplay from "../components/AnimatedScoreDisplay";
+import AccumulatedScoreDisplay from "../components/AccumulatedScoreDisplay";
 import {
   CardsGameState,
   GameScore,
@@ -278,19 +278,6 @@ const MultiPlayerGameScreen = () => {
     );
   }
 
-  // const handlePlayerLeft = useCallback(
-  //   (data: PlayerLeftPayload) => {
-  //     console.log("[MultiPlayerGameScreen] Player left:", data.playerName);
-
-  //     if (data.userId !== socket?.id) {
-  //       Alert.alert(`${data.playerName} left the game`);
-  //       navigation.navigate("MultiplayerLobby" as never);
-  //       return;
-  //     }
-  //   },
-  //   [socket, navigation]
-  // );
-
   const currentUser = gameState.players.find(
     (player) => player.id === userId || player.id === socketId
   ) || {
@@ -386,7 +373,7 @@ const MultiPlayerGameScreen = () => {
         <View style={styles.mainGameArea}>
           {/* Opponents's Hand at the Top */}
           <View style={[styles.computerSection]}>
-            <AnimatedScoreDisplay
+            <AccumulatedScoreDisplay
               points={gameState.accumulatedPoints || 0}
               visible={
                 gameState.accumulatedPoints > 0 &&
@@ -469,7 +456,7 @@ const MultiPlayerGameScreen = () => {
 
           {/* Human's Hand at the Bottom */}
           <View style={[styles.humanSection]}>
-            <AnimatedScoreDisplay
+            <AccumulatedScoreDisplay
               points={gameState.accumulatedPoints || 0}
               visible={
                 gameState.accumulatedPoints > 0 &&

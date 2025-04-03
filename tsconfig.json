@@ -7,17 +7,5 @@
       "@firebase/auth": ["./node_modules/@firebase/auth/dist/index.rn.d.ts"]
     }
   },
-  "include": [
-    "**/*.ts",
-    "**/*.tsx",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "App.ts",
-    "PlayedCardsComCardComponent.tsx",
-    "server/server.ts",
-    "src/gameLogic/SinglePlayerGameClass.tsx",
-    "src/screens/CustomGameHook.ts",
-    "src/screens/GameScreen.tsx",
-    "src/gameLogic/MultiplayerGameClass.txr"
-  ]
+  "include": ["**/*.ts", "**/*.tsx"]
 }

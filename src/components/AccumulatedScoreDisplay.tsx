@@ -8,12 +8,12 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 
-interface AnimatedScoreDisplayProps {
+interface AccumulatedScoreDisplay {
   points: number;
   visible: boolean;
 }
 
-const AnimatedScoreDisplay: React.FC<AnimatedScoreDisplayProps> = ({
+const AccumulatedScoreDisplay: React.FC<AccumulatedScoreDisplay> = ({
   points,
   visible,
 }) => {
@@ -103,4 +103,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AnimatedScoreDisplay;
+export default AccumulatedScoreDisplay;

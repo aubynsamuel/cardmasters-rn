@@ -27,7 +27,7 @@ import GameControls from "../components/GameControls";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import AnimatedScoreDisplay from "../components/AnimatedScoreDisplay";
+import AnimatedScoreDisplay from "../components/AccumulatedScoreDisplay";
 import { GameScore, Player } from "../Types";
 import CardsGame, {
   CardsGameUIState,
