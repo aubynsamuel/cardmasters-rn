@@ -17,7 +17,7 @@ import {
   Player,
 } from "../Types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { PlayerStatus } from "@/server/types";
+import { Message, PlayerStatus } from "@/server/types";
 
 type RootStackParamList = {
   RoomScreen: {
@@ -236,6 +236,30 @@ const useRoom = () => {
   //   socket?.emit("get_room", { roomId });
   // });
 
+  const handleDisconnect = () => {
+    setConnectionStatus("disconnected");
+  };
+
+  const handleMessageReceived = ({ message }: { message: Message }) => {
+    // console.log("[useRoom] Message received:", message);
+    setRoomState((prev) => {
+      if (!prev) return null;
+      return { ...prev, messages: [...prev.messages, message] };
+    });
+  };
+
+  const sendMessage = (text: string) => {
+    const currentUser = roomState?.players.find((p) => p.id === socket?.id);
+    if (!currentUser) return;
+    const message: Message = {
+      senderName: currentUser.name,
+      senderId: currentUser.id,
+      text: text,
+      timestamp: new Date(),
+    };
+    socket?.emit("send_message", { roomId, message });
+  };
+
   useFocusEffect(
     useCallback(() => {
       if (socket && isConnected && roomId) {
@@ -253,12 +277,8 @@ const useRoom = () => {
         //   console.log("[useRoom] Room from get data", room);
         //   setRoomState(room);
         // });
-
-        const handleDisconnect = () => {
-          setConnectionStatus("disconnected");
-        };
-
         socket.on("disconnect", handleDisconnect);
+        socket.on("message_received", handleMessageReceived);
 
         return () => {
           // console.log(`[useRoom] Cleaning up room listeners for ${roomId}`);
@@ -271,6 +291,7 @@ const useRoom = () => {
           socket.off("join_request", handleJoinRequest);
           socket.off("player_status_changed", handlePlayerStatusChanges);
           socket.off("disconnect", handleDisconnect);
+          socket.off("message_received", handleMessageReceived);
           // socket.off("get_room_response");
         };
       }
@@ -286,6 +307,7 @@ const useRoom = () => {
       handleLeaveError,
       handleJoinRequest,
       handlePlayerStatusChanges,
+      handleMessageReceived,
       navigation,
     ])
   );
@@ -300,6 +322,7 @@ const useRoom = () => {
     socket,
     handleReadyToggle,
     handlePlayerStatusChanges,
+    sendMessage,
   };
 };
 

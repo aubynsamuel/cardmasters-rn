@@ -1,4 +1,4 @@
-import { PlayerStatus } from "../server/types";
+import { PlayerStatus, Message } from "../server/types";
 
 type Suit = "diamond" | "spade" | "love" | "club";
 type Rank = "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K";
@@ -75,6 +75,7 @@ interface Room {
   maxPlayers: number;
   status: RoomStatus;
   ownerId: string;
+  messages: Message[];
 }
 
 interface LobbyRoom {

@@ -1,12 +1,22 @@
 import { Card, Player } from "../src/Types";
 
+type RoomStatus = "waiting" | "playing" | "finished";
+
 interface Room {
   id: string;
   name: string;
   players: Player[];
   maxPlayers: number;
-  status: "waiting" | "playing" | "finished";
+  status: RoomStatus;
   ownerId: string;
+  messages: Message[];
+}
+
+interface Message {
+  text: string;
+  senderName: string;
+  senderId: string;
+  timestamp: Date;
 }
 
 interface LobbyRoom {
@@ -94,4 +104,5 @@ export {
   JoinRequestResponsePayload,
   PlayerStatus,
   JoinRequest,
+  Message,
 };

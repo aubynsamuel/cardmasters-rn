@@ -11,6 +11,7 @@ import {
   StartGamePayload,
   PlayerStatus,
   JoinRequest,
+  Message,
 } from "./types";
 
 import MultiplayerCardsGame from "../src/gameLogic/MultiplayerGameClass";
@@ -221,6 +222,7 @@ io.on("connection", (socket: Socket) => {
         maxPlayers: 4,
         status: "waiting",
         ownerId: socket.id,
+        messages: [],
       };
 
       rooms[roomId] = newRoom;
@@ -230,6 +232,18 @@ io.on("connection", (socket: Socket) => {
       console.log(`Room ${roomId} created by ${playerName} (${socket.id})`);
       socket.emit("room_created", { roomId: roomId, room: rooms[roomId] });
       broadcastLobbyUpdate();
+    }
+  );
+
+  // Listener: Send a message to a room
+  socket.on(
+    "send_message",
+    ({ roomId, message }: { roomId: string; message: Message }) => {
+      const room = rooms[roomId];
+      if (room) {
+        room.messages.push(message);
+        io.to(roomId).emit("message_received", { message });
+      }
     }
   );
 

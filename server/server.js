@@ -167,6 +167,7 @@ io.on("connection", function (socket) {
             maxPlayers: 4,
             status: "waiting",
             ownerId: socket.id,
+            messages: [],
         };
         rooms[roomId] = newRoom;
         socket.join(roomId);
@@ -174,6 +175,15 @@ io.on("connection", function (socket) {
         console.log("Room ".concat(roomId, " created by ").concat(playerName, " (").concat(socket.id, ")"));
         socket.emit("room_created", { roomId: roomId, room: rooms[roomId] });
         broadcastLobbyUpdate();
+    });
+    // Listener: Send a message to a room
+    socket.on("send_message", function (_a) {
+        var roomId = _a.roomId, message = _a.message;
+        var room = rooms[roomId];
+        if (room) {
+            room.messages.push(message);
+            io.to(roomId).emit("message_received", { message: message });
+        }
     });
     // Listener: Request to join a room
     socket.on("request_join_room", function (_a) {

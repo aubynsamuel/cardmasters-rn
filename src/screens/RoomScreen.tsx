@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -7,12 +7,15 @@ import {
   FlatList,
   ActivityIndicator,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Player } from "../Types";
 import useRoom from "../customHooks/useRoom";
 import { PlayerStatus } from "@/server/types";
+import RoomChatComponent from "../components/RoomChatComponent";
 
 const RoomScreen = () => {
   const {
@@ -25,8 +28,25 @@ const RoomScreen = () => {
     handleReadyToggle,
     socket,
     navigation,
+    sendMessage,
   } = useRoom();
   const [gameTo, setGameTo] = useState(5);
+  const [showChat, setShowChat] = useState(false);
+  const [showUnreadBadge, setShowUnreadBadge] = useState(false);
+
+  useEffect(() => {
+    if (!roomState || roomState.messages.length < 1) {
+      setShowUnreadBadge(false);
+      return;
+    }
+    if (
+      roomState?.messages?.length > 0 &&
+      roomState?.messages[roomState.messages.length - 1]?.senderId !==
+        socket?.id
+    ) {
+      setShowUnreadBadge(true);
+    }
+  }, [roomState?.messages]);
 
   const renderPlayerItem = ({ item }: { item: Player }) => (
     <View style={styles.playerItem}>
@@ -89,131 +109,173 @@ const RoomScreen = () => {
   const playerReady = currentPlayer?.status === PlayerStatus.READY;
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Waiting Room</Text>
-      <Text style={styles.roomNameText}>Room: {roomState.name}</Text>
-      <Text style={styles.playerCountText}>
-        Players: {roomState.players.length} / {roomState.maxPlayers}
-      </Text>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1, backgroundColor: "#1a2a1f" }}
+      contentContainerStyle={{ backgroundColor: "yellow" }}
+    >
+      <View style={styles.container}>
+        <Text style={styles.title}>Waiting Room</Text>
+        <Text style={styles.roomNameText}>Room: {roomState.name}</Text>
+        <Text style={styles.playerCountText}>
+          Players: {roomState.players.length} / {roomState.maxPlayers}
+        </Text>
 
-      {isLoading && (
-        <View style={styles.loadingOverlay}>
-          <ActivityIndicator size="large" color="#4CAF50" />
-          <Text style={styles.loadingText}>Please wait...</Text>
-        </View>
-      )}
-      {isOwner && (
-        <View
-          style={{
-            flexDirection: "row",
-            alignSelf: "center",
-            marginVertical: 20,
-          }}
-        >
-          <Text style={styles.gameToLabel}>Select Game-To :</Text>
-          <TextInput
-            inputMode="numeric"
-            style={styles.gameToInput}
-            value={gameTo}
-            onChangeText={setGameTo}
-            placeholder={gameTo.toString()}
-            placeholderTextColor={"white"}
-          />
-        </View>
-      )}
+        {isLoading && (
+          <View style={styles.loadingOverlay}>
+            <ActivityIndicator size="large" color="#4CAF50" />
+            <Text style={styles.loadingText}>Please wait...</Text>
+          </View>
+        )}
+        {isOwner && (
+          <View
+            style={{
+              flexDirection: "row",
+              alignSelf: "center",
+              marginVertical: 20,
+            }}
+          >
+            <Text style={styles.gameToLabel}>Select Game-To :</Text>
+            <TextInput
+              inputMode="numeric"
+              style={styles.gameToInput}
+              value={gameTo}
+              onChangeText={setGameTo}
+              placeholder={gameTo.toString()}
+              placeholderTextColor={"white"}
+            />
+          </View>
+        )}
 
-      <FlatList
-        data={roomState.players}
-        renderItem={renderPlayerItem}
-        keyExtractor={(item) => item.id.toString()}
-        style={styles.playerList}
-        contentContainerStyle={{ paddingBottom: 20 }}
-      />
+        <FlatList
+          data={roomState.players}
+          renderItem={renderPlayerItem}
+          keyExtractor={(item) => item.id.toString()}
+          style={styles.playerList}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        />
 
-      {!isOwner && playerReady && (
-        <View style={styles.waitingContainer}>
-          <ActivityIndicator size="small" color="#4CAF50" />
-          <Text style={styles.waitingText}>
-            Waiting for the owner to start...
-          </Text>
-        </View>
-      )}
+        {!isOwner && playerReady && (
+          <View style={styles.waitingContainer}>
+            <ActivityIndicator size="small" color="#4CAF50" />
+            <Text style={styles.waitingText}>
+              Waiting for the owner to start...
+            </Text>
+          </View>
+        )}
 
-      <View style={styles.buttonContainer}>
-        {isOwner ? (
+        <View style={styles.buttonContainer}>
+          {isOwner ? (
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                !canStartGame && styles.disabledButton,
+              ]}
+              onPress={() => handleStartGame(gameTo)}
+              disabled={!canStartGame || isLoading}
+            >
+              <LinearGradient
+                colors={
+                  canStartGame ? ["#4CAF50", "#2E7D32"] : ["#9E9E9E", "#616161"]
+                }
+                style={styles.buttonGradient}
+              >
+                <Ionicons
+                  name="play-circle-outline"
+                  size={20}
+                  color="white"
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.buttonText}>Start Game</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={[
+                styles.actionButton,
+                !playerReady && styles.disabledButton,
+              ]}
+              onPress={() =>
+                handleReadyToggle(
+                  roomState.id,
+                  currentPlayer?.status !== PlayerStatus.READY
+                    ? PlayerStatus.READY
+                    : PlayerStatus.NOT_READY
+                )
+              }
+              // disabled={!playerReady || isLoading}
+            >
+              <LinearGradient
+                colors={
+                  playerReady ? ["#4CAF50", "#2E7D32"] : ["#9E9E9E", "#616161"]
+                }
+                style={styles.buttonGradient}
+              >
+                <FontAwesome
+                  name="gamepad"
+                  size={20}
+                  color="white"
+                  style={styles.buttonIcon}
+                />
+                <Text style={styles.buttonText}>Ready</Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          )}
+
           <TouchableOpacity
-            style={[
-              styles.actionButton,
-              !canStartGame && styles.disabledButton,
-            ]}
-            onPress={() => handleStartGame(gameTo)}
-            disabled={!canStartGame || isLoading}
+            style={styles.actionButton}
+            onPress={handleLeaveRoom}
+            disabled={isLoading}
           >
             <LinearGradient
-              colors={
-                canStartGame ? ["#4CAF50", "#2E7D32"] : ["#9E9E9E", "#616161"]
-              }
+              colors={["#f44336", "#c62828"]}
               style={styles.buttonGradient}
             >
               <Ionicons
-                name="play-circle-outline"
+                name="exit-outline"
                 size={20}
                 color="white"
                 style={styles.buttonIcon}
               />
-              <Text style={styles.buttonText}>Start Game</Text>
+              <Text style={styles.buttonText}>Leave Room</Text>
             </LinearGradient>
           </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            style={[styles.actionButton, !playerReady && styles.disabledButton]}
-            onPress={() =>
-              handleReadyToggle(
-                roomState.id,
-                currentPlayer?.status !== PlayerStatus.READY
-                  ? PlayerStatus.READY
-                  : PlayerStatus.NOT_READY
-              )
-            }
-            // disabled={!playerReady || isLoading}
-          >
-            <LinearGradient
-              colors={
-                playerReady ? ["#4CAF50", "#2E7D32"] : ["#9E9E9E", "#616161"]
-              }
-              style={styles.buttonGradient}
+        </View>
+        {roomState && (
+          <>
+            {/* Chat toggle button*/}
+            <TouchableOpacity
+              style={styles.chatButton}
+              onPress={() => {
+                setShowChat(true);
+                setShowUnreadBadge(false);
+              }}
             >
-              <FontAwesome
-                name="gamepad"
-                size={20}
-                color="white"
-                style={styles.buttonIcon}
-              />
-              <Text style={styles.buttonText}>Ready</Text>
-            </LinearGradient>
-          </TouchableOpacity>
-        )}
+              <LinearGradient
+                colors={["#4CAF50", "#2E7D32"]}
+                style={styles.chatButtonGradient}
+              >
+                <Ionicons name="chatbubble-outline" size={30} color="white" />
+                {showUnreadBadge && <View style={styles.badgeContainer} />}
+              </LinearGradient>
+            </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.actionButton}
-          onPress={handleLeaveRoom}
-          disabled={isLoading}
-        >
-          <LinearGradient
-            colors={["#f44336", "#c62828"]}
-            style={styles.buttonGradient}
-          >
-            <Ionicons
-              name="exit-outline"
-              size={20}
-              color="white"
-              style={styles.buttonIcon}
-            />
-            <Text style={styles.buttonText}>Leave Room</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+            {/* Chat component */}
+            {showChat && (
+              <RoomChatComponent
+                messages={roomState.messages}
+                currentUserId={currentPlayer?.id}
+                onSendMessage={sendMessage}
+                onDismiss={() => {
+                  setShowChat(false);
+                  setShowUnreadBadge(false);
+                }}
+              />
+            )}
+          </>
+        )}
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
@@ -369,6 +431,37 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "white",
     color: "white",
+    fontWeight: "bold",
+  },
+  chatButton: {
+    position: "absolute",
+    top: "50%",
+    right: 10,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    overflow: "hidden",
+    elevation: 4,
+  },
+  chatButtonGradient: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  badgeContainer: {
+    position: "absolute",
+    top: 5,
+    right: 5,
+    backgroundColor: "#FF5252",
+    borderRadius: 10,
+    minWidth: 20,
+    height: 20,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  badgeText: {
+    color: "white",
+    fontSize: 12,
     fontWeight: "bold",
   },
 });
