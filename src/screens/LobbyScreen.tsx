@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
@@ -67,6 +68,27 @@ const MultiplayerLobbyScreen = () => {
 
   return (
     <LinearGradient colors={["#076324", "#076345"]} style={styles.container}>
+      {/* Background decorative elements */}
+      <View style={styles.decorationContainer}>
+        {Array(5)
+          .fill(0)
+          .map((_, i) => (
+            <View
+              key={i}
+              style={[
+                styles.cardDecoration,
+                {
+                  top: 100 + i * 120,
+                  left: i % 2 === 0 ? -20 : Dimensions.get("window").width - 40,
+                  transform: [{ rotate: `${i * 35}deg` }],
+                  opacity: 0.15,
+                },
+              ]}
+            />
+          ))}
+      </View>
+
+      {/* Header */}
       <View style={styles.headerContainer}>
         <TouchableOpacity
           style={styles.backButton}
@@ -96,6 +118,7 @@ const MultiplayerLobbyScreen = () => {
         </TouchableOpacity>
       </View>
 
+      {/* Room List */}
       <View style={styles.contentContainer}>
         {isLoading ? (
           <ActivityIndicator
@@ -160,6 +183,19 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     flex: 1,
+  },
+  decorationContainer: {
+    ...StyleSheet.absoluteFillObject,
+    overflow: "hidden",
+  },
+  cardDecoration: {
+    position: "absolute",
+    width: 80,
+    height: 110,
+    borderRadius: 10,
+    backgroundColor: "#ffffff",
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.5)",
   },
   backButton: {
     width: 40,
