@@ -8,7 +8,7 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Message } from "@/server/types";
+import { Message } from "../Types";
 
 interface ChatComponentProps {
   messages: Message[];
@@ -103,10 +103,10 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     elevation: 5,
-    height: 400,
-    maxHeight: "70%",
+    height: 380,
     borderColor: "rgba(255,255,255,0.2)",
     borderWidth: 1,
+    borderBottomWidth: 0,
   },
   header: {
     flexDirection: "row",

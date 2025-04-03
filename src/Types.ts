@@ -1,5 +1,3 @@
-import { PlayerStatus, Message } from "../server/types";
-
 type Suit = "diamond" | "spade" | "love" | "club";
 type Rank = "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K";
 
@@ -16,13 +14,26 @@ interface GameScore {
   score: number;
 }
 
-// type Player = "You" | "Computer" | string;
+interface Message {
+  text: string;
+  senderName: string;
+  senderId: string;
+  timestamp: Date;
+}
+
 interface Player {
   name: string;
   id: string;
   hands: Card[];
   score: number;
-  status?: PlayerStatus; // Added status field
+  status?: PlayerStatus;
+}
+
+enum PlayerStatus {
+  NOT_READY = "NOT_READY",
+  READY = "READY",
+  IN_GAME = "IN_GAME",
+  VIEWING_RESULTS = "VIEWING_RESULTS",
 }
 
 interface Play {
@@ -151,6 +162,13 @@ interface validPlay {
     message: string;
   };
 }
+interface JoinRequestResponsePayload {
+  accepted: boolean;
+  requestId: string;
+  message: string;
+  roomId?: string;
+  roomData?: Room;
+}
 
 export {
   Suit,
@@ -179,4 +197,7 @@ export {
   PlayerJoinedPayload,
   PlayerLeftPayload,
   validPlay,
+  PlayerStatus,
+  Message,
+  JoinRequestResponsePayload,
 };

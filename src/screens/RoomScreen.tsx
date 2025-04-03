@@ -12,9 +12,8 @@ import {
 } from "react-native";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { Player } from "../Types";
+import { Player, PlayerStatus } from "../Types";
 import useRoom from "../customHooks/useRoom";
-import { PlayerStatus } from "@/server/types";
 import RoomChatComponent from "../components/RoomChatComponent";
 
 const RoomScreen = () => {

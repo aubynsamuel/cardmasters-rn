@@ -15,9 +15,10 @@ import {
   GameStartedPayload,
   ErrorPayload,
   Player,
+  PlayerStatus,
+  Message,
 } from "../Types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { Message, PlayerStatus } from "@/server/types";
 
 type RootStackParamList = {
   RoomScreen: {

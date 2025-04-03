@@ -1,4 +1,3 @@
-// src/screens/AuthScreen.tsx
 import React, { useState } from "react";
 import {
   View,

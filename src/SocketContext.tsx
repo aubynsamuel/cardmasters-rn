@@ -7,9 +7,7 @@ import React, {
 } from "react";
 import { io, Socket } from "socket.io-client";
 
-// Replace with your server's actual IP/domain and port
 // Use your local IP address for testing on physical devices, not 'localhost'
-// const SERVER_URL = "http://192.168.126.88:3000";
 const SERVER_URL = "http://192.168.58.88:3000";
 
 interface SocketContextProps {

@@ -3,12 +3,8 @@ import { Alert, BackHandler, ToastAndroid } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useSocket } from "../SocketContext";
 import { useAuth } from "../AuthContext";
-import {
-  LobbyRoom,
-  Room,
-  JoinRequestResponsePayload,
-} from "../../server/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { JoinRequestResponsePayload, LobbyRoom, Room } from "../Types";
 
 type RoomJoined = {
   roomId: string;
