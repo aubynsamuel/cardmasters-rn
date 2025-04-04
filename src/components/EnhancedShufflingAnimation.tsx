@@ -30,7 +30,7 @@ const AnimatedShuffleCard: React.FC<AnimatedShuffleCardProps> = ({
   const { width } = useWindowDimensions();
 
   // Adjust card size based on screen width
-  const CARD_WIDTH = width > 400 ? width * 0.1 : width * 0.2; // Smaller cards for wider screens
+  const CARD_WIDTH = width > 500 ? width * 0.1 : width * 0.2; // Smaller cards for wider screens
   const CARD_HEIGHT = CARD_WIDTH * 1.5;
 
   useEffect(() => {

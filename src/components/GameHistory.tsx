@@ -20,7 +20,7 @@ const GameHistory: React.FC<gameHistoryInterface> = ({
   return (
     <View
       style={{
-        flex: width > 400 ? 0.4 : 0.24,
+        flex: width > 500 ? 0.4 : 0.24,
       }}
     >
       <Text style={{ fontWeight: "bold", marginLeft: 15, color: "white" }}>

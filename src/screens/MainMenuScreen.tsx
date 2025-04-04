@@ -50,7 +50,7 @@ const MainMenuScreen = () => {
 
     // Animate decorative elements
     decorationScale.value = withDelay(
-      400,
+      500,
       withSpring(1, { damping: 10, stiffness: 80 })
     );
 

@@ -73,7 +73,7 @@ const useRoom = () => {
 
   const handlePlayerJoined = (data: PlayerJoinedPayload) => {
     console.log("[useRoom] Player joined:", data.playerName);
-    console.log("[useRoom] ", data.updatedPlayers);
+    // console.log("[useRoom] ", data.updatedPlayers);
     setRoomState((prev) =>
       prev ? { ...prev, players: data.updatedPlayers } : null
     );

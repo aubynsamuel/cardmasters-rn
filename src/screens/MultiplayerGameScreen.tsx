@@ -10,25 +10,18 @@ import {
 } from "react-native";
 import getStyles from "../Styles";
 import { StatusBar } from "expo-status-bar";
-import CardComponent from "../components/CardComponent";
 import GameHistory from "../components/GameHistory";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import Animated, {
-  FlipInEasyX,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import { useSharedValue, withSpring } from "react-native-reanimated";
 import ShufflingAnimation from "../components/ShufflingAnimations";
 import EmptyCard from "../components/EmptySlotCard";
 import SlotCard from "../components/SlotCard";
-import OpponentCard from "../components/OpponentCard";
 import TopRow from "../components/TopRow";
 import GameControls from "../components/GameControls";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import AccumulatedScoreDisplay from "../components/AccumulatedScoreDisplay";
 import {
   CardsGameState,
   GameScore,
@@ -39,6 +32,8 @@ import {
 } from "../Types";
 import { useSocket } from "../SocketContext";
 import { useAuth } from "../AuthContext";
+import PlayerSection from "../components/PlayerSection";
+import OpponentSection from "../components/OpponentSection";
 
 type GameScreenStackParamList = {
   RoomScreen: GameStartedPayload;
@@ -287,9 +282,14 @@ const MultiPlayerGameScreen = () => {
     score: 0,
   };
 
-  const opponent = gameState.players.find(
-    (player) => player.id !== userId && player.id !== socketId
-  ) || {
+  const opponentPlayers = gameState.players.filter(
+    (player) => player.id !== socketId
+  );
+
+  // display the hands for one opponent selected at random
+  const opponent = opponentPlayers[
+    Math.floor(Math.random() * opponentPlayers.length)
+  ] || {
     name: "Opponent",
     id: "player2",
     hands: [],
@@ -300,6 +300,13 @@ const MultiPlayerGameScreen = () => {
     playerName: player.name,
     score: player.score,
   }));
+
+  const humanPlaySpot = () => {
+    const play = gameState.currentPlays.find(
+      (play) => play.player.id === currentUser.id
+    );
+    return <View>{play ? <SlotCard card={play.card} /> : <EmptyCard />}</View>;
+  };
 
   return (
     <GestureHandlerRootView>
@@ -372,43 +379,14 @@ const MultiPlayerGameScreen = () => {
         {/* MAIN GAME AREA */}
         <View style={styles.mainGameArea}>
           {/* Opponents's Hand at the Top */}
-          <View style={[styles.computerSection]}>
-            <AccumulatedScoreDisplay
-              points={gameState.accumulatedPoints || 0}
-              visible={
-                gameState.accumulatedPoints > 0 &&
-                gameState.currentControl &&
-                gameState.currentControl.id === opponent.id
-              }
-            />
-            <Text style={styles.sectionHeader}>
-              {opponent.name}
-              <Animated.View
-                style={{
-                  transform: [{ scale: computerControlScale }],
-                }}
-              >
-                <Text style={{ top: 2, left: 4 }}> 🔥 </Text>
-              </Animated.View>
-            </Text>
-            <View style={styles.hand}>
-              {opponent.hands &&
-                opponent.hands.map((card, index) => (
-                  <Animated.View
-                    key={`${opponent.id}-card-${card.suit}-${card.rank}`}
-                    entering={
-                      gameState.isDealing
-                        ? FlipInEasyX.delay(
-                            (index + (opponent.hands?.length || 0)) * 200
-                          ).duration(300)
-                        : undefined
-                    }
-                  >
-                    <OpponentCard />
-                  </Animated.View>
-                ))}
-            </View>
-          </View>
+          <OpponentSection
+            opponent={opponent}
+            isDealing={gameState.isDealing}
+            accumulatedPoints={gameState.accumulatedPoints}
+            currentControlId={gameState.currentControl.id}
+            controlScale={computerControlScale}
+            styles={styles}
+          />
 
           {/* Game Results in the Middle */}
           <View style={[styles.gameResultSection]}>
@@ -421,89 +399,63 @@ const MultiPlayerGameScreen = () => {
             {/* Current Play Cards */}
             <View style={styles.currentRound}>
               {/* Opponent's Play Spot */}
-              {gameState.currentPlays &&
-              gameState.currentPlays.find(
-                (play) => play.player.id === opponent.id
-              ) ? (
-                <SlotCard
-                  card={
-                    gameState.currentPlays.find(
-                      (play) => play.player.id === opponent.id
-                    )!.card
-                  }
-                />
-              ) : (
-                <EmptyCard />
-              )}
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "center",
+                  gap: 20,
+                }}
+              >
+                {opponentPlayers.map((opponent) => {
+                  const play = gameState.currentPlays?.find(
+                    (play) => play.player.id === opponent.id
+                  );
+                  const isCurrentControl =
+                    gameState.currentControl.id === opponent.id;
+                  return (
+                    <View
+                      key={opponent.id + opponent.name}
+                      style={{
+                        alignSelf: "center",
+                        left: isCurrentControl ? 6 : 0,
+                      }}
+                    >
+                      <Text style={{ fontWeight: "bold", color: "lightgrey" }}>
+                        {opponent.name}
+                        {isCurrentControl ? "🔥" : ""}
+                      </Text>
+                      {play ? <SlotCard card={play.card} /> : <EmptyCard />}
+                    </View>
+                  );
+                })}
+              </View>
 
               {/* Human Play Spot */}
-              {gameState.currentPlays &&
-              gameState.currentPlays.find(
-                (play) => play.player.id === currentUser.id
-              ) ? (
-                <SlotCard
-                  card={
-                    gameState.currentPlays.find(
-                      (play) => play.player.id === currentUser.id
-                    )!.card
-                  }
-                />
-              ) : (
-                <EmptyCard />
-              )}
+              {humanPlaySpot()}
             </View>
           </View>
 
           {/* Human's Hand at the Bottom */}
-          <View style={[styles.humanSection]}>
-            <AccumulatedScoreDisplay
-              points={gameState.accumulatedPoints || 0}
-              visible={
-                gameState.accumulatedPoints > 0 &&
-                gameState.currentControl &&
-                gameState.currentControl.id === currentUser.id
-              }
-            />
-            <Text style={styles.sectionHeader}>
-              {currentUser.name}
-              <Animated.View
-                style={{
-                  transform: [{ scale: humanControlScale }],
-                }}
-              >
-                <Text style={{ top: 2, left: 4 }}> 🔥 </Text>
-              </Animated.View>
-            </Text>
-            <View style={styles.hand}>
-              {currentUser.hands &&
-                currentUser.hands.map((card, index) => (
-                  <Animated.View
-                    key={`currentUser-card-${card.suit}-${card.rank}`}
-                    entering={
-                      gameState.isDealing
-                        ? FlipInEasyX.delay(
-                            (index + (opponent.hands?.length || 0)) * 200
-                          ).duration(300)
-                        : undefined
-                    }
-                  >
-                    <CardComponent
-                      card={card}
-                      playCard={() => {
-                        socket?.emit("play_card", {
-                          roomId: roomId,
-                          playerId: currentUser.id,
-                          card,
-                          cardIndex: index,
-                        });
-                        return { error: "", message: "" };
-                      }}
-                      width={width}
-                    />
-                  </Animated.View>
-                ))}
-            </View>
-          </View>
+          <PlayerSection
+            player={currentUser}
+            isDealing={gameState.isDealing}
+            accumulatedPoints={gameState.accumulatedPoints}
+            currentControlId={gameState.currentControl.id}
+            controlScale={humanControlScale}
+            playCard={(card, index) => {
+              socket?.emit("play_card", {
+                roomId: roomId,
+                playerId: currentUser.id,
+                card,
+                cardIndex: index,
+              });
+              return { error: "", message: "" };
+            }}
+            width={width}
+            opponentHandsLength={opponent.hands.length}
+            styles={styles}
+          />
         </View>
 
         <GameHistory gameHistory={gameState.gameHistory || []} width={width} />

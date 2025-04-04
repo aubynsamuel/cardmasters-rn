@@ -274,7 +274,7 @@ const getStyles = (width: number) => {
       borderColor: "rgba(255, 255, 255, 0.3)",
     },
     contentContainer: {
-      flexDirection: width > 400 ? "row" : "column",
+      flexDirection: width > 500 ? "row" : "column",
       gap: 20,
       width: width * 0.9,
       maxWidth: 450,
@@ -286,14 +286,14 @@ const getStyles = (width: number) => {
       fontSize: 42,
       fontWeight: "bold",
       color: "#FFFFFF",
-      marginBottom: width > 400 ? 10 : 30,
+      marginBottom: width > 500 ? 10 : 30,
       textShadowColor: "rgba(0, 0, 0, 0.4)",
       textShadowOffset: { width: 2, height: 2 },
       textShadowRadius: 5,
       textAlign: "center",
     },
     resultContainer: {
-      width: width > 400 ? "auto" : "100%",
+      width: width > 500 ? "auto" : "100%",
       borderRadius: 16,
       overflow: "hidden",
       marginBottom: 30,
@@ -346,7 +346,7 @@ const getStyles = (width: number) => {
       textAlign: "center",
     },
     buttonsContainer: {
-      width: width > 400 ? "50%" : "100%",
+      width: width > 500 ? "50%" : "100%",
       gap: 15,
     },
     button: {

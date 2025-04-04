@@ -69,7 +69,7 @@ const ProfileScreen = () => {
 
     // Animate decorations
     decorationScale.value = withDelay(
-      400,
+      500,
       withSpring(1, { damping: 10, stiffness: 80 })
     );
   }, []);
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
   },
   profileCardContainer: {
     width: "100%",
-    maxWidth: 400,
+    maxWidth: 500,
     borderRadius: 16,
     overflow: "hidden",
     elevation: 8,

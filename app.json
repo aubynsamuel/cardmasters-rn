@@ -3,7 +3,7 @@
     "name": "cards",
     "slug": "cards",
     "version": "1.0.0",
-    "orientation": "default",
+    "orientation": "portrait", // set to default after fixing layout issues
     "icon": "./assets/images/icon.png",
     "scheme": "cardgame",
     "userInterfaceStyle": "automatic",

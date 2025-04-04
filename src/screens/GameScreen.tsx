@@ -9,31 +9,26 @@ import {
 } from "react-native";
 import getStyles from "../Styles";
 import { StatusBar } from "expo-status-bar";
-import CardComponent from "../components/CardComponent";
 import GameHistory from "../components/GameHistory";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import Animated, {
-  FlipInEasyX,
-  useSharedValue,
-  withSpring,
-} from "react-native-reanimated";
+import { useSharedValue, withSpring } from "react-native-reanimated";
 import ShufflingAnimation from "../components/ShufflingAnimations";
 import EmptyCard from "../components/EmptySlotCard";
 import SlotCard from "../components/SlotCard";
-import OpponentCard from "../components/OpponentCard";
 import TopRow from "../components/TopRow";
 import GameControls from "../components/GameControls";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import AnimatedScoreDisplay from "../components/AccumulatedScoreDisplay";
 import { GameScore, Player } from "../Types";
 import CardsGame, {
   CardsGameUIState,
   GAME_TO,
 } from "../gameLogic/SinglePlayerGameClass";
 import { useAuth } from "../AuthContext";
+import OpponentSection from "../components/OpponentSection";
+import PlayerSection from "../components/PlayerSection";
 
 type GameScreenStackParamList = {
   GameOver: {
@@ -251,41 +246,14 @@ const GameScreen = () => {
         {/* MAIN GAME AREA */}
         <View style={styles.mainGameArea}>
           {/* Opponents's Hand at the Top */}
-          <View style={[styles.computerSection]}>
-            <AnimatedScoreDisplay
-              points={gameState.accumulatedPoints}
-              visible={
-                gameState.accumulatedPoints > 0 &&
-                gameState.currentControl.id === opponent.id
-              }
-            />
-            <Text style={styles.sectionHeader}>
-              {opponent.name}
-              <Animated.View
-                style={{
-                  transform: [{ scale: computerControlScale }],
-                }}
-              >
-                <Text style={{ top: 2, left: 4 }}> 🔥 </Text>
-              </Animated.View>
-            </Text>
-            <View style={styles.hand}>
-              {opponent.hands.map((card, index) => (
-                <Animated.View
-                  key={`opponent-card-${card.suit}-${card.rank}`}
-                  entering={
-                    gameState.isDealing
-                      ? FlipInEasyX.delay(
-                          (index + opponent.hands.length) * 200
-                        ).duration(300)
-                      : undefined
-                  }
-                >
-                  <OpponentCard />
-                </Animated.View>
-              ))}
-            </View>
-          </View>
+          <OpponentSection
+            opponent={opponent}
+            isDealing={gameState.isDealing}
+            accumulatedPoints={gameState.accumulatedPoints}
+            currentControlId={gameState.currentControl.id}
+            controlScale={computerControlScale}
+            styles={styles}
+          />
 
           {/* Game Results in the Middle */}
           <View style={[styles.gameResultSection]}>
@@ -330,45 +298,22 @@ const GameScreen = () => {
           </View>
 
           {/* Human's Hand at the Bottom */}
-          <View style={[styles.humanSection]}>
-            <AnimatedScoreDisplay
-              points={gameState.accumulatedPoints}
-              visible={
-                gameState.accumulatedPoints > 0 &&
-                gameState.currentControl.id === currentUser.id
+          <PlayerSection
+            player={currentUser}
+            isDealing={gameState.isDealing}
+            accumulatedPoints={gameState.accumulatedPoints}
+            currentControlId={gameState.currentControl.id}
+            controlScale={humanControlScale}
+            playCard={(card, index) =>
+              gameRef.current?.humanPlayCard(card, index) ?? {
+                error: "",
+                message: "",
               }
-            />
-            <Text style={styles.sectionHeader}>
-              {currentUser.name}
-              <Animated.View
-                style={{
-                  transform: [{ scale: humanControlScale }],
-                }}
-              >
-                <Text style={{ top: 2, left: 4 }}> 🔥 </Text>
-              </Animated.View>
-            </Text>
-            <View style={styles.hand}>
-              {currentUser.hands.map((card, index) => (
-                <Animated.View
-                  key={`currentUser-card-${card.suit}-${card.rank}`}
-                  entering={
-                    gameState.isDealing
-                      ? FlipInEasyX.delay(
-                          (index + opponent.hands.length) * 200
-                        ).duration(300)
-                      : undefined
-                  }
-                >
-                  <CardComponent
-                    card={card}
-                    playCard={() => gameRef.current?.humanPlayCard(card, index)}
-                    width={width}
-                  />
-                </Animated.View>
-              ))}
-            </View>
-          </View>
+            }
+            width={width}
+            opponentHandsLength={opponent.hands.length}
+            styles={styles}
+          />
         </View>
 
         {gameState.showStartButton && (
