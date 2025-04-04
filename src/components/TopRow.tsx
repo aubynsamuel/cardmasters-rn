@@ -1,10 +1,4 @@
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  useWindowDimensions,
-} from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import React from "react";
 import DeckCard from "./DeckCard";
 import Colors from "../Colors";
@@ -26,95 +20,87 @@ const TopRow: React.FC<TopRowInterface> = ({
   setShowControlsOverlay,
   gameTo,
 }) => {
-  const { width } = useWindowDimensions();
   return (
-    <>
+    <View
+      key={"TopRow"}
+      style={[
+        {
+          flex: 0.11,
+          justifyContent: "space-between",
+          flexDirection: "row",
+        },
+      ]}
+    >
+      {/* Remaining Deck */}
       <View
-        key={"TopRow"}
-        style={[
-          {
-            flex: 0.1,
-            justifyContent: "space-between",
-            flexDirection: "row",
-          },
-        ]}
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+        }}
       >
-        {/* Remaining Deck */}
+        <Text style={{ color: Colors.mainTextColor }}>Deck</Text>
         <View
           style={{
             flexDirection: "row",
+            top: -35,
+            left: 0,
+          }}
+        >
+          {deck.map((deckItem, index) => (
+            <DeckCard index={index} key={index + deckItem.rank} />
+          ))}
+        </View>
+      </View>
+
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 0 }}>
+        {/* Score */}
+        <View
+          style={{
+            padding: 5,
+            height: 80,
+            justifyContent: "center",
+            flexDirection: "row",
+            gap: 10,
             alignItems: "center",
           }}
         >
-          <Text style={{ color: Colors.mainTextColor }}>Deck</Text>
-          <View
+          <Text
             style={{
-              flexDirection: "row",
-              top: -35,
-              left: 0,
+              color: Colors.mainTextColor,
+              fontWeight: "bold",
+              lineHeight: 20,
             }}
           >
-            {deck.map((deckItem, index) => (
-              <DeckCard index={index} key={index + deckItem.rank} />
-            ))}
-          </View>
-        </View>
-
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          {/* Score */}
-          <View
+            {gameScoreToString(gameScoreList)}
+          </Text>
+          <Text
             style={{
+              color: Colors.cardShadow,
+              fontWeight: "bold",
+              backgroundColor: Colors.gold,
               padding: 5,
-              height: 80,
-              justifyContent: "center",
+              borderRadius: 30,
             }}
           >
-            <Text
-              style={{
-                color: Colors.mainTextColor,
-                fontWeight: "bold",
-                lineHeight: 20,
-              }}
-            >
-              {gameScoreToString(gameScoreList)}
-            </Text>
-          </View>
-
-          {/* Controls */}
-          <TouchableOpacity
-            style={styles.controlsButton}
-            onPress={() => setShowControlsOverlay(true)}
-            activeOpacity={0.7}
-          >
-            <LinearGradient
-              colors={[Colors.buttonBackground, "#054d1c"]}
-              style={styles.controlsGradient}
-            >
-              <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
-            </LinearGradient>
-          </TouchableOpacity>
+            {gameTo}
+          </Text>
         </View>
-      </View>
-      <View
-        style={{
-          width: "100%",
-          alignItems: "center",
-          top: width > 400 ? -10 : 8,
-        }}
-      >
-        <Text
-          style={{
-            backgroundColor: "#FFD700",
-            borderRadius: 10,
-            padding: 4,
-            fontWeight: "bold",
-            // color: "#0009",
-          }}
+
+        {/* Controls */}
+        <TouchableOpacity
+          style={styles.controlsButton}
+          onPress={() => setShowControlsOverlay(true)}
+          activeOpacity={0.7}
         >
-          Game-To : {gameTo}
-        </Text>
+          <LinearGradient
+            colors={[Colors.buttonBackground, "#054d1c"]}
+            style={styles.controlsGradient}
+          >
+            <Ionicons name="settings-outline" size={24} color="#FFFFFF" />
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
-    </>
+    </View>
   );
 };
 

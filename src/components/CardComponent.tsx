@@ -1,7 +1,7 @@
 import { TextStyle, Text, StyleSheet, View, ToastAndroid } from "react-native";
 import { suitSymbols } from "../gameLogic/GameUtils";
 import { Card } from "../Types";
-import React from "react";
+import React, { useState } from "react";
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -19,19 +19,29 @@ interface CardComponentInterface {
   card: Card;
   playCard: () => { error: string; message: string } | undefined;
   width: number;
+  index: number;
+  numberOfCards: number;
+  expand: boolean;
 }
 
-const CardComponent = ({ card, playCard, width }: CardComponentInterface) => {
+const CardComponent = ({
+  card,
+  playCard,
+  width,
+  index,
+  numberOfCards,
+  expand,
+}: CardComponentInterface) => {
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(1);
   const ctx = useSharedValue({ startX: 0, startY: 0 });
+  const [selected, setSelected] = useState(false);
 
   function visualEffectForUnsuccessfulPlays() {
     const afterEffect = playCard();
     if (!afterEffect) return;
     if (afterEffect?.error !== "" && afterEffect?.message !== "") {
-      // eslint-disable-next-line react-compiler/react-compiler
       translateX.value = withSpring(0, { duration: 500 });
       translateY.value = withSpring(0, { duration: 500 });
       // Alert.alert(afterEffect?.error, afterEffect.message);
@@ -43,6 +53,7 @@ const CardComponent = ({ card, playCard, width }: CardComponentInterface) => {
     .onStart(() => {
       ctx.value = { startX: translateX.value, startY: translateY.value };
       scale.value = withTiming(1.1, { duration: 150 });
+      runOnJS(setSelected)(true);
     })
     .onUpdate((event) => {
       translateX.value = ctx.value.startX + event.translationX;
@@ -51,16 +62,17 @@ const CardComponent = ({ card, playCard, width }: CardComponentInterface) => {
     .onEnd((event) => {
       scale.value = withTiming(1, { duration: 150 });
       if (
-        event.absoluteY > (width < 400 ? 378 : 85) &&
-        event.absoluteY < (width < 400 ? 470 : 230) &&
-        event.absoluteX < (width < 400 ? 230 : 525) &&
-        event.absoluteX > (width < 400 ? 150 : 430)
+        event.absoluteY > (width < 500 ? 378 : 85) &&
+        event.absoluteY < (width < 500 ? 470 : 230) &&
+        event.absoluteX < (width < 500 ? 230 : 525) &&
+        event.absoluteX > (width < 500 ? 150 : 430)
       ) {
         runOnJS(visualEffectForUnsuccessfulPlays)();
       } else {
         translateX.value = withSpring(0, { duration: 500 });
         translateY.value = withSpring(0, { duration: 500 });
       }
+      runOnJS(setSelected)(false);
     });
 
   const colorStyle: TextStyle =
@@ -76,6 +88,24 @@ const CardComponent = ({ card, playCard, width }: CardComponentInterface) => {
     ],
   }));
 
+  const rotateAngleMap: Record<number, Record<number, number>> = {
+    5: { 0: -40, 1: -20, 2: 0, 3: 20, 4: 40 },
+    4: { 0: -40, 1: -20, 2: 20, 3: 40 },
+    3: { 0: -20, 1: 0, 2: 20 },
+    2: { 0: -20, 1: 20 },
+    1: { 0: 0 },
+    0: {},
+  };
+
+  const transXMap: Record<number, Record<number, number>> = {
+    5: { 0: -40, 1: -20, 2: 0, 3: 20, 4: 40 },
+    4: { 0: -30, 1: -10, 2: 10, 3: 30 },
+    3: { 0: -20, 1: 0, 2: 20 },
+    2: { 0: -10, 1: 10 },
+    1: { 0: 0 },
+    0: {},
+  };
+
   return (
     <GestureDetector gesture={panGesture}>
       <Animated.View style={[cardAnimation]}>
@@ -83,9 +113,20 @@ const CardComponent = ({ card, playCard, width }: CardComponentInterface) => {
           <View
             style={[
               styles.cardContainer,
-              {
-                backgroundColor: "white",
-              },
+              !expand
+                ? {
+                    transform: [
+                      {
+                        rotateZ: selected
+                          ? "0deg"
+                          : `${rotateAngleMap[numberOfCards][index]}deg`,
+                      },
+                      { translateX: transXMap[numberOfCards][index] * 1.2 },
+                    ],
+                    position: "absolute",
+                  }
+                : { marginHorizontal: 5 },
+              { backgroundColor: "white" },
             ]}
           >
             <Text style={[styles.cardRank, colorStyle]}>{card.rank}</Text>
@@ -111,10 +152,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     borderColor: "lightgray",
     borderWidth: 1,
-    margin: 5,
     borderRadius: 8,
     elevation: 10,
     padding: 5,
+    alignSelf: "center",
+    // bottom: 2,
   },
   cardRank: {
     top: 2,

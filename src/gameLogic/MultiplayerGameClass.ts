@@ -26,7 +26,10 @@ class MultiplayerCardsGame {
   isDealing: boolean;
   accumulatedPoints: number;
   lastPlayedSuit: Suit | null;
-  /** currentControl: the player who won the previous round*/
+  /**
+   * currentControl: the player who won the previous round
+   * or the player next to the dealer(currentControl) if no one has played yet.
+   */
   currentControl: Player;
   deck: Deck;
   callbacks: Callbacks;
@@ -124,6 +127,13 @@ class MultiplayerCardsGame {
     const needsShuffle =
       !this.deck || this.deck.length < this.players.length * 5;
 
+    // After dealing, the player next to the dealer(currentControl) starts the game.
+    const currentControlIndex = this.players.findIndex(
+      (player) => player.id === this.currentControl.id
+    );
+    const nextControlIndex = (currentControlIndex + 1) % this.players.length;
+    // this.currentControl = this.players[nextControlIndex];
+
     this.updateState({
       cardsPlayed: 0,
       currentLeadCard: null,
@@ -135,6 +145,7 @@ class MultiplayerCardsGame {
       isShuffling: needsShuffle,
       accumulatedPoints: 0,
       lastPlayedSuit: null,
+      currentControl: this.players[nextControlIndex],
     });
 
     // Show the shuffling animation for 2 seconds

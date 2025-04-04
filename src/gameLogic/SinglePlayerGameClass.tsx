@@ -149,6 +149,12 @@ class CardsGame {
   startGame(): void {
     const needsShuffle = !this.deck || this.deck.length < 10;
 
+    const currentControlIndex = this.players.findIndex(
+      (player) => player.id === this.currentControl.id
+    );
+    const nextControlIndex = (currentControlIndex + 1) % this.players.length;
+    this.currentControl = this.players[nextControlIndex];
+
     this.updateState({
       cardsPlayed: 0,
       currentLeadCard: null,
@@ -160,6 +166,7 @@ class CardsGame {
       isShuffling: needsShuffle,
       accumulatedPoints: 0,
       lastPlayedSuit: null,
+      currentControl: this.players[nextControlIndex],
     });
 
     // Show the shuffling animation for 2 seconds

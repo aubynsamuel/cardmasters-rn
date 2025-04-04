@@ -89,15 +89,15 @@ const dealCards = (
   const hands: Card[][] = players.map(() => []);
 
   // First round: deal 3 cards to each player
-  for (let round = 0; round < 3; round++) {
-    for (let i = 0; i < players.length; i++) {
+  for (let i = 0; i < players.length; i++) {
+    for (let j = 0; j < 3; j++) {
       hands[i].push(deckCopy.shift()!);
     }
   }
 
   // Second round: deal 2 cards to each player
-  for (let round = 0; round < 2; round++) {
-    for (let i = 0; i < players.length; i++) {
+  for (let i = 0; i < players.length; i++) {
+    for (let j = 0; j < 2; j++) {
       hands[i].push(deckCopy.shift()!);
     }
   }

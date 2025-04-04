@@ -54,8 +54,8 @@ const SplashScreen = () => {
     );
 
     const timer = setTimeout(() => {
-      opacity.value = withTiming(0, { duration: 400 });
-      scale.value = withTiming(5, { duration: 400 });
+      opacity.value = withTiming(0, { duration: 500 });
+      scale.value = withTiming(5, { duration: 500 });
 
       if (!isLoading) {
         if (isAuthenticated) {
