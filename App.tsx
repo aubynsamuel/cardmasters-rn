@@ -14,6 +14,7 @@ import { AuthProvider } from "./src/AuthContext";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import { SocketProvider } from "./src/SocketContext";
 import AuthScreen from "./src/screens/AuthScreen";
+import { CustomAlertsProvider } from "./src/CustomAlertsContext";
 
 const Stack = createNativeStackNavigator();
 
@@ -23,41 +24,43 @@ const App: React.FC = () => {
     <View style={{ backgroundColor: "#076324", flex: 1 }}>
       <AuthProvider>
         <SocketProvider>
-          <NavigationContainer>
-            <StatusBar hidden={true} />
-            <Stack.Navigator
-              screenOptions={{
-                headerShown: false,
-                animation: "fade",
-                navigationBarColor: "#076345",
-              }}
-            >
-              <Stack.Screen name="Splash" component={SplashScreen} />
-              <Stack.Screen name="MainMenu" component={MainMenuScreen} />
-              <Stack.Screen
-                name="Game"
-                component={GameScreen}
-                options={{ navigationBarColor: "#076324" }}
-              />
-              <Stack.Screen name="MultiplayerLobby" component={LobbyScreen} />
-              <Stack.Screen
-                name="RoomScreen"
-                component={RoomScreen}
-                options={{ navigationBarColor: "#1a2a1f" }}
-              />
-              <Stack.Screen
-                name="MultiPlayerGameScreen"
-                component={MultiPlayerGameScreen}
-              />
-              <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
-              <Stack.Screen name="Auth" component={AuthScreen} />
-              <Stack.Screen
-                name="GameOver"
-                component={GameOverScreen as React.FC}
-                options={{ navigationBarColor: "#2E7D32" }}
-              />
-            </Stack.Navigator>
-          </NavigationContainer>
+          <CustomAlertsProvider>
+            <NavigationContainer>
+              <StatusBar hidden={true} />
+              <Stack.Navigator
+                screenOptions={{
+                  headerShown: false,
+                  animation: "fade",
+                  navigationBarColor: "#076345",
+                }}
+              >
+                <Stack.Screen name="Splash" component={SplashScreen} />
+                <Stack.Screen name="MainMenu" component={MainMenuScreen} />
+                <Stack.Screen
+                  name="Game"
+                  component={GameScreen}
+                  options={{ navigationBarColor: "#076324" }}
+                />
+                <Stack.Screen name="MultiplayerLobby" component={LobbyScreen} />
+                <Stack.Screen
+                  name="RoomScreen"
+                  component={RoomScreen}
+                  options={{ navigationBarColor: "#1a2a1f" }}
+                />
+                <Stack.Screen
+                  name="MultiPlayerGameScreen"
+                  component={MultiPlayerGameScreen}
+                />
+                <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
+                <Stack.Screen name="Auth" component={AuthScreen} />
+                <Stack.Screen
+                  name="GameOver"
+                  component={GameOverScreen as React.FC}
+                  options={{ navigationBarColor: "#2E7D32" }}
+                />
+              </Stack.Navigator>
+            </NavigationContainer>
+          </CustomAlertsProvider>
         </SocketProvider>
       </AuthProvider>
     </View>

@@ -261,6 +261,14 @@ const useRoom = () => {
     socket?.emit("send_message", { roomId, message });
   };
 
+  const handlePlayerKicked = ({ message }: { message: string }) => {
+    Alert.alert("Player Kicked", message);
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "MultiplayerLobby" }],
+    });
+  };
+
   useFocusEffect(
     useCallback(() => {
       if (socket && isConnected && roomId) {
@@ -274,6 +282,7 @@ const useRoom = () => {
         socket.on("leave_error", handleLeaveError);
         socket.on("join_request", handleJoinRequest);
         socket.on("player_status_changed", handlePlayerStatusChanges);
+        socket.on("player_kicked", handlePlayerKicked);
         // socket.on("get_room_response", ({ room }) => {
         //   console.log("[useRoom] Room from get data", room);
         //   setRoomState(room);
@@ -293,6 +302,7 @@ const useRoom = () => {
           socket.off("player_status_changed", handlePlayerStatusChanges);
           socket.off("disconnect", handleDisconnect);
           socket.off("message_received", handleMessageReceived);
+          socket.off("player_kicked", handlePlayerKicked);
           // socket.off("get_room_response");
         };
       }

@@ -105,7 +105,7 @@ const ProfileScreen = () => {
   const handleLogout = async () => {
     try {
       await logout();
-      navigation.navigate("Auth" as never);
+      navigation.reset({ index: 0, routes: [{ name: "Auth" as never }] });
     } catch {
       Alert.alert("Error", "Failed to log out. Please try again.");
     }

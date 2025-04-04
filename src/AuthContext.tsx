@@ -50,7 +50,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         setUserId(user.uid);
         setUserEmail(user.email);
 
-        // Fetch additional user data from Firestore
         await fetchUserData(user);
       } else {
         setIsAuthenticated(false);

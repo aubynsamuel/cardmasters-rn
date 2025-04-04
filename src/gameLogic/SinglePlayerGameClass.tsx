@@ -15,8 +15,6 @@ import {
   Deck,
 } from "../Types";
 
-export const GAME_TO = 10;
-
 export interface CardsGameUIState {
   players: Player[];
   currentPlays: Play[];
@@ -34,6 +32,7 @@ export interface CardsGameUIState {
   deck: Deck;
   gameOverData: GameOverData;
   canPlayCard: boolean;
+  targetScore: number;
 }
 
 export interface GameOverData {
@@ -67,8 +66,9 @@ class CardsGame {
   callbacks: Callbacks;
   gameOverData: GameOverData;
   canPlayCard: boolean;
+  targetScore: number;
 
-  constructor(players: Player[]) {
+  constructor(players: Player[], targetScore: number) {
     this.players = players;
     this.currentPlays = [];
     this.currentLeadCard = null;
@@ -96,6 +96,7 @@ class CardsGame {
       isMultiPlayer: false,
     };
     this.canPlayCard = false;
+    this.targetScore = targetScore;
   }
 
   // Register callbacks from the React component
@@ -122,6 +123,7 @@ class CardsGame {
       deck: this.deck,
       gameOverData: this.gameOverData,
       canPlayCard: this.canPlayCard,
+      targetScore: this.targetScore,
     };
   }
 
@@ -509,7 +511,7 @@ class CardsGame {
           : `🏆 ${this.players[1].name} won this game with ${finalPoints} points! 🏆`,
     });
 
-    if (computerScore < GAME_TO && humanScore < GAME_TO) {
+    if (computerScore < this.targetScore && humanScore < this.targetScore) {
       setTimeout(() => {
         this.startGame();
       }, 1000);

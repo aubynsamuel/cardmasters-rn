@@ -24,7 +24,6 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { GameScore, Player } from "../Types";
 import CardsGame, {
   CardsGameUIState,
-  GAME_TO,
 } from "../gameLogic/SinglePlayerGameClass";
 import { useAuth } from "../AuthContext";
 import OpponentSection from "../components/OpponentSection";
@@ -49,6 +48,8 @@ const GameScreen = () => {
   const { width, height } = useWindowDimensions();
   const styles = getStyles(width, height);
   const { userData, userId } = useAuth();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [targetScore, setTargetScore] = useState(10);
 
   const initialPlayers = [
     {
@@ -78,7 +79,7 @@ const GameScreen = () => {
 
   useEffect(() => {
     if (!gameRef.current) {
-      gameRef.current = new CardsGame(initialPlayers);
+      gameRef.current = new CardsGame(initialPlayers, targetScore);
 
       gameRef.current.setCallbacks({
         onStateChange: (newState: CardsGameUIState) => {
@@ -127,8 +128,8 @@ const GameScreen = () => {
     if (!gameRef.current) return;
 
     if (
-      gameRef?.current?.players[0].score >= GAME_TO ||
-      gameRef?.current?.players[1].score >= GAME_TO
+      gameRef?.current?.players[0].score >= gameRef.current.targetScore ||
+      gameRef?.current?.players[1].score >= gameRef.current.targetScore
     ) {
       navigation.navigate("GameOver", gameRef.current.gameOverData);
     }
@@ -240,7 +241,7 @@ const GameScreen = () => {
             { playerName: currentUser.name, score: currentUser.score },
             { playerName: opponent.name, score: opponent.score },
           ]}
-          gameTo={GAME_TO}
+          gameTo={gameState.targetScore}
         />
 
         {/* MAIN GAME AREA */}

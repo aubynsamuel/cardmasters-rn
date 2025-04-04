@@ -9,6 +9,7 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
+  ToastAndroid,
 } from "react-native";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -48,7 +49,23 @@ const RoomScreen = () => {
   }, [roomState?.messages]);
 
   const renderPlayerItem = ({ item }: { item: Player }) => (
-    <View style={styles.playerItem}>
+    <TouchableOpacity
+      style={styles.playerItem}
+      onLongPress={() => {
+        if (isOwner && item.id !== socket?.id) {
+          socket?.emit("kick_player", { playerToKickId: item.id });
+        }
+      }}
+      activeOpacity={0.7}
+      onPress={() => {
+        if (isOwner && item.id !== socket?.id) {
+          ToastAndroid.show(
+            "Long press to kick player from the room",
+            ToastAndroid.SHORT
+          );
+        }
+      }}
+    >
       <Ionicons
         name="person-circle-outline"
         size={24}
@@ -61,7 +78,7 @@ const RoomScreen = () => {
         <Text style={styles.ownerText}>(Owner)</Text>
       )}
       {item.id === socket?.id && <Text style={styles.youText}>(You)</Text>}
-    </View>
+    </TouchableOpacity>
   );
 
   if (connectionStatus === "disconnected") {
@@ -134,7 +151,7 @@ const RoomScreen = () => {
               marginVertical: 20,
             }}
           >
-            <Text style={styles.gameToLabel}>Select Game-To :</Text>
+            <Text style={styles.gameToLabel}>Select Target Score :</Text>
             <TextInput
               inputMode="numeric"
               style={styles.gameToInput}
