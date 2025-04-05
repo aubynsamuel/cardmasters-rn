@@ -350,12 +350,15 @@ const MultiPlayerGameScreen = () => {
           <TouchableOpacity
             activeOpacity={1}
             style={styles.overlayContainer}
-            onPress={() => setShowControlsOverlay(false)}
+            // onPress={() => setShowControlsOverlay(false)}
           >
             <View style={styles.overlayContent}>
               <View style={styles.overlayHeader}>
-                <Text style={styles.overlayTitle}>Game Controls</Text>
-                <TouchableOpacity onPress={() => setShowControlsOverlay(false)}>
+                <Text style={styles.overlayTitle}>Options</Text>
+                <TouchableOpacity
+                  onPress={() => setShowControlsOverlay(false)}
+                  style={{ right: 15 }}
+                >
                   <Ionicons name="close" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>

@@ -9,6 +9,7 @@ import {
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, db } from "./firebaseConfig";
+import { useSettingsStore } from "./SettingsStore";
 
 type UserData = {
   email: string;
@@ -42,6 +43,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { loadSettings } = useSettingsStore();
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {

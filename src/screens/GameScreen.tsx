@@ -28,6 +28,7 @@ import { useAuth } from "../AuthContext";
 import OpponentSection from "../components/OpponentSection";
 import PlayerSection from "../components/PlayerSection";
 import { useCustomAlerts } from "../CustomAlertsContext";
+import { useSettingsStore } from "../SettingsStore";
 
 type GameScreenStackParamList = {
   GameOver: {
@@ -48,9 +49,8 @@ const GameScreen = () => {
   const { width, height } = useWindowDimensions();
   const styles = getStyles(width, height);
   const { userData, userId } = useAuth();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [targetScore, setTargetScore] = useState(10);
   const { showAlert } = useCustomAlerts();
+  const { targetScore } = useSettingsStore();
 
   const initialPlayers = [
     {
@@ -70,6 +70,17 @@ const GameScreen = () => {
   const gameRef = useRef<CardsGame | null>(null);
   const [gameState, setGameState] = useState<CardsGameUIState | null>(null);
   const [showControlsOverlay, setShowControlsOverlay] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (gameRef.current) {
+        gameRef.current.targetScore = targetScore;
+        setGameState(gameRef.current.getState());
+        console.log(gameRef.current.targetScore);
+      }
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [targetScore]);
 
   const computerControlScale = useSharedValue(0);
   const humanControlScale = useSharedValue(0);
@@ -219,12 +230,15 @@ const GameScreen = () => {
           <TouchableOpacity
             activeOpacity={1}
             style={styles.overlayContainer}
-            onPress={() => setShowControlsOverlay(false)}
+            // onPress={() => setShowControlsOverlay(false)}
           >
             <View style={styles.overlayContent}>
               <View style={styles.overlayHeader}>
-                <Text style={styles.overlayTitle}>Game Controls</Text>
-                <TouchableOpacity onPress={() => setShowControlsOverlay(false)}>
+                <Text style={styles.overlayTitle}>Options</Text>
+                <TouchableOpacity
+                  onPress={() => setShowControlsOverlay(false)}
+                  style={{ right: 15 }}
+                >
                   <Ionicons name="close" size={24} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>

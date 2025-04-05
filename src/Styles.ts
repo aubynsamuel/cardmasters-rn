@@ -130,6 +130,8 @@ const getStyles = (width: number, height: number) => {
       fontSize: 20,
       fontWeight: "bold",
       color: "#FFFFFF",
+      textAlign: "center",
+      width: "100%",
     },
     overlayButtonText: {
       color: "#FFFFFF",

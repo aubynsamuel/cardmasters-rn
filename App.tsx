@@ -15,6 +15,7 @@ import ProfileScreen from "./src/screens/ProfileScreen";
 import { SocketProvider } from "./src/SocketContext";
 import AuthScreen from "./src/screens/AuthScreen";
 import { CustomAlertsProvider } from "./src/CustomAlertsContext";
+import SettingsScreen from "./src/screens/Settings";
 
 const Stack = createNativeStackNavigator();
 
@@ -51,6 +52,7 @@ const App: React.FC = () => {
                   name="MultiPlayerGameScreen"
                   component={MultiPlayerGameScreen}
                 />
+                <Stack.Screen name="Settings" component={SettingsScreen} />
                 <Stack.Screen name="ProfileScreen" component={ProfileScreen} />
                 <Stack.Screen name="Auth" component={AuthScreen} />
                 <Stack.Screen
