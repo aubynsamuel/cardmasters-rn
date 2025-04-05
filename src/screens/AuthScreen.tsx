@@ -9,12 +9,12 @@ import {
   Platform,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuth } from "../AuthContext";
 import { FirebaseError } from "firebase/app";
 import { useNavigation } from "@react-navigation/native";
+import { useCustomAlerts } from "../CustomAlertsContext";
 
 const AuthScreen = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -25,6 +25,7 @@ const AuthScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
   const { login, signup } = useAuth();
   const navigation = useNavigation();
+  const { showAlert } = useCustomAlerts();
 
   const getFirebaseErrorMessage = (error: FirebaseError) => {
     switch (error.code) {
@@ -58,22 +59,38 @@ const AuthScreen = () => {
 
   const handleAuth = async () => {
     if (!email || !password) {
-      Alert.alert("Error", "Please fill in all required fields");
+      showAlert({
+        title: "Error",
+        message: "Please fill in all required fields",
+        type: "error",
+      });
       return;
     }
 
     if (!validateEmail(email)) {
-      Alert.alert("Error", "Please enter a valid email address");
+      showAlert({
+        title: "Error",
+        message: "Please enter a valid email address",
+        type: "error",
+      });
       return;
     }
 
     if (!validatePassword(password)) {
-      Alert.alert("Error", "Password must be at least 6 characters long");
+      showAlert({
+        title: "Error",
+        message: "Password must be at least 6 characters long",
+        type: "error",
+      });
       return;
     }
 
     if (!isLogin && password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
+      showAlert({
+        title: "Error",
+        message: "Passwords do not match",
+        type: "error",
+      });
       return;
     }
 
@@ -99,7 +116,7 @@ const AuthScreen = () => {
           ? getFirebaseErrorMessage(error)
           : "Authentication failed. Please try again.";
 
-      Alert.alert("Error", errorMessage);
+      showAlert({ title: "Error", message: errorMessage, type: "error" });
     } finally {
       setIsLoading(false);
     }
@@ -154,7 +171,7 @@ const AuthScreen = () => {
               placeholderTextColor="#aaa"
               value={password}
               onChangeText={setPassword}
-              //   secureTextEntry
+              secureTextEntry
               autoComplete="password"
             />
 

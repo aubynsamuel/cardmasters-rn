@@ -4,7 +4,6 @@ import {
   Text,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   useWindowDimensions,
 } from "react-native";
 import { useAuth } from "../AuthContext";
@@ -19,11 +18,13 @@ import Animated, {
   withSpring,
   Easing,
 } from "react-native-reanimated";
+import { useCustomAlerts } from "../CustomAlertsContext";
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
   const { userEmail, userData, logout } = useAuth();
   const { width } = useWindowDimensions();
+  const { showAlert } = useCustomAlerts();
 
   // Animation values
   const backgroundOpacity = useSharedValue(0);
@@ -107,7 +108,11 @@ const ProfileScreen = () => {
       await logout();
       navigation.reset({ index: 0, routes: [{ name: "Auth" as never }] });
     } catch {
-      Alert.alert("Error", "Failed to log out. Please try again.");
+      showAlert({
+        title: "Error",
+        message: "Failed to log out. Please try again.",
+        type: "error",
+      });
     }
   };
 

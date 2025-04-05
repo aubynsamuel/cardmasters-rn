@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Alert, BackHandler, ToastAndroid } from "react-native";
+import { BackHandler } from "react-native";
 import {
   useRoute,
   useNavigation,
@@ -19,6 +19,7 @@ import {
   Message,
 } from "../Types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
+import { useCustomAlerts } from "../CustomAlertsContext";
 
 type RootStackParamList = {
   RoomScreen: {
@@ -48,6 +49,7 @@ const useRoom = () => {
   const [connectionStatus, setConnectionStatus] = useState<
     "connected" | "connecting" | "disconnected"
   >(isConnected ? "connected" : "connecting");
+  const { showAlert, showToast } = useCustomAlerts();
 
   useEffect(() => {
     if (roomState && socket) {
@@ -73,7 +75,6 @@ const useRoom = () => {
 
   const handlePlayerJoined = (data: PlayerJoinedPayload) => {
     console.log("[useRoom] Player joined:", data.playerName);
-    // console.log("[useRoom] ", data.updatedPlayers);
     setRoomState((prev) =>
       prev ? { ...prev, players: data.updatedPlayers } : null
     );
@@ -81,11 +82,6 @@ const useRoom = () => {
 
   const handlePlayerLeft = useCallback(
     (data: PlayerLeftPayload) => {
-      if (data.userId !== socket?.id) {
-        // Alert.alert("Player left", `${data.playerName} left the room`);
-        console.log("[useRoom] You are no longer in the room.");
-      }
-
       setRoomState((prev) => {
         if (!prev) return null;
         return { ...prev, players: data.updatedPlayers };
@@ -96,7 +92,6 @@ const useRoom = () => {
 
   const handleOwnerChanged = useCallback(
     (data: OwnerChangedPayload) => {
-      console.log("[useRoom] Owner changed to:", data.newOwnerId);
       setRoomState((prev) =>
         prev
           ? {
@@ -106,22 +101,12 @@ const useRoom = () => {
             }
           : null
       );
-
-      // if (socket) {
-      //   const newIsOwner = data.newOwnerId === socket.id;
-      //   setIsOwner(newIsOwner);
-
-      //   if (newIsOwner) {
-      //     Alert.alert("Ownership Change", "You are now the room owner.");
-      //   }
-      // }
     },
     [socket]
   );
 
   const handleGameStarted = useCallback(
     (data: GameStartedPayload) => {
-      // console.log("[useRoom] Started! Navigating...", data);
       setIsLoading(false);
 
       if (data && data.roomData) {
@@ -140,12 +125,21 @@ const useRoom = () => {
   );
 
   const handleStartError = useCallback((error: ErrorPayload) => {
-    Alert.alert("Cannot Start Game", error.message);
+    showAlert({
+      title: "Cannot Start Game",
+      message: error.message,
+      type: "error",
+    });
+
     setIsLoading(false);
   }, []);
 
   const handleLeaveError = useCallback((error: ErrorPayload) => {
-    Alert.alert("Error Leaving Room", error.message);
+    showAlert({
+      title: "Error Leaving Room",
+      message: error.message,
+      type: "error",
+    });
     setIsLoading(false);
   }, []);
 
@@ -170,19 +164,30 @@ const useRoom = () => {
     if (!socket || !isConnected || !roomId || !isOwner) return;
 
     if (gameTo < 1) {
-      ToastAndroid.show("Game to cannot be less than 1", ToastAndroid.SHORT);
+      showToast({
+        message: "Target score cannot be less than 1",
+        type: "error",
+      });
       return;
     }
 
     if (!roomState) return;
 
     if (roomState.players.length < 2) {
-      Alert.alert("Cannot Start Game", "Need at least 2 players to start.");
+      showAlert({
+        title: "Cannot Start Game",
+        message: "Need at least 2 players to start.",
+        type: "error",
+      });
       return;
     }
 
     if (roomState.players.length > 4) {
-      Alert.alert("Cannot Start Game", "Maximum 4 players allowed.");
+      showAlert({
+        title: "Cannot Start Game",
+        message: "Maximum 4 players allowed.",
+        type: "error",
+      });
       return;
     }
 
@@ -196,26 +201,32 @@ const useRoom = () => {
     playerName: string;
   }) => {
     console.log("[useRoom] Join request received:", data.playerName);
-    Alert.alert("Join Request", `${data.playerName} wants to join the room.`, [
-      {
-        text: "Decline",
-        onPress: () => {
-          socket?.emit("respond_to_join_request", {
-            requestId: data.requestId,
-            accepted: false,
-          });
+    showAlert({
+      title: "Join Request",
+      message: `${data.playerName} wants to join the room.`,
+      type: "info",
+      buttons: [
+        {
+          text: "Decline",
+          negative: true,
+          onPress: () => {
+            socket?.emit("respond_to_join_request", {
+              requestId: data.requestId,
+              accepted: false,
+            });
+          },
         },
-      },
-      {
-        text: "Accept",
-        onPress: () => {
-          socket?.emit("respond_to_join_request", {
-            requestId: data.requestId,
-            accepted: true,
-          });
+        {
+          text: "Accept",
+          onPress: () => {
+            socket?.emit("respond_to_join_request", {
+              requestId: data.requestId,
+              accepted: true,
+            });
+          },
         },
-      },
-    ]);
+      ],
+    });
   };
 
   const handleReadyToggle = (roomId: string, status: PlayerStatus) => {
@@ -242,7 +253,6 @@ const useRoom = () => {
   };
 
   const handleMessageReceived = ({ message }: { message: Message }) => {
-    // console.log("[useRoom] Message received:", message);
     setRoomState((prev) => {
       if (!prev) return null;
       return { ...prev, messages: [...prev.messages, message] };
@@ -262,7 +272,11 @@ const useRoom = () => {
   };
 
   const handlePlayerKicked = ({ message }: { message: string }) => {
-    Alert.alert("Player Kicked", message);
+    showAlert({
+      title: "Player Kicked",
+      message,
+      type: "error",
+    });
     navigation.reset({
       index: 0,
       routes: [{ name: "MultiplayerLobby" }],
@@ -272,8 +286,6 @@ const useRoom = () => {
   useFocusEffect(
     useCallback(() => {
       if (socket && isConnected && roomId) {
-        // console.log(`[useRoom] Setting up room listeners for ${roomId}`);
-
         socket.on("player_joined", handlePlayerJoined);
         socket.on("player_left", handlePlayerLeft);
         socket.on("owner_changed", handleOwnerChanged);
@@ -291,7 +303,6 @@ const useRoom = () => {
         socket.on("message_received", handleMessageReceived);
 
         return () => {
-          // console.log(`[useRoom] Cleaning up room listeners for ${roomId}`);
           socket.off("player_joined", handlePlayerJoined);
           socket.off("player_left", handlePlayerLeft);
           socket.off("owner_changed", handleOwnerChanged);

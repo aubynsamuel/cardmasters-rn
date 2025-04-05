@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
-import { Alert, BackHandler, ToastAndroid } from "react-native";
+import { BackHandler } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { useSocket } from "../SocketContext";
 import { useAuth } from "../AuthContext";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { JoinRequestResponsePayload, LobbyRoom, Room } from "../Types";
+import { useCustomAlerts } from "../CustomAlertsContext";
 
 type RoomJoined = {
   roomId: string;
@@ -27,6 +28,7 @@ export const useLobby = () => {
   const [joinRequests, setJoinRequests] = useState<Record<string, string>>({});
   const { socket, isConnected } = useSocket();
   const { userData, userId } = useAuth();
+  const { showAlert, showToast } = useCustomAlerts();
 
   useEffect(() => {
     const onBackPress = () => {
@@ -93,14 +95,11 @@ export const useLobby = () => {
           ],
         });
       } else {
-        ToastAndroid.show(
-          response.message || "Your request to join the room was declined.",
-          100
-        );
-        // Alert.alert(
-        //   "Join Request Declined",
-        //   response.message || "Your request to join the room was declined."
-        // );
+        showToast({
+          message:
+            response.message || "Your request to join the room was declined.",
+          type: "error",
+        });
       }
     },
     [navigation]
@@ -108,21 +107,34 @@ export const useLobby = () => {
 
   const handleJoinError = useCallback(
     (error: { message: string | undefined }) => {
-      Alert.alert("Error Joining Room", error.message);
+      showAlert({
+        title: "Error Joining Room",
+        message: error.message || "An unknown error occurred.",
+        type: "error",
+      });
     },
     []
   );
 
   const handleCreateError = useCallback(
     (error: { message: string | undefined }) => {
-      Alert.alert("Error Creating Room", error.message);
+      showAlert({
+        title: "Error Creating Room",
+        message: error.message || "An unknown error occurred.",
+        type: "error",
+      });
     },
     []
   );
 
   const handleJoinRoom = (roomId: string) => {
     if (!socket || !isConnected) {
-      Alert.alert("Not Connected", "Unable to connect to game server.");
+      showAlert({
+        title: "Not Connected",
+        message: "Unable to connect to game server.",
+        type: "error",
+      });
+
       return;
     }
     const playerName =
@@ -135,26 +147,28 @@ export const useLobby = () => {
       [requestKey]: roomId,
     }));
 
-    // Show loading indicator or message
-    ToastAndroid.show("Waiting for room owner to approve your request...", 100);
-    // Alert.alert(
-    //   "Join Request Sent",
-    //   "Waiting for room owner to approve your request..."
-    // );
+    showToast({
+      message: "Waiting for room owner to approve your request...",
+      type: "info",
+      duration: 2000,
+    });
 
-    // Send the join request
     socket.emit("request_join_room", { roomId, playerName, userId });
   };
 
   const handleCreateRoom = () => {
     if (!socket || !isConnected) {
-      Alert.alert("Not Connected", "Unable to connect to game server.");
+      showAlert({
+        title: "Not Connected",
+        message: "Unable to connect to game server",
+        type: "error",
+      });
       return;
     }
 
     const playerName =
       userData?.displayName || `Player${(Math.random() * 100).toFixed(0)}`;
-    const roomName = `${playerName}'s Game`; // You could make this customizable
+    const roomName = `${playerName}'s Game`;
 
     socket.emit("create_room", { playerName, roomName, userId });
   };
@@ -169,7 +183,6 @@ export const useLobby = () => {
   useFocusEffect(
     useCallback(() => {
       if (socket && isConnected) {
-        // console.log("[useLobby] Setting up lobby listeners");
         setIsLoading(true);
 
         socket.on("lobby_rooms", handleLobbyRoomsUpdate);
@@ -181,7 +194,6 @@ export const useLobby = () => {
         socket.emit("request_lobby_rooms");
 
         return () => {
-          // console.log("[useLobby] Cleaning up lobby listeners");
           socket.off("lobby_rooms", handleLobbyRoomsUpdate);
           socket.off("room_created", handleRoomCreated);
           socket.off("join_error", handleJoinError);

@@ -1,4 +1,4 @@
-import { TextStyle, Text, StyleSheet, View, ToastAndroid } from "react-native";
+import { TextStyle, Text, StyleSheet, View } from "react-native";
 import { suitSymbols } from "../gameLogic/GameUtils";
 import { Card } from "../Types";
 import React, { useState } from "react";
@@ -14,6 +14,7 @@ import {
   GestureDetector,
   TouchableWithoutFeedback,
 } from "react-native-gesture-handler";
+import { useCustomAlerts } from "../CustomAlertsContext";
 
 interface CardComponentInterface {
   card: Card;
@@ -37,6 +38,7 @@ const CardComponent = ({
   const scale = useSharedValue(1);
   const ctx = useSharedValue({ startX: 0, startY: 0 });
   const [selected, setSelected] = useState(false);
+  const { showToast } = useCustomAlerts();
 
   function visualEffectForUnsuccessfulPlays() {
     const afterEffect = playCard();
@@ -44,8 +46,11 @@ const CardComponent = ({
     if (afterEffect?.error !== "" && afterEffect?.message !== "") {
       translateX.value = withSpring(0, { duration: 500 });
       translateY.value = withSpring(0, { duration: 500 });
-      // Alert.alert(afterEffect?.error, afterEffect.message);
-      ToastAndroid.show(afterEffect.message, 100);
+      showToast({
+        message: afterEffect.message,
+        duration: 2000,
+        type: "error",
+      });
     }
   }
 
@@ -156,7 +161,6 @@ const styles = StyleSheet.create({
     elevation: 10,
     padding: 5,
     alignSelf: "center",
-    // bottom: 2,
   },
   cardRank: {
     top: 2,

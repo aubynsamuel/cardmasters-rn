@@ -5,8 +5,6 @@ import {
   useWindowDimensions,
   TouchableOpacity,
   BackHandler,
-  Alert,
-  ToastAndroid,
 } from "react-native";
 import getStyles from "../Styles";
 import { StatusBar } from "expo-status-bar";
@@ -34,6 +32,7 @@ import { useSocket } from "../SocketContext";
 import { useAuth } from "../AuthContext";
 import PlayerSection from "../components/PlayerSection";
 import OpponentSection from "../components/OpponentSection";
+import { useCustomAlerts } from "../CustomAlertsContext";
 
 type GameScreenStackParamList = {
   RoomScreen: GameStartedPayload;
@@ -62,9 +61,9 @@ const MultiPlayerGameScreen = () => {
   const [gameState, setGameState] = useState<CardsGameState | null>(null);
   const [showControlsOverlay, setShowControlsOverlay] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  // console.log("[MultiPlayerGameScreen] ", gameState);
   const computerControlScale = useSharedValue(0);
   const humanControlScale = useSharedValue(0);
+  const { showAlert, showToast } = useCustomAlerts();
 
   useEffect(() => {
     if (socket && isConnected) {
@@ -83,8 +82,11 @@ const MultiPlayerGameScreen = () => {
   }, [socket, isConnected, roomId]);
 
   const handlePlayError = ({ valid }: validPlay) => {
-    // Alert.alert(valid.error, valid.message);
-    ToastAndroid.show(valid.message, 100);
+    showToast({
+      message: valid.message,
+      duration: 2000,
+      type: "error",
+    });
   };
 
   const handleGameStateUpdate = (newState: CardsGameState) => {
@@ -93,10 +95,11 @@ const MultiPlayerGameScreen = () => {
   };
 
   const handleDisconnect = () => {
-    Alert.alert(
-      "Disconnected",
-      "Lost connection to the game server. Returning to lobby.",
-      [
+    showAlert({
+      title: "Connection Lost",
+      message: "Lost connection to the game server. Returning to lobby.",
+      type: "error",
+      buttons: [
         {
           text: "OK",
           onPress: () =>
@@ -105,29 +108,18 @@ const MultiPlayerGameScreen = () => {
               routes: [{ name: "MultiplayerLobby" as never }],
             }),
         },
-      ]
-    );
+      ],
+    });
   };
 
   const handlePlayerLeft = (data: PlayerLeftPayload) => {
-    console.log(
-      "[MultiPlayerGameScreen] Player left:",
-      data.playerName,
-      "From GameScreen"
-    );
-
     if (data.userId !== socket?.id) {
-      console.log("[MultiPlayerGameScreen] Another player left");
       if (data.updatedPlayers && data.updatedPlayers.length >= 2) {
-        console.log(
-          "[MultiPlayerGameScreen] Game will continue with",
-          data.updatedPlayers.length,
-          "players"
-        );
-        Alert.alert(
-          `${data.playerName} left the game`,
-          "Game will continue with the remaining players."
-        );
+        showAlert({
+          title: `${data.playerName} left the game`,
+          message: "Game will continue with the remaining players.",
+          type: "info",
+        });
         setGameState((prevState) => {
           if (!prevState) return null;
           return {
@@ -136,11 +128,11 @@ const MultiPlayerGameScreen = () => {
           };
         });
       } else {
-        console.log("[MultiPlayerGameScreen] Not enough players to continue");
-        Alert.alert(
-          `${data.playerName} left the game`,
-          "Not enough players to continue. Returning to lobby.",
-          [
+        showAlert({
+          title: `${data.playerName} left the game`,
+          message: "Not enough players to continue. Returning to lobby.",
+          type: "error",
+          buttons: [
             {
               text: "OK",
               onPress: () => {
@@ -151,26 +143,35 @@ const MultiPlayerGameScreen = () => {
                 });
               },
             },
-          ]
-        );
+          ],
+        });
       }
     }
   };
 
   const QuitGameAlert = () => {
-    Alert.alert("Quit Game", "Do you want to quit game", [
-      { text: "No", onPress: () => {} },
-      {
-        text: "Yes",
-        onPress: () => {
-          socket?.emit("leave_room", { roomId });
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "MultiplayerLobby" as never }],
-          });
+    showAlert({
+      title: "Quit Game",
+      message: "Do you want to quit game",
+      type: "warning",
+      buttons: [
+        {
+          text: "No",
+          onPress: () => {},
         },
-      },
-    ]);
+        {
+          text: "Yes",
+          negative: true,
+          onPress: () => {
+            socket?.emit("leave_room", { roomId });
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "MultiplayerLobby" as never }],
+            });
+          },
+        },
+      ],
+    });
   };
 
   useEffect(() => {
@@ -419,6 +420,7 @@ const MultiPlayerGameScreen = () => {
                       style={{
                         alignSelf: "center",
                         left: isCurrentControl ? 6 : 0,
+                        alignItems: "center",
                       }}
                     >
                       <Text style={{ fontWeight: "bold", color: "lightgrey" }}>

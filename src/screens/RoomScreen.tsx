@@ -9,13 +9,13 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  ToastAndroid,
 } from "react-native";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { Player, PlayerStatus } from "../Types";
 import useRoom from "../customHooks/useRoom";
 import RoomChatComponent from "../components/RoomChatComponent";
+import { useCustomAlerts } from "../CustomAlertsContext";
 
 const RoomScreen = () => {
   const {
@@ -33,6 +33,7 @@ const RoomScreen = () => {
   const [gameTo, setGameTo] = useState(5);
   const [showChat, setShowChat] = useState(false);
   const [showUnreadBadge, setShowUnreadBadge] = useState(false);
+  const { showToast } = useCustomAlerts();
 
   useEffect(() => {
     if (!roomState || roomState.messages.length < 1) {
@@ -59,10 +60,11 @@ const RoomScreen = () => {
       activeOpacity={0.7}
       onPress={() => {
         if (isOwner && item.id !== socket?.id) {
-          ToastAndroid.show(
-            "Long press to kick player from the room",
-            ToastAndroid.SHORT
-          );
+          showToast({
+            message: "Long press to kick player from the room",
+            duration: 2000,
+            type: "info",
+          });
         }
       }}
     >
@@ -155,10 +157,11 @@ const RoomScreen = () => {
             <TextInput
               inputMode="numeric"
               style={styles.gameToInput}
-              value={gameTo}
-              onChangeText={setGameTo}
+              value={gameTo.toString()}
+              onChangeText={(text) => setGameTo(Number(text))}
               placeholder={gameTo.toString()}
               placeholderTextColor={"white"}
+              keyboardType="numeric"
             />
           </View>
         )}
@@ -219,7 +222,6 @@ const RoomScreen = () => {
                     : PlayerStatus.NOT_READY
                 )
               }
-              // disabled={!playerReady || isLoading}
             >
               <LinearGradient
                 colors={
@@ -448,6 +450,8 @@ const styles = StyleSheet.create({
     borderColor: "white",
     color: "white",
     fontWeight: "bold",
+    width: 50,
+    textAlign: "center",
   },
   chatButton: {
     position: "absolute",

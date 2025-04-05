@@ -6,8 +6,8 @@ import React, {
   ReactNode,
 } from "react";
 import { io, Socket } from "socket.io-client";
+// import { SERVER_URL } from "./firebaseConfig";
 
-// Use your local IP address for testing on physical devices, not 'localhost'
 const SERVER_URL = "http://192.168.58.88:3000";
 
 interface SocketContextProps {
@@ -32,11 +32,8 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [socketId, setSocketId] = useState<string | undefined | null>(null);
-  // You might need user info here from Auth context to send when creating/joining rooms
-  // const { userData } = useAuth();
 
   useEffect(() => {
-    // Connect on mount
     const newSocket = io(SERVER_URL, {
       transports: ["websocket"], // Explicitly use websockets
       // autoConnect: false, // Optionally connect manually
@@ -53,19 +50,18 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       setIsConnected(false);
     });
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     newSocket.on("connect_error", (err) => {
       // console.error("[SocketContext] Socket connection error:", err.message);
-      // Handle connection errors (e.g., server down)
     });
 
     setSocket(newSocket);
 
-    // Disconnect on cleanup
     return () => {
       newSocket.disconnect();
       setIsConnected(false);
     };
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, []);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected, socketId }}>

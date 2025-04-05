@@ -5,7 +5,6 @@ import {
   useWindowDimensions,
   TouchableOpacity,
   BackHandler,
-  Alert,
 } from "react-native";
 import getStyles from "../Styles";
 import { StatusBar } from "expo-status-bar";
@@ -28,6 +27,7 @@ import CardsGame, {
 import { useAuth } from "../AuthContext";
 import OpponentSection from "../components/OpponentSection";
 import PlayerSection from "../components/PlayerSection";
+import { useCustomAlerts } from "../CustomAlertsContext";
 
 type GameScreenStackParamList = {
   GameOver: {
@@ -50,6 +50,7 @@ const GameScreen = () => {
   const { userData, userId } = useAuth();
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [targetScore, setTargetScore] = useState(10);
+  const { showAlert } = useCustomAlerts();
 
   const initialPlayers = [
     {
@@ -73,10 +74,6 @@ const GameScreen = () => {
   const computerControlScale = useSharedValue(0);
   const humanControlScale = useSharedValue(0);
 
-  // useEffect(() => {
-  //   console.count(`[SinglePlayerGameScreen] Re-rendered`);
-  // });
-
   useEffect(() => {
     if (!gameRef.current) {
       gameRef.current = new CardsGame(initialPlayers, targetScore);
@@ -97,18 +94,27 @@ const GameScreen = () => {
   }, []);
 
   const QuitGameAlert = () => {
-    Alert.alert("Quit Game", "Do you want to quit game", [
-      { text: "No", onPress: () => {} },
-      {
-        text: "Yes",
-        onPress: () => {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "MainMenu" as never }],
-          });
+    showAlert({
+      title: "Quit Game",
+      message: "Do you want to quit game",
+      type: "warning",
+      buttons: [
+        {
+          text: "No",
+          onPress: () => {},
         },
-      },
-    ]);
+        {
+          text: "Yes",
+          onPress: () => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: "MainMenu" as never }],
+            });
+          },
+          negative: true,
+        },
+      ],
+    });
   };
 
   useEffect(() => {
