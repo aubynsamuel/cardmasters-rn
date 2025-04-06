@@ -17,7 +17,7 @@ import Animated, {
   withDelay,
   Easing,
 } from "react-native-reanimated";
-import { useSettingsStore } from "../SettingsStore";
+import { useSettingsStore } from "../context/SettingsStore";
 import { Slider } from "@miblanchard/react-native-slider";
 
 const SettingsScreen = () => {
@@ -249,9 +249,8 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    paddingTop: 50,
-    paddingBottom: 20,
-    paddingHorizontal: 20,
+    padding: 10,
+    paddingLeft: 30,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(255, 255, 255, 0.2)",
   },

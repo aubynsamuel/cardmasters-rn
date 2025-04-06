@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   BackHandler,
 } from "react-native";
-import getStyles from "../Styles";
+import getStyles from "../styles/GameScreenStyles";
 import { StatusBar } from "expo-status-bar";
 import GameHistory from "../components/GameHistory";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -20,15 +20,15 @@ import GameControls from "../components/GameControls";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { GameScore, Player } from "../Types";
+import { GameScore, Player } from "../types/Types";
 import CardsGame, {
   CardsGameUIState,
 } from "../gameLogic/SinglePlayerGameClass";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../context/AuthContext";
 import OpponentSection from "../components/OpponentSection";
 import PlayerSection from "../components/PlayerSection";
-import { useCustomAlerts } from "../CustomAlertsContext";
-import { useSettingsStore } from "../SettingsStore";
+import { useCustomAlerts } from "../context/CustomAlertsContext";
+import { useSettingsStore } from "../context/SettingsStore";
 
 type GameScreenStackParamList = {
   GameOver: {
@@ -180,8 +180,10 @@ const GameScreen = () => {
 
   if (!gameState) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.message}>Loading game...</Text>
+      <View className="flex-1 px-2.5 bg-containerBackground justify-center">
+        <Text className="text-lg text-center text-mainTextColor">
+          Loading game...
+        </Text>
       </View>
     );
   }
@@ -191,7 +193,7 @@ const GameScreen = () => {
 
   return (
     <GestureHandlerRootView>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView className="justify-center flex-1 px-2.5 bg-containerBackground">
         <StatusBar backgroundColor="transparent" style="light" hidden={true} />
 
         <View style={styles.decorationContainer}>
@@ -264,25 +266,49 @@ const GameScreen = () => {
           gameTo={gameState.targetScore}
         />
 
+        {width > 600 && (
+          <View
+            className="bottom-8 w-min-[150px] w-1/3 px-5 p-1
+           bg-logContainerBackground rounded-2xl self-center"
+          >
+            <Text
+              numberOfLines={2}
+              className="text-lg text-center text-mainTextColor"
+            >
+              {gameState.message}
+            </Text>
+          </View>
+        )}
+
         {/* MAIN GAME AREA */}
-        <View style={styles.mainGameArea}>
-          {/* Opponents's Hand at the Top */}
-          <OpponentSection
-            opponent={opponent}
-            isDealing={gameState.isDealing}
-            accumulatedPoints={gameState.accumulatedPoints}
-            currentControlId={gameState.currentControl.id}
-            controlScale={computerControlScale}
-            styles={styles}
-          />
+        <View className="flex-col items-center justify-between flex-1 my-4 md:flex-row">
+          <View
+            className={`items-center bg-opponentArea rounded-[20px] p-2.5 w-10/12 md:w-1/3`}
+          >
+            <OpponentSection
+              opponent={opponent}
+              isDealing={gameState.isDealing}
+              accumulatedPoints={gameState.accumulatedPoints}
+              currentControlId={gameState.currentControl.id}
+              controlScale={computerControlScale}
+            />
+          </View>
 
           {/* Game Results in the Middle */}
-          <View style={[styles.gameResultSection]}>
-            <View style={styles.messageContainer}>
-              <Text numberOfLines={2} style={[styles.message]}>
-                {gameState.message}
-              </Text>
-            </View>
+          <View className="items-center gap-8 mx-4 md:w-1/4 justify-evenly">
+            {width < 500 && (
+              <View
+                className="w-max-[200px] px-5 p-1 bg-logContainerBackground 
+                rounded-2xl items-center"
+              >
+                <Text
+                  numberOfLines={2}
+                  className="text-lg text-center text-mainTextColor"
+                >
+                  {gameState.message}
+                </Text>
+              </View>
+            )}
 
             {/* Current Play Cards */}
             <View style={styles.currentRound}>
@@ -318,27 +344,27 @@ const GameScreen = () => {
             </View>
           </View>
 
-          {/* Human's Hand at the Bottom */}
-          <PlayerSection
-            player={currentUser}
-            isDealing={gameState.isDealing}
-            accumulatedPoints={gameState.accumulatedPoints}
-            currentControlId={gameState.currentControl.id}
-            controlScale={humanControlScale}
-            playCard={(card, index) =>
-              gameRef.current?.humanPlayCard(card, index) ?? {
-                error: "",
-                message: "",
+          <View className="items-center bg-playerArea rounded-[20px] p-2.5 w-10/12 md:w-1/3">
+            <PlayerSection
+              player={currentUser}
+              isDealing={gameState.isDealing}
+              accumulatedPoints={gameState.accumulatedPoints}
+              currentControlId={gameState.currentControl.id}
+              controlScale={humanControlScale}
+              playCard={(card, index) =>
+                gameRef.current?.humanPlayCard(card, index) ?? {
+                  error: "",
+                  message: "",
+                }
               }
-            }
-            width={width}
-            opponentHandsLength={opponent.hands.length}
-            styles={styles}
-          />
+              width={width}
+              opponentHandsLength={opponent.hands.length}
+            />
+          </View>
         </View>
 
         {gameState.showStartButton && (
-          <View style={{ width: "100%", alignItems: "center" }}>
+          <View className="items-center w-full mt-2 md:top-3">
             <TouchableOpacity
               style={styles.startButton}
               onPress={() => {
@@ -351,7 +377,7 @@ const GameScreen = () => {
           </View>
         )}
 
-        <GameHistory gameHistory={gameState.gameHistory} width={width} />
+        {<GameHistory gameHistory={gameState.gameHistory} />}
       </SafeAreaView>
     </GestureHandlerRootView>
   );

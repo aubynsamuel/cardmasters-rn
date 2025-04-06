@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import React from "react";
-import { useSettingsStore } from "../SettingsStore";
+import { useSettingsStore } from "../context/SettingsStore";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Slider } from "@miblanchard/react-native-slider";
@@ -33,83 +33,86 @@ const GameControls: React.FC<GameControlsInterface> = ({
   } = useSettingsStore();
 
   return (
-    <View style={styles.container}>
-      {/* Mute Toggle */}
-      <TouchableOpacity
-        style={[styles.toggleButton]}
-        onPress={() => setMuted(!muted)}
-        activeOpacity={0.8}
-      >
-        <Ionicons
-          name={muted ? "volume-mute" : "volume-high"}
-          size={24}
-          color={"#FFF"}
-        />
-      </TouchableOpacity>
+    <View className="gap-2.5 w-full z-[100] flex-col md:items-center md:justify-around md:flex-row">
+      <View className="w-full md:w-1/2">
+        {/* Mute Toggle */}
+        <TouchableOpacity
+          style={[styles.toggleButton]}
+          onPress={() => setMuted(!muted)}
+          activeOpacity={0.8}
+        >
+          <Ionicons
+            name={muted ? "volume-mute" : "volume-high"}
+            size={24}
+            color={"#FFF"}
+          />
+        </TouchableOpacity>
 
-      {/* Music Volume */}
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Text style={styles.sectionTitle}>Music Volume</Text>
-        <Ionicons name="volume-low" size={20} color="#fff" />
-        <Slider
-          containerStyle={styles.slider}
-          minimumValue={0}
-          maximumValue={10}
-          step={1}
-          value={musicVolume}
-          onValueChange={(value) =>
-            setMusicVolume(Array.isArray(value) ? value[0] : value)
-          }
-          minimumTrackTintColor="#FFD700"
-          maximumTrackTintColor="#ffffff80"
-          thumbTintColor="#FFD700"
-          disabled={muted}
-        />
-        <Ionicons name="volume-high" size={20} color="#fff" />
-      </View>
-
-      {/* SFX Volume */}
-      <View style={{ flexDirection: "row", alignItems: "center" }}>
-        <Text style={styles.sectionTitle}>Sound Effects </Text>
-        <Ionicons name="volume-low" size={20} color="#fff" />
-        <Slider
-          containerStyle={styles.slider}
-          minimumValue={0}
-          maximumValue={10}
-          step={1}
-          value={sfxVolume}
-          onValueChange={(value) =>
-            setSfxVolume(Array.isArray(value) ? value[0] : value)
-          }
-          minimumTrackTintColor="#FFD700"
-          maximumTrackTintColor="#ffffff80"
-          thumbTintColor="#FFD700"
-          disabled={muted}
-        />
-        <Ionicons name="volume-high" size={20} color="#fff" />
-      </View>
-
-      {/* Target Score Control Section */}
-      {!isMultiPlayer && (
+        {/* Music Volume */}
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Text style={styles.sectionTitle}>Target Score</Text>
+          <Text style={styles.sectionTitle}>Music Volume</Text>
+          <Ionicons name="volume-low" size={20} color="#fff" />
           <Slider
             containerStyle={styles.slider}
-            minimumValue={5}
-            maximumValue={50}
-            step={5}
-            value={targetScore}
+            minimumValue={0}
+            maximumValue={10}
+            step={1}
+            value={musicVolume}
             onValueChange={(value) =>
-              setTargetScore(Array.isArray(value) ? value[0] : value)
+              setMusicVolume(Array.isArray(value) ? value[0] : value)
             }
             minimumTrackTintColor="#FFD700"
             maximumTrackTintColor="#ffffff80"
             thumbTintColor="#FFD700"
+            disabled={muted}
           />
-          <Text style={styles.sectionTitle}>{targetScore}</Text>
+          <Ionicons name="volume-high" size={20} color="#fff" />
         </View>
-      )}
+
+        {/* SFX Volume */}
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Text style={styles.sectionTitle}>Sound Effects </Text>
+          <Ionicons name="volume-low" size={20} color="#fff" />
+          <Slider
+            containerStyle={styles.slider}
+            minimumValue={0}
+            maximumValue={10}
+            step={1}
+            value={sfxVolume}
+            onValueChange={(value) =>
+              setSfxVolume(Array.isArray(value) ? value[0] : value)
+            }
+            minimumTrackTintColor="#FFD700"
+            maximumTrackTintColor="#ffffff80"
+            thumbTintColor="#FFD700"
+            disabled={muted}
+          />
+          <Ionicons name="volume-high" size={20} color="#fff" />
+        </View>
+
+        {/* Target Score Control Section */}
+        {!isMultiPlayer && (
+          <View style={{ flexDirection: "row", alignItems: "center" }}>
+            <Text style={styles.sectionTitle}>Target Score</Text>
+            <Slider
+              containerStyle={styles.slider}
+              minimumValue={5}
+              maximumValue={50}
+              step={5}
+              value={targetScore}
+              onValueChange={(value) =>
+                setTargetScore(Array.isArray(value) ? value[0] : value)
+              }
+              minimumTrackTintColor="#FFD700"
+              maximumTrackTintColor="#ffffff80"
+              thumbTintColor="#FFD700"
+            />
+            <Text style={styles.sectionTitle}>{targetScore}</Text>
+          </View>
+        )}
+      </View>
       {/* Game Control Buttons */}
+
       <View style={styles.overlayButtonsContainer}>
         {!isMultiPlayer && (
           <TouchableOpacity

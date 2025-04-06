@@ -1,16 +1,11 @@
 import { View, ScrollView, Text } from "react-native";
-import { gameHistoryType } from "../Types";
+import { gameHistoryType } from "../types/Types";
 import React, { useEffect, useRef } from "react";
-import Colors from "../Colors";
 
 interface gameHistoryInterface {
   gameHistory: gameHistoryType[];
-  width: number;
 }
-const GameHistory: React.FC<gameHistoryInterface> = ({
-  gameHistory,
-  width,
-}) => {
+const GameHistory: React.FC<gameHistoryInterface> = ({ gameHistory }) => {
   const scrollRef = useRef<ScrollView>(null);
 
   useEffect(() => {
@@ -18,37 +13,23 @@ const GameHistory: React.FC<gameHistoryInterface> = ({
   }, [gameHistory]);
 
   return (
-    <View
-      style={{
-        flex: width > 500 ? 0.4 : 0.24,
-      }}
-    >
-      <Text style={{ fontWeight: "bold", marginLeft: 15, color: "white" }}>
-        Game History
-      </Text>
+    <View className="md:h-[85px]">
+      <Text className="mb-1 ml-4 font-bold text-white">Game History</Text>
       <ScrollView
         ref={scrollRef}
         contentContainerStyle={{
           padding: 10,
         }}
-        style={{
-          height: 110,
-          borderRadius: 10,
-          backgroundColor: Colors.logContainerBackground,
-        }}
+        className="h-[110px] rounded-xl bg-logContainerBackground"
       >
         {gameHistory?.map((item, index) => (
           <Text
             key={index + Math.random() * 10}
-            style={[
-              {
-                width: "90%",
-                fontWeight: "semibold",
-              },
+            className={
               item.importance
-                ? { color: "yellow", fontWeight: "bold", marginBottom: 5 }
-                : { color: Colors.logText, fontWeight: "semibold" },
-            ]}
+                ? "text-yellow-400 font-bold mb-1.5"
+                : "text-logText font-semibold"
+            }
           >
             {item.message}
           </Text>

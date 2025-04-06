@@ -10,7 +10,7 @@ import {
   Callbacks,
   GameOverData,
   CardsGameState,
-} from "../Types";
+} from "../types/Types";
 
 class MultiplayerCardsGame {
   players: Player[];
@@ -201,7 +201,7 @@ class MultiplayerCardsGame {
       // Optionally: trigger an alert that only the round leader may start.
       return {
         error: "Error",
-        message: "Only the round leader can play first.",
+        message: "It is not your turn to play.",
       };
     }
 
@@ -224,7 +224,7 @@ class MultiplayerCardsGame {
         // Optionally: trigger an alert that they must play the required suit.
         return {
           error: "Invalid Move",
-          message: `You must play a ${requiredSuit} card if you have one.`,
+          message: `You must play a ${suitSymbols[requiredSuit]} if you have one.`,
         };
       }
     }

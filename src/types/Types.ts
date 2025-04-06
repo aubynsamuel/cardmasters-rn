@@ -97,7 +97,6 @@ interface LobbyRoom {
   status: string;
 }
 
-// Event payload types
 interface CreateRoomPayload {
   playerName: string;
   roomName?: string;

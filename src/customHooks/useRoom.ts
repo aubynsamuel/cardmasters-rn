@@ -6,7 +6,6 @@ import {
   useFocusEffect,
   RouteProp,
 } from "@react-navigation/native";
-import { useSocket } from "../SocketContext";
 import {
   Room,
   OwnerChangedPayload,
@@ -17,9 +16,10 @@ import {
   Player,
   PlayerStatus,
   Message,
-} from "../Types";
+} from "../types/Types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useCustomAlerts } from "../CustomAlertsContext";
+import { useCustomAlerts } from "../context/CustomAlertsContext";
+import { useSocket } from "../context/SocketContext";
 
 type RootStackParamList = {
   RoomScreen: {

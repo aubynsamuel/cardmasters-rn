@@ -19,7 +19,7 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { gameScoreToString } from "../gameLogic/GameUtils";
-import { Player, Room } from "../Types";
+import { Player, Room } from "../types/Types";
 
 interface GameOverScreenProps {
   route: {

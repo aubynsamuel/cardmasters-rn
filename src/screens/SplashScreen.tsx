@@ -15,7 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import EnhancedShufflingAnimation from "../components/EnhancedShufflingAnimation";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 const SplashScreen = () => {
   const navigation = useNavigation();

@@ -1,11 +1,11 @@
 import { useState, useCallback, useEffect } from "react";
 import { BackHandler } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import { useSocket } from "../SocketContext";
-import { useAuth } from "../AuthContext";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { JoinRequestResponsePayload, LobbyRoom, Room } from "../Types";
-import { useCustomAlerts } from "../CustomAlertsContext";
+import { JoinRequestResponsePayload, LobbyRoom, Room } from "../types/Types";
+import { useSocket } from "../context/SocketContext";
+import { useAuth } from "../context/AuthContext";
+import { useCustomAlerts } from "../context/CustomAlertsContext";
 
 type RoomJoined = {
   roomId: string;

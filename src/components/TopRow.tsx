@@ -1,8 +1,8 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import React from "react";
 import DeckCard from "./DeckCard";
-import Colors from "../Colors";
-import { Deck, GameScore } from "../Types";
+import Colors from "../theme/Colors";
+import { Deck, GameScore } from "../types/Types";
 import { Ionicons } from "@expo/vector-icons";
 import { gameScoreToString } from "../gameLogic/GameUtils";
 import { LinearGradient } from "expo-linear-gradient";
@@ -25,9 +25,10 @@ const TopRow: React.FC<TopRowInterface> = ({
       key={"TopRow"}
       style={[
         {
-          flex: 0.11,
           justifyContent: "space-between",
           flexDirection: "row",
+          width: "100%",
+          paddingHorizontal: 10,
         },
       ]}
     >

@@ -3,7 +3,7 @@ import { View, Text } from "react-native";
 import Animated, { FlipInEasyX, SharedValue } from "react-native-reanimated";
 import OpponentCard from "./OpponentCard";
 import AnimatedScoreDisplay from "./AccumulatedScoreDisplay";
-import { Player } from "../Types"; // Update the import path as needed
+import { Player } from "../types/Types";
 
 type OpponentSectionProps = {
   opponent: Player;
@@ -11,8 +11,6 @@ type OpponentSectionProps = {
   accumulatedPoints: number;
   currentControlId: string;
   controlScale: SharedValue<number>;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  styles: any;
 };
 
 const OpponentSection = ({
@@ -21,15 +19,17 @@ const OpponentSection = ({
   accumulatedPoints,
   currentControlId,
   controlScale,
-  styles,
 }: OpponentSectionProps) => {
   return (
-    <View style={[styles.computerSection]}>
+    <View className="items-center w-full">
       <AnimatedScoreDisplay
         points={accumulatedPoints}
         visible={accumulatedPoints > 0 && currentControlId === opponent.id}
       />
-      <Text style={styles.sectionHeader}>
+      <Text
+        numberOfLines={1}
+        className="text-xl font-semibold mb-[5px] text-mainTextColor w-full text-center left-2"
+      >
         {opponent.name}
         <Animated.View
           style={{
@@ -39,7 +39,7 @@ const OpponentSection = ({
           <Text style={{ top: 2, left: 4 }}> 🔥 </Text>
         </Animated.View>
       </Text>
-      <View style={styles.hand}>
+      <View className="flex-row">
         {opponent.hands.map((card, index) => (
           <Animated.View
             key={`opponent-card-${card.suit}-${card.rank}`}
@@ -51,7 +51,7 @@ const OpponentSection = ({
                 : undefined
             }
           >
-            <OpponentCard index={index} numberOfCards={opponent.hands.length} />
+            <OpponentCard />
           </Animated.View>
         ))}
       </View>

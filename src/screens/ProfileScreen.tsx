@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   useWindowDimensions,
 } from "react-native";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../context/AuthContext";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -18,7 +18,7 @@ import Animated, {
   withSpring,
   Easing,
 } from "react-native-reanimated";
-import { useCustomAlerts } from "../CustomAlertsContext";
+import { useCustomAlerts } from "../context/CustomAlertsContext";
 
 const ProfileScreen = () => {
   const navigation = useNavigation();

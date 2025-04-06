@@ -10,19 +10,20 @@ import GameOverScreen from "./src/screens/GameOverScreen";
 import { StatusBar } from "expo-status-bar";
 import { LogBox, View } from "react-native";
 import MultiPlayerGameScreen from "./src/screens/MultiplayerGameScreen";
-import { AuthProvider } from "./src/AuthContext";
+import { AuthProvider } from "./src/context/AuthContext";
 import ProfileScreen from "./src/screens/ProfileScreen";
-import { SocketProvider } from "./src/SocketContext";
+import { SocketProvider } from "./src/context/SocketContext";
 import AuthScreen from "./src/screens/AuthScreen";
-import { CustomAlertsProvider } from "./src/CustomAlertsContext";
+import { CustomAlertsProvider } from "./src/context/CustomAlertsContext";
 import SettingsScreen from "./src/screens/Settings";
+import "./global.css";
 
 const Stack = createNativeStackNavigator();
 
 const App: React.FC = () => {
   LogBox.ignoreAllLogs();
   return (
-    <View style={{ backgroundColor: "#076324", flex: 1 }}>
+    <View className="flex-1 bg-[#076324]">
       <AuthProvider>
         <SocketProvider>
           <CustomAlertsProvider>

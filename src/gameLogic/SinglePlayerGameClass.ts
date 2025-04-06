@@ -13,7 +13,7 @@ import {
   GameScore,
   Suit,
   Deck,
-} from "../Types";
+} from "../types/Types";
 
 export interface CardsGameUIState {
   players: Player[];
@@ -191,7 +191,7 @@ class CardsGame {
               isDealing: false,
               message:
                 this.currentControl.id === this.players[1].id
-                  ? "Press 'Start Game' to play"
+                  ? "Press 'Start Game' to start"
                   : "Play a card to start",
             });
           }, 1500);
@@ -306,7 +306,7 @@ class CardsGame {
       // Optionally: trigger an alert that only the round leader may start.
       return {
         error: "Error",
-        message: "Only the round leader can play first.",
+        message: "It is not your turn to play.",
       };
     }
 
@@ -332,7 +332,7 @@ class CardsGame {
         // Optionally: trigger an alert that they must play the required suit.
         return {
           error: "Invalid Move",
-          message: `You must play a ${requiredSuit} card if you have one.`,
+          message: `You must play a ${suitSymbols[requiredSuit]} if you have one`,
         };
       } else {
         this.canPlayCard = false;

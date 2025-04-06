@@ -8,7 +8,7 @@ import {
   User,
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { auth, db } from "./firebaseConfig";
+import { auth, db } from "../firebaseConfig";
 import { useSettingsStore } from "./SettingsStore";
 
 type UserData = {

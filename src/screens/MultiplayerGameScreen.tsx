@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   BackHandler,
 } from "react-native";
-import getStyles from "../Styles";
+import getStyles from "../styles/GameScreenStyles";
 import { StatusBar } from "expo-status-bar";
 import GameHistory from "../components/GameHistory";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -27,12 +27,12 @@ import {
   Player,
   PlayerLeftPayload,
   validPlay,
-} from "../Types";
-import { useSocket } from "../SocketContext";
-import { useAuth } from "../AuthContext";
+} from "../types/Types";
+import { useSocket } from "../context/SocketContext";
+import { useAuth } from "../context/AuthContext";
 import PlayerSection from "../components/PlayerSection";
 import OpponentSection from "../components/OpponentSection";
-import { useCustomAlerts } from "../CustomAlertsContext";
+import { useCustomAlerts } from "../context/CustomAlertsContext";
 
 type GameScreenStackParamList = {
   RoomScreen: GameStartedPayload;
@@ -306,12 +306,25 @@ const MultiPlayerGameScreen = () => {
     const play = gameState.currentPlays.find(
       (play) => play.player.id === currentUser.id
     );
-    return <View>{play ? <SlotCard card={play.card} /> : <EmptyCard />}</View>;
+    return (
+      <View className="items-center justify-center w-20">
+        <Text
+          style={{
+            fontWeight: "bold",
+            color: "lightgrey",
+          }}
+        >
+          {currentUser.name}
+          {gameState.currentControl.id === currentUser.id ? "🔥" : ""}
+        </Text>
+        {play ? <SlotCard card={play.card} /> : <EmptyCard />}
+      </View>
+    );
   };
 
   return (
     <GestureHandlerRootView>
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView className="justify-center flex-1 px-2.5 bg-containerBackground">
         <StatusBar backgroundColor="transparent" style="light" hidden={true} />
 
         <View style={styles.decorationContainer}>
@@ -379,38 +392,52 @@ const MultiPlayerGameScreen = () => {
           gameScoreList={gameScoreList}
           gameTo={gameState.gameTo}
         />
+        {width > 600 && (
+          <View
+            className="bottom-8 w-min-[150px] w-1/3 px-5 p-1
+                   bg-logContainerBackground rounded-2xl self-center"
+          >
+            <Text
+              numberOfLines={2}
+              className="text-lg text-center text-mainTextColor"
+            >
+              {gameState.message}
+            </Text>
+          </View>
+        )}
 
         {/* MAIN GAME AREA */}
-        <View style={styles.mainGameArea}>
-          {/* Opponents's Hand at the Top */}
-          <OpponentSection
-            opponent={opponent}
-            isDealing={gameState.isDealing}
-            accumulatedPoints={gameState.accumulatedPoints}
-            currentControlId={gameState.currentControl.id}
-            controlScale={computerControlScale}
-            styles={styles}
-          />
+        <View className="flex-col items-center justify-between flex-1 my-4 md:flex-row">
+          <View
+            className={`items-center bg-opponentArea rounded-[20px] p-2.5 w-10/12 md:w-1/3`}
+          >
+            <OpponentSection
+              opponent={opponent}
+              isDealing={gameState.isDealing}
+              accumulatedPoints={gameState.accumulatedPoints}
+              currentControlId={gameState.currentControl.id}
+              controlScale={computerControlScale}
+            />
+          </View>
 
           {/* Game Results in the Middle */}
-          <View style={[styles.gameResultSection]}>
-            <View style={styles.messageContainer}>
-              <Text numberOfLines={2} style={[styles.message]}>
-                {gameState.message}
-              </Text>
-            </View>
+          <View className="items-center gap-8 mx-4 md:w-1/4 justify-evenly">
+            {width < 600 && (
+              <View className="w-full p-1 px-5 bg-logContainerBackground rounded-2xl">
+                <Text
+                  numberOfLines={2}
+                  className="text-lg text-center text-mainTextColor"
+                >
+                  {gameState.message}
+                </Text>
+              </View>
+            )}
 
             {/* Current Play Cards */}
             <View style={styles.currentRound}>
               {/* Opponent's Play Spot */}
 
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "center",
-                  gap: 20,
-                }}
-              >
+              <View className="flex-row justify-center gap-5 md:gap-3">
                 {opponentPlayers.map((opponent) => {
                   const play = gameState.currentPlays?.find(
                     (play) => play.player.id === opponent.id
@@ -420,11 +447,7 @@ const MultiPlayerGameScreen = () => {
                   return (
                     <View
                       key={opponent.id + opponent.name}
-                      style={{
-                        alignSelf: "center",
-                        left: isCurrentControl ? 6 : 0,
-                        alignItems: "center",
-                      }}
+                      className="items-center justify-center w-20"
                     >
                       <Text style={{ fontWeight: "bold", color: "lightgrey" }}>
                         {opponent.name}
@@ -441,29 +464,29 @@ const MultiPlayerGameScreen = () => {
             </View>
           </View>
 
-          {/* Human's Hand at the Bottom */}
-          <PlayerSection
-            player={currentUser}
-            isDealing={gameState.isDealing}
-            accumulatedPoints={gameState.accumulatedPoints}
-            currentControlId={gameState.currentControl.id}
-            controlScale={humanControlScale}
-            playCard={(card, index) => {
-              socket?.emit("play_card", {
-                roomId: roomId,
-                playerId: currentUser.id,
-                card,
-                cardIndex: index,
-              });
-              return { error: "", message: "" };
-            }}
-            width={width}
-            opponentHandsLength={opponent.hands.length}
-            styles={styles}
-          />
+          <View className="bg-playerArea rounded-[20px] p-2.5 w-10/12 md:w-1/3">
+            <PlayerSection
+              player={currentUser}
+              isDealing={gameState.isDealing}
+              accumulatedPoints={gameState.accumulatedPoints}
+              currentControlId={gameState.currentControl.id}
+              controlScale={humanControlScale}
+              playCard={(card, index) => {
+                socket?.emit("play_card", {
+                  roomId: roomId,
+                  playerId: currentUser.id,
+                  card,
+                  cardIndex: index,
+                });
+                return { error: "", message: "" };
+              }}
+              width={width}
+              opponentHandsLength={opponent.hands.length}
+            />
+          </View>
         </View>
 
-        <GameHistory gameHistory={gameState.gameHistory || []} width={width} />
+        {<GameHistory gameHistory={gameState.gameHistory} />}
       </SafeAreaView>
     </GestureHandlerRootView>
   );

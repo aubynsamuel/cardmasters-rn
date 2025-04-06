@@ -104,7 +104,7 @@ const MainMenuScreen = () => {
   }));
 
   return (
-    <View style={extendedStyles.mainContainer}>
+    <View style={extendedStyles.mainContainer} className="bg-black">
       <Animated.View
         style={[extendedStyles.backgroundContainer, animatedBackgroundStyle]}
       >
@@ -141,13 +141,14 @@ const MainMenuScreen = () => {
       <View style={extendedStyles.contentContainer}>
         {/* Title */}
         <Animated.View
-          style={[extendedStyles.titleContainer, animatedTitleStyle]}
+          style={[animatedTitleStyle]}
+          className={"items-center mb-[60px]"}
         >
           <Text style={extendedStyles.titleText}>Card Masters</Text>
-          <View style={extendedStyles.underline} />
+          <View className="w-[150px] h-1 bg-[#FFD700] mt-2.5 rounded-s-sm" />
         </Animated.View>
 
-        <View style={extendedStyles.buttonContainer}>
+        <View className="w-full items-center">
           {/* SinglePlayer Button */}
           <Animated.View
             style={[extendedStyles.buttonWrapper, animatedButtonStyle1]}
@@ -165,7 +166,7 @@ const MainMenuScreen = () => {
                   name="game-controller"
                   size={24}
                   color="#fff"
-                  style={extendedStyles.buttonIcon}
+                  className="mr-3"
                 />
                 <Text style={extendedStyles.buttonText}>SinglePlayer</Text>
               </LinearGradient>
@@ -189,7 +190,7 @@ const MainMenuScreen = () => {
                   name="people"
                   size={24}
                   color="#fff"
-                  style={extendedStyles.buttonIcon}
+                  className="mr-3"
                 />
                 <Text style={extendedStyles.buttonText}>Multiplayer</Text>
               </LinearGradient>
@@ -213,7 +214,7 @@ const MainMenuScreen = () => {
                   name="person-circle-sharp"
                   size={24}
                   color="#fff"
-                  style={extendedStyles.buttonIcon}
+                  className="mr-3"
                 />
                 <Text style={extendedStyles.buttonText}>Profile</Text>
               </LinearGradient>
@@ -237,7 +238,7 @@ const MainMenuScreen = () => {
                   name="settings"
                   size={24}
                   color="#fff"
-                  style={extendedStyles.buttonIcon}
+                  className="mr-3"
                 />
                 <Text style={extendedStyles.buttonText}>Settings</Text>
               </LinearGradient>

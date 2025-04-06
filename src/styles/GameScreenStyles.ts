@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import Colors from "./Colors";
+import Colors from "../theme/Colors";
 
 const getStyles = (width: number, height: number) => {
   const styles = StyleSheet.create({
@@ -7,53 +7,22 @@ const getStyles = (width: number, height: number) => {
       flex: 1,
       backgroundColor: Colors.containerBackground,
       paddingHorizontal: 10,
-      paddingTop: width > 500 ? 30 : 15,
-      paddingBottom: width > 500 ? 2 : 10,
-      // borderStyle: "dotted",
-      // borderWidth: 2,
+      justifyContent: "center",
     },
     mainGameArea: {
       flexDirection: width > 500 ? "row" : "column",
       flex: 1,
       alignItems: "center",
-      justifyContent: "center",
-      padding: 15,
-      top: width > 500 ? 30 : 0,
-      // backgroundColor: "blue",
-    },
-    computerSection: {
-      alignItems: "center",
-      width: width > 500 ? 280 : "60%",
-      backgroundColor: Colors.opponentAreaBackground,
-      flex: width > 500 ? 1.5 : 1,
-      borderRadius: 20,
-    },
-    humanSection: {
-      alignItems: "center",
-      // width: width > 500 ? 280 : "50%",
-      backgroundColor: Colors.humanAreaBackground,
-      flex: width > 500 ? 1.5 : 1,
-      borderRadius: 20,
-    },
-    sectionHeader: {
-      fontSize: 18,
-      fontWeight: "600",
-      marginBottom: 5,
-      color: Colors.mainTextColor,
-      textAlign: "center",
-      left: 8,
+      justifyContent: "space-between",
+      alignSelf: "center",
     },
     hand: {
       flexDirection: "row",
     },
     gameResultSection: {
-      flex: 2,
-      justifyContent: "center",
+      justifyContent: "space-evenly",
       alignItems: "center",
-      bottom: width > 500 ? 40 : 0,
-      // backgroundColor: "red",
-      marginTop: 8,
-      gap: width > 500 ? 30 : 5,
+      gap: "4%",
     },
     message: {
       fontSize: 16,
@@ -68,7 +37,6 @@ const getStyles = (width: number, height: number) => {
       padding: 5,
       backgroundColor: Colors.logContainerBackground,
       borderRadius: 15,
-      // elevation: 5,
     },
     currentRound: {
       fontSize: 18,
@@ -76,10 +44,8 @@ const getStyles = (width: number, height: number) => {
       flexDirection: width > 500 || height < 640 ? "row" : "column",
       flexWrap: "wrap",
       gap: 30,
-      justifyContent: "center",
+      justifyContent: "space-around",
       alignItems: "center",
-      // backgroundColor: "blue",
-      // flex: 1,
     },
     animationOverlay: {
       position: "absolute",
@@ -158,18 +124,6 @@ const getStyles = (width: number, height: number) => {
       backgroundColor: "red",
       borderWidth: 2,
       borderColor: "rgba(255, 255, 255, 0.5)",
-    },
-    leaveButton: {
-      backgroundColor: "#f44336",
-      paddingVertical: 10,
-      paddingHorizontal: 20,
-      borderRadius: 8,
-      alignSelf: "center",
-      marginTop: 10,
-    },
-    leaveButtonText: {
-      color: "white",
-      fontWeight: "bold",
     },
   });
   return styles;

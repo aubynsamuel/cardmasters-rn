@@ -11,10 +11,10 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../context/AuthContext";
 import { FirebaseError } from "firebase/app";
 import { useNavigation } from "@react-navigation/native";
-import { useCustomAlerts } from "../CustomAlertsContext";
+import { useCustomAlerts } from "../context/CustomAlertsContext";
 
 const AuthScreen = () => {
   const [isLogin, setIsLogin] = useState(true);
