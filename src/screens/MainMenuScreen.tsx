@@ -148,7 +148,7 @@ const MainMenuScreen = () => {
           <View className="w-[150px] h-1 bg-[#FFD700] mt-2.5 rounded-s-sm" />
         </Animated.View>
 
-        <View className="w-full items-center">
+        <View className="items-center w-full">
           {/* SinglePlayer Button */}
           <Animated.View
             style={[extendedStyles.buttonWrapper, animatedButtonStyle1]}

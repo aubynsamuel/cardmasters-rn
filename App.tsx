@@ -52,6 +52,7 @@ const App: React.FC = () => {
                 <Stack.Screen
                   name="MultiPlayerGameScreen"
                   component={MultiPlayerGameScreen}
+                  options={{ navigationBarColor: "#076324" }}
                 />
                 <Stack.Screen name="Settings" component={SettingsScreen} />
                 <Stack.Screen name="ProfileScreen" component={ProfileScreen} />

@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
   useWindowDimensions,
   TouchableOpacity,
   BackHandler,
+  ActivityIndicator,
 } from "react-native";
 import getStyles from "../styles/GameScreenStyles";
 import { StatusBar } from "expo-status-bar";
@@ -33,6 +34,7 @@ import { useAuth } from "../context/AuthContext";
 import PlayerSection from "../components/PlayerSection";
 import OpponentSection from "../components/OpponentSection";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
+import Colors from "../theme/Colors";
 
 type GameScreenStackParamList = {
   RoomScreen: GameStartedPayload;
@@ -63,117 +65,27 @@ const MultiPlayerGameScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
   const computerControlScale = useSharedValue(0);
   const humanControlScale = useSharedValue(0);
-  const { showAlert, showToast } = useCustomAlerts();
+  const { showAlert, showToast, hideAlert } = useCustomAlerts();
+  const reconnectionRetries = useRef(0);
+  const timeoutId = useRef<NodeJS.Timeout>();
+  const waitingReconnectionTimeOut = useRef<NodeJS.Timeout>();
+  const reconnectionId = useRef<string | null | undefined>();
+  const thirtySecondsTimer = useRef<NodeJS.Timeout>();
+  const [reconnectionDisplay, setReconnectionDisplay] = useState({
+    message: "",
+    show: false,
+  });
 
   useEffect(() => {
-    if (socket && isConnected) {
-      socket.on("game_state_update", handleGameStateUpdate);
-      socket.on("player_left", handlePlayerLeft);
-      socket.on("play_error", handlePlayError);
-      socket.on("disconnect", handleDisconnect);
+    reconnectionId.current = socketId;
+    return () => {
+      clearTimeout(waitingReconnectionTimeOut.current);
+      clearTimeout(timeoutId.current);
+      clearTimeout(thirtySecondsTimer.current);
+    };
+  }, []);
 
-      return () => {
-        socket.off("game_state_update", handleGameStateUpdate);
-        socket.off("player_left", handlePlayerLeft);
-        socket.off("play_error", handlePlayError);
-        socket.off("disconnect", handleDisconnect);
-      };
-    }
-  }, [socket, isConnected, roomId]);
-
-  const handlePlayError = ({ valid }: validPlay) => {
-    showToast({
-      message: valid.message,
-      duration: 2000,
-      type: "error",
-    });
-  };
-
-  const handleGameStateUpdate = (newState: CardsGameState) => {
-    setGameState((prev) => ({ ...prev, ...newState }));
-    setIsLoading(false);
-  };
-
-  const handleDisconnect = () => {
-    showAlert({
-      title: "Connection Lost",
-      message: "Lost connection to the game server. Returning to lobby.",
-      type: "error",
-      buttons: [
-        {
-          text: "OK",
-          onPress: () =>
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "MultiplayerLobby" as never }],
-            }),
-        },
-      ],
-    });
-  };
-
-  const handlePlayerLeft = (data: PlayerLeftPayload) => {
-    if (data.userId !== socket?.id) {
-      if (data.updatedPlayers && data.updatedPlayers.length >= 2) {
-        showAlert({
-          title: `${data.playerName} left the game`,
-          message: "Game will continue with the remaining players.",
-          type: "info",
-        });
-        setGameState((prevState) => {
-          if (!prevState) return null;
-          return {
-            ...prevState,
-            players: data.updatedPlayers,
-          };
-        });
-      } else {
-        showAlert({
-          title: `${data.playerName} left the game`,
-          message: "Not enough players to continue. Returning to lobby.",
-          type: "error",
-          buttons: [
-            {
-              text: "OK",
-              onPress: () => {
-                socket?.emit("leave_room", { roomId });
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: "MultiplayerLobby" as never }],
-                });
-              },
-            },
-          ],
-        });
-      }
-    }
-  };
-
-  const QuitGameAlert = () => {
-    showAlert({
-      title: "Quit Game",
-      message: "Do you want to quit game",
-      type: "warning",
-      buttons: [
-        {
-          text: "No",
-          onPress: () => {},
-        },
-        {
-          text: "Yes",
-          negative: true,
-          onPress: () => {
-            socket?.emit("leave_room", { roomId });
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "MultiplayerLobby" as never }],
-            });
-          },
-        },
-      ],
-    });
-  };
-
+  // Hardware-Back-Press Event Handler
   useEffect(() => {
     const onBackPress = () => {
       QuitGameAlert();
@@ -184,6 +96,7 @@ const MultiPlayerGameScreen = () => {
       BackHandler.removeEventListener("hardwareBackPress", onBackPress);
   }, []);
 
+  // Game over event handler
   useEffect(() => {
     if (!gameState) return;
 
@@ -225,6 +138,7 @@ const MultiPlayerGameScreen = () => {
     }
   }, [gameState?.cardsPlayed, gameState?.players]);
 
+  // CurrentControl Indicator Animation Handlers
   useEffect(() => {
     if (!gameState || !gameState.currentControl) return;
 
@@ -258,6 +172,218 @@ const MultiPlayerGameScreen = () => {
         stiffness: 300,
       });
   }, [gameState?.currentControl, gameState?.players, userId, socketId]);
+
+  // Socket Events Registration and cleanup
+  useEffect(() => {
+    if (socket && isConnected) {
+      socket.on("game_state_update", handleGameStateUpdate);
+      socket.on("player_left", handlePlayerLeft);
+      socket.on("play_error", handlePlayError);
+      socket.on("disconnect", handleDisconnect);
+      socket.on("reconnection_response", handleReconnectionResponse);
+      socket.on("player_reconnected", handlePlayerReconnected);
+
+      return () => {
+        socket.off("game_state_update", handleGameStateUpdate);
+        socket.off("player_left", handlePlayerLeft);
+        socket.off("play_error", handlePlayError);
+        socket.off("disconnect", handleDisconnect);
+        socket?.off("reconnection_response", handleReconnectionResponse);
+        socket.off("player_reconnected", handlePlayerReconnected);
+      };
+    }
+  }, [socket, isConnected, roomId]);
+
+  // Socket Event Handlers
+  const handleReconnectionResponse = ({
+    message,
+    status,
+  }: {
+    message: string;
+    status: string;
+  }) => {
+    if (status === "success") {
+      // Reset all reconnection state
+      clearTimeout(timeoutId.current);
+      reconnectionRetries.current = 0;
+      reconnectionId.current = socketId;
+      setReconnectionDisplay({ message: "", show: false });
+      setIsLoading(false);
+    } else {
+      handleReconnectionFailure(message);
+    }
+  };
+
+  const handlePlayerReconnected = ({ message }: { message: string }) => {
+    showToast({ message, type: "info" });
+    clearTimeout(waitingReconnectionTimeOut.current);
+    hideAlert();
+    clearTimeout(thirtySecondsTimer.current);
+    setReconnectionDisplay({ message: "", show: false });
+  };
+
+  const handlePlayError = ({ valid }: validPlay) => {
+    showToast({
+      message: valid.message,
+      duration: 2000,
+      type: "error",
+    });
+  };
+
+  const handleGameStateUpdate = (newState: CardsGameState) => {
+    clearTimeout(timeoutId.current);
+    setGameState((prev) => ({ ...prev, ...newState }));
+    setIsLoading(false);
+    setReconnectionDisplay({ message: "", show: false });
+  };
+
+  const handleDisconnect = () => {
+    reconnectionRetries.current = 0;
+    console.log("[MultiPlayerGameScreen] Handling disconnect");
+    reconnectToServer();
+  };
+
+  const handlePlayerLeft = (data: PlayerLeftPayload) => {
+    if (data.userId === socket?.id) return;
+
+    clearTimeout(waitingReconnectionTimeOut.current);
+
+    if (data.updatedPlayers && data.updatedPlayers.length >= 2) {
+      showToast({
+        message: `${data.playerName} left the game`,
+        type: "info",
+        duration: 3000,
+      });
+
+      setGameState((prevState) =>
+        prevState
+          ? {
+              ...prevState,
+              players: data.updatedPlayers,
+            }
+          : null
+      );
+    } else {
+      showToast({
+        message: `${data.playerName} has lost connection reconnecting...`,
+        type: "info",
+        duration: 3000,
+      });
+
+      thirtySecondsTimer.current = setTimeout(() => {
+        handleReconnectionFailure(
+          `${data.playerName} could not be reconnected`
+        );
+      }, 30000);
+
+      waitingReconnectionTimeOut.current = setTimeout(() => {
+        showAlert({
+          title: `${data.playerName} left the game`,
+          message: "Not enough players to continue",
+          type: "error",
+          buttons: [
+            { text: "Wait", onPress: () => {}, negative: true },
+            {
+              text: "Leave Game",
+              onPress: () => {
+                socket?.emit("leave_room", { roomId });
+                navigateToLobby();
+                clearTimeout(thirtySecondsTimer.current);
+              },
+            },
+          ],
+        });
+      }, 10000);
+    }
+  };
+
+  // Helper Functions
+  const reconnectToServer = () => {
+    // Don't start a new reconnection if we've already reached the max retries
+    if (reconnectionRetries.current >= 3) {
+      handleReconnectionFailure("Reconnection attempts exceeded");
+      return;
+    }
+
+    // Update the display to show current reconnection attempt
+    setReconnectionDisplay({
+      message: `Reconnecting... (${reconnectionRetries.current + 1}/3)`,
+      show: true,
+    });
+
+    clearTimeout(timeoutId.current);
+
+    if (reconnectionId.current) {
+      console.log(
+        `[MultiPlayerGameScreen] Attempting reconnection ${
+          reconnectionRetries.current + 1
+        }/3 with ID:`,
+        reconnectionId.current
+      );
+      socket?.emit("reconnection", { savedId: reconnectionId.current });
+
+      reconnectionRetries.current += 1;
+
+      timeoutId.current = setTimeout(() => {
+        if (reconnectionRetries.current < 3) {
+          reconnectToServer();
+        } else {
+          handleReconnectionFailure(
+            "Reconnection timed out after multiple attempts"
+          );
+        }
+      }, 10000);
+    } else {
+      handleReconnectionFailure("No session information found");
+    }
+  };
+
+  const handleReconnectionFailure = (message: string) => {
+    clearTimeout(timeoutId.current);
+    showAlert({
+      title: "Connection Lost",
+      message: `${message}. Returning to lobby.`,
+      type: "error",
+      buttons: [
+        {
+          text: "OK",
+          onPress: () => {
+            navigateToLobby();
+            socket?.emit("leave_room", { roomId });
+          },
+        },
+      ],
+    });
+  };
+
+  const navigateToLobby = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "MultiplayerLobby" as never }],
+    });
+  };
+
+  const QuitGameAlert = () => {
+    showAlert({
+      title: "Quit Game",
+      message: "Do you want to quit game",
+      type: "warning",
+      buttons: [
+        {
+          text: "No",
+          onPress: () => {},
+        },
+        {
+          text: "Yes",
+          negative: true,
+          onPress: () => {
+            socket?.emit("leave_room", { roomId });
+            navigateToLobby();
+          },
+        },
+      ],
+    });
+  };
 
   if (isLoading || !gameState || !gameState.players) {
     return (
@@ -345,6 +471,15 @@ const MultiPlayerGameScreen = () => {
               />
             ))}
         </View>
+
+        {reconnectionDisplay.show && (
+          <View style={styles.animationOverlay}>
+            <Text className="text-lg text-center text-mainTextColor">
+              {reconnectionDisplay.message}
+            </Text>
+            <ActivityIndicator size={"large"} color={Colors.gold} />
+          </View>
+        )}
 
         {gameState.isShuffling && (
           <View style={styles.animationOverlay}>
