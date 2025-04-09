@@ -144,6 +144,7 @@ interface PlayerLeftPayload {
   userId: string;
   playerName: string;
   updatedPlayers: Player[];
+  isIntentional: boolean;
 }
 
 interface GameStartedPayload {

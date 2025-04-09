@@ -52,6 +52,8 @@ type GameScreenProps = NativeStackNavigationProp<
   "RoomScreen"
 >;
 
+const RECONNECTION_RETRIES = 4;
+
 const MultiPlayerGameScreen = () => {
   const navigation = useNavigation<GameScreenProps>();
   const route = useRoute();
@@ -67,10 +69,10 @@ const MultiPlayerGameScreen = () => {
   const humanControlScale = useSharedValue(0);
   const { showAlert, showToast, hideAlert } = useCustomAlerts();
   const reconnectionRetries = useRef(0);
-  const timeoutId = useRef<NodeJS.Timeout>();
+  const reconnectionTimeOut = useRef<NodeJS.Timeout>();
   const waitingReconnectionTimeOut = useRef<NodeJS.Timeout>();
-  const reconnectionId = useRef<string | null | undefined>();
   const thirtySecondsTimer = useRef<NodeJS.Timeout>();
+  const reconnectionId = useRef<string | null | undefined>();
   const [reconnectionDisplay, setReconnectionDisplay] = useState({
     message: "",
     show: false,
@@ -80,7 +82,7 @@ const MultiPlayerGameScreen = () => {
     reconnectionId.current = socketId;
     return () => {
       clearTimeout(waitingReconnectionTimeOut.current);
-      clearTimeout(timeoutId.current);
+      clearTimeout(reconnectionTimeOut.current);
       clearTimeout(thirtySecondsTimer.current);
     };
   }, []);
@@ -204,10 +206,18 @@ const MultiPlayerGameScreen = () => {
   }) => {
     if (status === "success") {
       // Reset all reconnection state
-      clearTimeout(timeoutId.current);
+      setReconnectionDisplay({ message: message, show: true });
+      if (message === "Reconnected Waiting for next round") {
+        setTimeout(() => {
+          setReconnectionDisplay({ show: false, message: "" });
+        }, 8000);
+      } else setReconnectionDisplay({ show: false, message: "" });
+
+      clearTimeout(reconnectionTimeOut.current);
       reconnectionRetries.current = 0;
       reconnectionId.current = socketId;
-      setReconnectionDisplay({ message: "", show: false });
+      console.log("reconnection message");
+      // showToast({ message, type: "success", duration: 3000 });
       setIsLoading(false);
     } else {
       handleReconnectionFailure(message);
@@ -231,10 +241,9 @@ const MultiPlayerGameScreen = () => {
   };
 
   const handleGameStateUpdate = (newState: CardsGameState) => {
-    clearTimeout(timeoutId.current);
+    clearTimeout(reconnectionTimeOut.current);
     setGameState((prev) => ({ ...prev, ...newState }));
     setIsLoading(false);
-    setReconnectionDisplay({ message: "", show: false });
   };
 
   const handleDisconnect = () => {
@@ -250,8 +259,8 @@ const MultiPlayerGameScreen = () => {
 
     if (data.updatedPlayers && data.updatedPlayers.length >= 2) {
       showToast({
-        message: `${data.playerName} left the game`,
-        type: "info",
+        message: `${data.playerName} has lost connection`,
+        type: "warning",
         duration: 3000,
       });
 
@@ -263,10 +272,26 @@ const MultiPlayerGameScreen = () => {
             }
           : null
       );
+    } else if (data.isIntentional) {
+      showAlert({
+        title: `${data.playerName} left the game`,
+        message: "Not enough players to continue, Returning to lobby",
+        type: "warning",
+        buttons: [
+          {
+            text: "Ok",
+            onPress: () => {
+              socket?.emit("leave_room", { roomId });
+              navigateToLobby();
+              clearTimeout(thirtySecondsTimer.current);
+            },
+          },
+        ],
+      });
     } else {
       showToast({
         message: `${data.playerName} has lost connection reconnecting...`,
-        type: "info",
+        type: "warning",
         duration: 3000,
       });
 
@@ -274,11 +299,11 @@ const MultiPlayerGameScreen = () => {
         handleReconnectionFailure(
           `${data.playerName} could not be reconnected`
         );
-      }, 30000);
+      }, 25000);
 
       waitingReconnectionTimeOut.current = setTimeout(() => {
         showAlert({
-          title: `${data.playerName} left the game`,
+          title: `${data.playerName} has lost connection`,
           message: "Not enough players to continue",
           type: "error",
           buttons: [
@@ -293,39 +318,37 @@ const MultiPlayerGameScreen = () => {
             },
           ],
         });
-      }, 10000);
+      }, 5000);
     }
   };
 
   // Helper Functions
   const reconnectToServer = () => {
     // Don't start a new reconnection if we've already reached the max retries
-    if (reconnectionRetries.current >= 3) {
+    if (reconnectionRetries.current >= RECONNECTION_RETRIES) {
       handleReconnectionFailure("Reconnection attempts exceeded");
       return;
     }
 
     // Update the display to show current reconnection attempt
     setReconnectionDisplay({
-      message: `Reconnecting... (${reconnectionRetries.current + 1}/3)`,
+      message: `Reconnecting... (${reconnectionRetries.current}/3)`,
       show: true,
     });
 
-    clearTimeout(timeoutId.current);
+    clearTimeout(reconnectionTimeOut.current);
 
     if (reconnectionId.current) {
       console.log(
-        `[MultiPlayerGameScreen] Attempting reconnection ${
-          reconnectionRetries.current + 1
-        }/3 with ID:`,
+        `[MultiPlayerGameScreen] Attempting reconnection ${reconnectionRetries.current}/3 with ID:`,
         reconnectionId.current
       );
       socket?.emit("reconnection", { savedId: reconnectionId.current });
 
       reconnectionRetries.current += 1;
 
-      timeoutId.current = setTimeout(() => {
-        if (reconnectionRetries.current < 3) {
+      reconnectionTimeOut.current = setTimeout(() => {
+        if (reconnectionRetries.current < RECONNECTION_RETRIES) {
           reconnectToServer();
         } else {
           handleReconnectionFailure(
@@ -339,7 +362,7 @@ const MultiPlayerGameScreen = () => {
   };
 
   const handleReconnectionFailure = (message: string) => {
-    clearTimeout(timeoutId.current);
+    clearTimeout(reconnectionTimeOut.current);
     showAlert({
       title: "Connection Lost",
       message: `${message}. Returning to lobby.`,
@@ -433,12 +456,15 @@ const MultiPlayerGameScreen = () => {
       (play) => play.player.id === currentUser.id
     );
     return (
-      <View className="items-center justify-center w-20">
+      <View className="items-center justify-center w-28">
         <Text
           style={{
             fontWeight: "bold",
             color: "lightgrey",
+            width: "100%",
+            textAlign: "center",
           }}
+          numberOfLines={1}
         >
           {currentUser.name}
           {gameState.currentControl.id === currentUser.id ? "🔥" : ""}
@@ -474,10 +500,12 @@ const MultiPlayerGameScreen = () => {
 
         {reconnectionDisplay.show && (
           <View style={styles.animationOverlay}>
-            <Text className="text-lg text-center text-mainTextColor">
-              {reconnectionDisplay.message}
-            </Text>
-            <ActivityIndicator size={"large"} color={Colors.gold} />
+            <View className="items-center justify-center p-5 bg-mainTextColor rounded-xl elevation-md">
+              <Text className="text-lg text-center text-black">
+                {reconnectionDisplay.message}
+              </Text>
+              <ActivityIndicator size={"large"} color={Colors.gold} />
+            </View>
           </View>
         )}
 
@@ -544,7 +572,7 @@ const MultiPlayerGameScreen = () => {
         {/* MAIN GAME AREA */}
         <View className="flex-col items-center justify-between flex-1 my-4 md:flex-row">
           <View
-            className={`items-center bg-opponentArea rounded-[20px] p-2.5 w-10/12 md:w-1/3`}
+            className={`items-center bg-opponentArea rounded-[20px] p-2.5 w-10/12 md:w-1/3 h-36`}
           >
             <OpponentSection
               opponent={opponent}
@@ -556,9 +584,12 @@ const MultiPlayerGameScreen = () => {
           </View>
 
           {/* Game Results in the Middle */}
-          <View className="items-center gap-8 mx-4 md:w-1/4 justify-evenly">
+          <View className="items-center w-full gap-8 mx-4 md:w-1/4 justify-evenly">
             {width < 600 && (
-              <View className="w-full p-1 px-5 bg-logContainerBackground rounded-2xl">
+              <View
+                className="p-1 px-5 bg-logContainerBackground rounded-2xl"
+                style={{ minWidth: "50%" }}
+              >
                 <Text
                   numberOfLines={2}
                   className="text-lg text-center text-mainTextColor"
@@ -582,9 +613,17 @@ const MultiPlayerGameScreen = () => {
                   return (
                     <View
                       key={opponent.id + opponent.name}
-                      className="items-center justify-center w-20"
+                      className="items-center justify-center w-28"
                     >
-                      <Text style={{ fontWeight: "bold", color: "lightgrey" }}>
+                      <Text
+                        style={{
+                          fontWeight: "bold",
+                          color: "lightgrey",
+                          width: "100%",
+                          textAlign: "center",
+                        }}
+                        numberOfLines={1}
+                      >
                         {opponent.name}
                         {isCurrentControl ? "🔥" : ""}
                       </Text>
@@ -599,7 +638,7 @@ const MultiPlayerGameScreen = () => {
             </View>
           </View>
 
-          <View className="bg-playerArea rounded-[20px] p-2.5 w-10/12 md:w-1/3">
+          <View className="bg-playerArea rounded-[20px] p-2.5 w-10/12 md:w-1/3 h-36">
             <PlayerSection
               player={currentUser}
               isDealing={gameState.isDealing}

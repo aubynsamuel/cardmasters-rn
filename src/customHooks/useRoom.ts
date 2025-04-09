@@ -244,9 +244,14 @@ const useRoom = () => {
     );
   };
 
-  // useEffect(() => {
-  //   socket?.emit("get_room", { roomId });
-  // });
+  useEffect(() => {
+    if (!socket) return;
+    socket?.emit("get_room", { roomId });
+    socket.once("get_room_response", handleGetRoomResponse);
+    return () => {
+      socket.off("get_room_response", handleGetRoomResponse);
+    };
+  }, []);
 
   const handleDisconnect = () => {
     setConnectionStatus("disconnected");
@@ -282,6 +287,10 @@ const useRoom = () => {
       routes: [{ name: "MultiplayerLobby" }],
     });
   };
+  const handleGetRoomResponse = ({ room }: { room: Room }) => {
+    console.log("[useRoom] Room from get data", room);
+    setRoomState(room);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -295,10 +304,6 @@ const useRoom = () => {
         socket.on("join_request", handleJoinRequest);
         socket.on("player_status_changed", handlePlayerStatusChanges);
         socket.on("player_kicked", handlePlayerKicked);
-        // socket.on("get_room_response", ({ room }) => {
-        //   console.log("[useRoom] Room from get data", room);
-        //   setRoomState(room);
-        // });
         socket.on("disconnect", handleDisconnect);
         socket.on("message_received", handleMessageReceived);
 
@@ -314,7 +319,6 @@ const useRoom = () => {
           socket.off("disconnect", handleDisconnect);
           socket.off("message_received", handleMessageReceived);
           socket.off("player_kicked", handlePlayerKicked);
-          // socket.off("get_room_response");
         };
       }
     }, [
