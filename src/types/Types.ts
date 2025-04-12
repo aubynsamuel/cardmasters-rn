@@ -170,6 +170,23 @@ interface JoinRequestResponsePayload {
   roomData?: Room;
 }
 
+interface GameRecord {
+  gameId: string;
+  dateString: string;
+  targetScore: number;
+  playerCount: number;
+  mode: "multiplayer" | "single-player";
+  players: GameRecordPlayer[];
+  winnerId: string;
+  winnerName: string;
+}
+interface GameRecordPlayer {
+  id: string;
+  name: string;
+  finalScore: number;
+  position: number;
+}
+
 export {
   Suit,
   Rank,
@@ -200,4 +217,6 @@ export {
   PlayerStatus,
   Message,
   JoinRequestResponsePayload,
+  GameRecord,
+  GameRecordPlayer,
 };

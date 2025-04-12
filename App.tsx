@@ -17,6 +17,8 @@ import AuthScreen from "./src/screens/AuthScreen";
 import { CustomAlertsProvider } from "./src/context/CustomAlertsContext";
 import SettingsScreen from "./src/screens/Settings";
 import "./global.css";
+import GameRulesScreen from "./src/screens/GameRules";
+import StatsScreen from "./src/screens/StatsScreen";
 
 const Stack = createNativeStackNavigator();
 
@@ -53,6 +55,16 @@ const App: React.FC = () => {
                   name="MultiPlayerGameScreen"
                   component={MultiPlayerGameScreen}
                   options={{ navigationBarColor: "#076324" }}
+                />
+                <Stack.Screen
+                  name="GameRulesScreen"
+                  component={GameRulesScreen}
+                  options={{ navigationBarColor: "#076345" }}
+                />
+                <Stack.Screen
+                  name="StatsScreen"
+                  component={StatsScreen}
+                  options={{ navigationBarColor: "#076345" }}
                 />
                 <Stack.Screen name="Settings" component={SettingsScreen} />
                 <Stack.Screen name="ProfileScreen" component={ProfileScreen} />

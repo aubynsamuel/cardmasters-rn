@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -131,158 +130,136 @@ const AuthScreen = () => {
   };
 
   return (
-    <LinearGradient colors={["#076324", "#076345"]} style={styles.container}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.keyboardAvoidingView}
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1"
+    >
+      <LinearGradient
+        colors={["#10b981", "#065f46"]}
+        className="flex-1"
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
       >
-        <ScrollView contentContainerStyle={styles.scrollView}>
-          <View style={styles.authContainer}>
-            <Text style={styles.title}>CARD MASTER</Text>
-            <Text style={styles.authTitle}>
-              {isLogin ? "Login" : "Sign Up"}
+        <ScrollView
+          contentContainerClassName="flex-grow justify-center px-6 py-8"
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="items-center mb-10">
+            <Text className="text-4xl font-bold text-white">CARD MASTER</Text>
+            <View className="w-20 h-1 mt-2 rounded-full bg-gold opacity-70" />
+          </View>
+
+          <View className="p-6 bg-white shadow-lg rounded-3xl">
+            <Text className="mb-6 text-2xl font-bold text-center text-gray-800">
+              {isLogin ? "Welcome Back" : "Create Account"}
             </Text>
 
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              placeholderTextColor="#aaa"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              autoComplete="email"
-            />
+            <View className="space-y-4">
+              <View>
+                <Text className="mb-1 ml-1 text-sm font-medium text-gray-600">
+                  Email
+                </Text>
+                <TextInput
+                  className="px-4 py-3 text-gray-800 border border-gray-200 bg-gray-50 rounded-xl"
+                  placeholder="your@email.com"
+                  placeholderTextColor="#9CA3AF"
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                />
+              </View>
 
-            {!isLogin && (
-              <TextInput
-                style={styles.input}
-                placeholder="Display Name (optional)"
-                placeholderTextColor="#aaa"
-                value={displayName}
-                onChangeText={setDisplayName}
-                autoCapitalize="words"
-              />
-            )}
+              {!isLogin && (
+                <View>
+                  <Text className="mb-1 ml-1 text-sm font-medium text-gray-600">
+                    Display Name (optional)
+                  </Text>
+                  <TextInput
+                    className="px-4 py-3 text-gray-800 border border-gray-200 bg-gray-50 rounded-xl"
+                    placeholder="How others will see you"
+                    placeholderTextColor="#9CA3AF"
+                    value={displayName}
+                    onChangeText={setDisplayName}
+                    autoCapitalize="words"
+                  />
+                </View>
+              )}
 
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="#aaa"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoComplete="password"
-            />
+              <View>
+                <Text className="mb-1 ml-1 text-sm font-medium text-gray-600">
+                  Password
+                </Text>
+                <TextInput
+                  className="px-4 py-3 text-gray-800 border border-gray-200 bg-gray-50 rounded-xl"
+                  placeholder="••••••••"
+                  placeholderTextColor="#9CA3AF"
+                  value={password}
+                  onChangeText={setPassword}
+                  secureTextEntry
+                  autoComplete="password"
+                />
+              </View>
 
-            {!isLogin && (
-              <TextInput
-                style={styles.input}
-                placeholder="Confirm Password"
-                placeholderTextColor="#aaa"
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-                secureTextEntry
-              />
-            )}
+              {!isLogin && (
+                <View>
+                  <Text className="mb-1 ml-1 text-sm font-medium text-gray-600">
+                    Confirm Password
+                  </Text>
+                  <TextInput
+                    className="px-4 py-3 text-gray-800 border border-gray-200 bg-gray-50 rounded-xl"
+                    placeholder="••••••••"
+                    placeholderTextColor="#9CA3AF"
+                    value={confirmPassword}
+                    onChangeText={setConfirmPassword}
+                    secureTextEntry
+                  />
+                </View>
+              )}
+            </View>
 
             <TouchableOpacity
-              style={styles.authButton}
+              className={`mt-6 rounded-xl py-4 ${
+                isLogin ? "bg-emerald-600" : "bg-gold"
+              }`}
               onPress={handleAuth}
               disabled={isLoading}
+              activeOpacity={0.8}
             >
               {isLoading ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color="#ffffff" />
               ) : (
-                <Text style={styles.authButtonText}>
-                  {isLogin ? "Login" : "Sign Up"}
+                <Text
+                  className={`text-lg font-bold text-center ${
+                    isLogin ? "text-white" : "bg-gold"
+                  }`}
+                >
+                  {isLogin ? "Log In" : "Sign Up"}
                 </Text>
               )}
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={toggleAuthMode}
-              style={styles.toggleButton}
+              className="mt-6"
+              activeOpacity={0.7}
             >
-              <Text style={styles.toggleText}>
+              <Text className="font-medium text-center text-emerald-600">
                 {isLogin
-                  ? "Don't have an account? Sign Up"
-                  : "Already have an account? Login"}
+                  ? "Don't have an account? Create one"
+                  : "Already have an account? Log in"}
               </Text>
             </TouchableOpacity>
           </View>
+
+          <Text className="mt-8 text-xs text-center text-white opacity-70">
+            &copy; {new Date().getFullYear()} Card Master. All rights reserved.
+          </Text>
         </ScrollView>
-      </KeyboardAvoidingView>
-    </LinearGradient>
+      </LinearGradient>
+    </KeyboardAvoidingView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  scrollView: {
-    flexGrow: 1,
-    justifyContent: "center",
-    padding: 20,
-  },
-  authContainer: {
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 10,
-    padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#076324",
-    textAlign: "center",
-    marginBottom: 20,
-    letterSpacing: 2,
-  },
-  authTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  input: {
-    backgroundColor: "#f5f5f5",
-    borderRadius: 5,
-    padding: 15,
-    marginBottom: 15,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  authButton: {
-    backgroundColor: "#076324",
-    borderRadius: 5,
-    padding: 15,
-    alignItems: "center",
-    marginTop: 10,
-  },
-  authButtonText: {
-    color: "#fff",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  toggleButton: {
-    marginTop: 20,
-    alignItems: "center",
-  },
-  toggleText: {
-    color: "#076324",
-    fontSize: 16,
-  },
-});
 
 export default AuthScreen;

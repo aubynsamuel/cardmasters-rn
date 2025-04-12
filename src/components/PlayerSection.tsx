@@ -19,7 +19,7 @@ type PlayerSectionProps = {
     message: string;
   };
   width: number;
-  opponentHandsLength?: number;
+  playersHandsLength?: number;
 };
 
 const PlayerSection = ({
@@ -30,7 +30,7 @@ const PlayerSection = ({
   controlScale,
   playCard,
   width,
-  opponentHandsLength = 0,
+  playersHandsLength = 0,
 }: PlayerSectionProps) => {
   return (
     <View className="items-center w-full">
@@ -58,7 +58,7 @@ const PlayerSection = ({
             entering={
               isDealing
                 ? FlipInEasyX.delay(
-                    (index + opponentHandsLength) * 200
+                    (index + playersHandsLength) * 200
                   ).duration(300)
                 : undefined
             }

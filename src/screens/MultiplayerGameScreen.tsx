@@ -23,6 +23,8 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import {
   CardsGameState,
+  GameRecord,
+  GameRecordPlayer,
   GameScore,
   GameStartedPayload,
   Player,
@@ -35,6 +37,8 @@ import PlayerSection from "../components/PlayerSection";
 import OpponentSection from "../components/OpponentSection";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
 import Colors from "../theme/Colors";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { storeGameRecordToFirestore } from "../gameLogic/FirestoreFunctions";
 
 type GameScreenStackParamList = {
   RoomScreen: GameStartedPayload;
@@ -60,7 +64,7 @@ const MultiPlayerGameScreen = () => {
   const { width, height } = useWindowDimensions();
   const styles = getStyles(width, height);
   const { isConnected, socket, socketId } = useSocket();
-  const { userId } = useAuth();
+  const { userId, userData } = useAuth();
   const { roomId, roomData } = route.params as GameStartedPayload;
   const [gameState, setGameState] = useState<CardsGameState | null>(null);
   const [showControlsOverlay, setShowControlsOverlay] = useState(false);
@@ -98,6 +102,20 @@ const MultiPlayerGameScreen = () => {
       BackHandler.removeEventListener("hardwareBackPress", onBackPress);
   }, []);
 
+  const playersListBuilder = () => {
+    const playersList: GameRecordPlayer[] = [];
+    if (!gameState || !gameState.players) return [];
+    for (const player of gameState.players) {
+      playersList.push({
+        finalScore: player.score,
+        id: player.id,
+        name: player.name === userData?.displayName ? "You" : player.name,
+        position: 1,
+      });
+    }
+    return playersList;
+  };
+
   // Game over event handler
   useEffect(() => {
     if (!gameState) return;
@@ -113,6 +131,31 @@ const MultiPlayerGameScreen = () => {
     if (!currentPlayer || !opponentPlayer) return;
 
     if (gameState.players.some((p) => p.score >= gameState.gameTo)) {
+      const gameRecord: GameRecord = {
+        dateString: new Date().toUTCString(),
+        gameId: "game" + Math.random().toString(),
+        mode: "multiplayer",
+        playerCount: 2,
+        targetScore: gameState.gameTo,
+        winnerName:
+          gameState.gameOverData.winner.name === userData?.displayName
+            ? "You"
+            : gameState.gameOverData.winner.name,
+        winnerId: gameState.gameOverData.winner.id,
+        players: playersListBuilder(),
+      };
+
+      // Retrieve existing records, append the new one, and save back
+      AsyncStorage.getItem("gameRecord")
+        .then(async (storedRecords) => {
+          const records = storedRecords ? JSON.parse(storedRecords) : [];
+          records.push(gameRecord); // Add the new record to the list
+          return AsyncStorage.setItem("gameRecord", JSON.stringify(records));
+        })
+        .then(() => console.log("Record Stored"))
+        .catch((error) => console.error("Error saving game record:", error));
+      storeGameRecordToFirestore(userId || "", gameRecord);
+
       socket?.emit("game_ended", { roomId });
       const gameScoreList = gameState.players.map((player) => ({
         playerName: player.name,
@@ -437,7 +480,7 @@ const MultiPlayerGameScreen = () => {
   );
 
   // display the hands for one opponent selected at random
-  const opponent = opponentPlayers[
+  const randomOpponent = opponentPlayers[
     Math.floor(Math.random() * opponentPlayers.length)
   ] || {
     name: "Opponent",
@@ -575,7 +618,7 @@ const MultiPlayerGameScreen = () => {
             className={`items-center bg-opponentArea rounded-[20px] p-2.5 w-10/12 md:w-1/3 h-36`}
           >
             <OpponentSection
-              opponent={opponent}
+              opponent={randomOpponent}
               isDealing={gameState.isDealing}
               accumulatedPoints={gameState.accumulatedPoints}
               currentControlId={gameState.currentControl.id}
@@ -600,10 +643,10 @@ const MultiPlayerGameScreen = () => {
             )}
 
             {/* Current Play Cards */}
-            <View style={styles.currentRound}>
+            <View className="flex-col items-center justify-around gap-5 text-xl text-center">
               {/* Opponent's Play Spot */}
 
-              <View className="flex-row justify-center gap-5 md:gap-3">
+              <View className="flex-row justify-center">
                 {opponentPlayers.map((opponent) => {
                   const play = gameState.currentPlays?.find(
                     (play) => play.player.id === opponent.id
@@ -655,12 +698,14 @@ const MultiPlayerGameScreen = () => {
                 return { error: "", message: "" };
               }}
               width={width}
-              opponentHandsLength={opponent.hands.length}
+              playersHandsLength={currentUser.hands.length}
             />
           </View>
         </View>
 
-        {<GameHistory gameHistory={gameState.gameHistory} />}
+        {(height > 700 || width > 600) && (
+          <GameHistory gameHistory={gameState.gameHistory} />
+        )}
       </SafeAreaView>
     </GestureHandlerRootView>
   );

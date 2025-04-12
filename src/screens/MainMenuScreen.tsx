@@ -31,13 +31,9 @@ const MainMenuScreen = () => {
   const buttonTranslateY1 = useSharedValue(50);
   const buttonTranslateY2 = useSharedValue(50);
   const buttonTranslateY3 = useSharedValue(50);
-  const backgroundOpacity = useSharedValue(0);
   const decorationScale = useSharedValue(0);
 
   useEffect(() => {
-    // Animate background
-    backgroundOpacity.value = withTiming(1, { duration: 1000 });
-
     // Animate title: fade in and scale up
     titleOpacity.value = withDelay(
       300,
@@ -79,10 +75,6 @@ const MainMenuScreen = () => {
     transform: [{ scale: titleScale.value }],
   }));
 
-  const animatedBackgroundStyle = useAnimatedStyle(() => ({
-    opacity: backgroundOpacity.value,
-  }));
-
   const animatedDecorationStyle = useAnimatedStyle(() => ({
     transform: [{ scale: decorationScale.value }],
     opacity: decorationScale.value,
@@ -104,63 +96,58 @@ const MainMenuScreen = () => {
   }));
 
   return (
-    <View style={extendedStyles.mainContainer} className="bg-black">
-      <Animated.View
-        style={[extendedStyles.backgroundContainer, animatedBackgroundStyle]}
+    <View className="flex-1 bg-[#076324]">
+      <LinearGradient
+        colors={["#076324", "#076345"]}
+        style={[extendedStyles.decorationContainer, { flex: 1 }]}
       >
-        <LinearGradient
-          colors={["#076324", "#076345"]}
-          style={extendedStyles.gradientBackground}
-        >
-          {/* Decorative pattern */}
-          <Animated.View
-            style={[
-              extendedStyles.decorationContainer,
-              animatedDecorationStyle,
-            ]}
-          >
-            {Array(4)
-              .fill(0)
-              .map((_, i) => (
-                <View
-                  key={i}
-                  style={[
-                    extendedStyles.cardDecoration,
-                    {
-                      top: 50 + i * 90,
-                      left: i % 2 === 0 ? 20 : width - 70,
-                      transform: [{ rotate: `${i * 45}deg` }],
-                    },
-                  ]}
-                />
-              ))}
-          </Animated.View>
-        </LinearGradient>
-      </Animated.View>
+        {/* Decorative pattern */}
+        <Animated.View style={[animatedDecorationStyle]}>
+          {Array(6)
+            .fill(0)
+            .map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  {
+                    top: 180 + i * 90,
+                    left: i % 2 === 0 ? 20 : width - 70,
+                    transform: [{ rotate: `${i * 50}deg` }],
+                  },
+                ]}
+                className="absolute w-[50px] h-[70px] rounded-lg 
+                border-[#fff3] border bg-[#fff1] opacity-50"
+              />
+            ))}
+        </Animated.View>
+      </LinearGradient>
 
-      <View style={extendedStyles.contentContainer}>
+      <View className="items-center justify-center flex-1 px-5">
         {/* Title */}
         <Animated.View
           style={[animatedTitleStyle]}
           className={"items-center mb-[60px]"}
         >
-          <Text style={extendedStyles.titleText}>Card Masters</Text>
+          <Text className="text-[38px] font-bold text-white shadow-xl">
+            Card Masters
+          </Text>
           <View className="w-[150px] h-1 bg-[#FFD700] mt-2.5 rounded-s-sm" />
         </Animated.View>
 
-        <View className="items-center w-full">
+        <View className="flex-row flex-wrap items-center w-full gap-5 justify-evenly">
           {/* SinglePlayer Button */}
           <Animated.View
-            style={[extendedStyles.buttonWrapper, animatedButtonStyle1]}
+            style={[animatedButtonStyle1]}
+            className={buttonStyles + "elevation-2xl"}
           >
             <TouchableOpacity
-              style={extendedStyles.menuButton}
+              className={menuTouchableStyles}
               onPress={() => navigation.navigate("Game" as never)}
               activeOpacity={0.7}
             >
               <LinearGradient
                 colors={["#0a8132", "#076324"]}
-                style={extendedStyles.buttonGradient}
+                className={linearGradientStyles}
               >
                 <Ionicons
                   name="game-controller"
@@ -168,23 +155,29 @@ const MainMenuScreen = () => {
                   color="#fff"
                   className="mr-3"
                 />
-                <Text style={extendedStyles.buttonText}>SinglePlayer</Text>
+                <Text
+                  numberOfLines={1}
+                  className="text-white text-[18px] font-bold shadow-sm"
+                >
+                  SinglePlayer
+                </Text>
               </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
 
           {/* Multiplayer Button */}
           <Animated.View
-            style={[extendedStyles.buttonWrapper, animatedButtonStyle2]}
+            style={[animatedButtonStyle2]}
+            className={buttonStyles}
           >
             <TouchableOpacity
-              style={extendedStyles.menuButton}
+              className={menuTouchableStyles}
               onPress={() => navigation.navigate("MultiplayerLobby" as never)}
               activeOpacity={0.7}
             >
               <LinearGradient
                 colors={["#ff7e47", "#ff5722"]}
-                style={extendedStyles.buttonGradient}
+                className={linearGradientStyles}
               >
                 <Ionicons
                   name="people"
@@ -192,23 +185,29 @@ const MainMenuScreen = () => {
                   color="#fff"
                   className="mr-3"
                 />
-                <Text style={extendedStyles.buttonText}>Multiplayer</Text>
+                <Text
+                  numberOfLines={1}
+                  className="text-white text-[18px] font-bold shadow-sm"
+                >
+                  Multiplayer
+                </Text>
               </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
 
           {/* Profile Button */}
           <Animated.View
-            style={[extendedStyles.buttonWrapper, animatedButtonStyle3]}
+            style={[animatedButtonStyle3]}
+            className={buttonStyles}
           >
             <TouchableOpacity
-              style={extendedStyles.menuButton}
+              className={menuTouchableStyles}
               onPress={() => navigation.navigate("ProfileScreen" as never)}
               activeOpacity={0.7}
             >
               <LinearGradient
                 colors={["plum", "#2d3748"]}
-                style={extendedStyles.buttonGradient}
+                className={linearGradientStyles}
               >
                 <Ionicons
                   name="person-circle-sharp"
@@ -216,23 +215,29 @@ const MainMenuScreen = () => {
                   color="#fff"
                   className="mr-3"
                 />
-                <Text style={extendedStyles.buttonText}>Profile</Text>
+                <Text
+                  numberOfLines={1}
+                  className="text-white text-[18px] font-bold shadow-sm"
+                >
+                  Profile
+                </Text>
               </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
 
           {/* Settings Button */}
           <Animated.View
-            style={[extendedStyles.buttonWrapper, animatedButtonStyle3]}
+            style={[animatedButtonStyle3]}
+            className={buttonStyles}
           >
             <TouchableOpacity
-              style={extendedStyles.menuButton}
+              className={menuTouchableStyles}
               onPress={() => navigation.navigate("Settings" as never)}
               activeOpacity={0.7}
             >
               <LinearGradient
                 colors={["#4a5568", "#2d3748"]}
-                style={extendedStyles.buttonGradient}
+                className={linearGradientStyles}
               >
                 <Ionicons
                   name="settings"
@@ -240,7 +245,12 @@ const MainMenuScreen = () => {
                   color="#fff"
                   className="mr-3"
                 />
-                <Text style={extendedStyles.buttonText}>Settings</Text>
+                <Text
+                  numberOfLines={1}
+                  className="text-white text-[18px] font-bold shadow-sm"
+                >
+                  Settings
+                </Text>
               </LinearGradient>
             </TouchableOpacity>
           </Animated.View>
@@ -250,91 +260,16 @@ const MainMenuScreen = () => {
   );
 };
 
+const buttonStyles = "w-[280px] md:w-[300px] h-[60px] md:h-[90px] mb-4";
+const linearGradientStyles =
+  "w-full flex-row md:flex-col h-full rounded-[12px] items-center py-4 px-6";
+const menuTouchableStyles =
+  "z-10 w-full overflow-hidden shadow-2xl rounded-xl elevation-xl bottom-3";
+
 const getStyles = () => {
   const styles = StyleSheet.create({
-    mainContainer: {
-      flex: 1,
-      backgroundColor: "#076324",
-    },
-    backgroundContainer: {
-      ...StyleSheet.absoluteFillObject,
-    },
-    gradientBackground: {
-      flex: 1,
-    },
     decorationContainer: {
       ...StyleSheet.absoluteFillObject,
-    },
-    cardDecoration: {
-      position: "absolute",
-      width: 50,
-      height: 70,
-      borderRadius: 8,
-      backgroundColor: "rgba(255, 255, 255, 0.1)",
-      borderWidth: 1,
-      borderColor: "rgba(255, 255, 255, 0.3)",
-    },
-    contentContainer: {
-      flex: 1,
-      justifyContent: "center",
-      alignItems: "center",
-      paddingHorizontal: 20,
-    },
-    titleContainer: {
-      alignItems: "center",
-      marginBottom: 60,
-    },
-    titleText: {
-      fontSize: 36,
-      fontWeight: "bold",
-      color: "#fff",
-      textShadowColor: "rgba(0, 0, 0, 0.5)",
-      textShadowOffset: { width: 2, height: 2 },
-      textShadowRadius: 4,
-    },
-    underline: {
-      width: 150,
-      height: 4,
-      backgroundColor: "#FFD700",
-      borderRadius: 2,
-      marginTop: 10,
-    },
-    buttonContainer: {
-      width: "100%",
-      alignItems: "center",
-    },
-    buttonWrapper: {
-      width: "80%",
-      marginBottom: 20,
-    },
-    menuButton: {
-      width: "100%",
-      borderRadius: 12,
-      overflow: "hidden",
-      elevation: 5,
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.25,
-      shadowRadius: 3.84,
-      zIndex: 5,
-    },
-    buttonGradient: {
-      flexDirection: "row",
-      alignItems: "center",
-      paddingVertical: 16,
-      paddingHorizontal: 24,
-      borderRadius: 12,
-    },
-    buttonIcon: {
-      marginRight: 12,
-    },
-    buttonText: {
-      color: "#fff",
-      fontSize: 18,
-      fontWeight: "bold",
-      textShadowColor: "rgba(0, 0, 0, 0.3)",
-      textShadowOffset: { width: 1, height: 1 },
-      textShadowRadius: 2,
     },
   });
   return styles;

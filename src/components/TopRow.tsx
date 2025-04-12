@@ -20,6 +20,8 @@ const TopRow: React.FC<TopRowInterface> = ({
   setShowControlsOverlay,
   gameTo,
 }) => {
+  const sortedScores = [...gameScoreList].sort((a, b) => b.score - a.score);
+
   return (
     <View
       key={"TopRow"}
@@ -65,14 +67,8 @@ const TopRow: React.FC<TopRowInterface> = ({
             alignItems: "center",
           }}
         >
-          <Text
-            style={{
-              color: Colors.mainTextColor,
-              fontWeight: "bold",
-              lineHeight: 20,
-            }}
-          >
-            {gameScoreToString(gameScoreList)}
+          <Text className="font-bold text-mainTextColor">
+            {gameScoreToString(sortedScores)}
           </Text>
           <Text
             style={{

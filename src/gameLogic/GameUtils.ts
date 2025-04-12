@@ -20,39 +20,29 @@ const suitSymbols: Record<Suit, string> = {
 };
 
 const gameScoreToString = (gameScoreList: GameScore[]) => {
-  // console.log("[GameUtils] ",gameScoreList);
   let Score: string = "";
   for (const gameScore of gameScoreList) {
     Score += `${gameScore.playerName} : ${gameScore.score}\n`;
-    // ${
-    //   gameScoreList.indexOf(gameScore) === gameScoreList.length - 1
-    //     ? ""
-    //     : "vs "
-    // }
   }
   return Score;
 };
 
 // For testing scoring system
 export const getFixedHands = (): { computer: Card[]; human: Card[] } => {
-  // Create computer's hand with diamond and spade suits
   const computerHand: Card[] = [
     { suit: "diamond", rank: "6", value: rankValues["6"] },
     { suit: "diamond", rank: "7", value: rankValues["7"] },
     { suit: "diamond", rank: "K", value: rankValues["K"] },
     { suit: "spade", rank: "6", value: rankValues["6"] },
     { suit: "spade", rank: "7", value: rankValues["7"] },
-    // { suit: "spade", rank: "K", value: rankValues["K"] },
   ];
 
-  // Create human's hand with love and club suits
   const humanHand: Card[] = [
     { suit: "love", rank: "6", value: rankValues["6"] },
     { suit: "love", rank: "7", value: rankValues["7"] },
     { suit: "love", rank: "K", value: rankValues["K"] },
     { suit: "club", rank: "6", value: rankValues["6"] },
     { suit: "club", rank: "7", value: rankValues["7"] },
-    // { suit: "club", rank: "K", value: rankValues["K"] },
   ];
 
   return { computer: computerHand, human: humanHand };
@@ -68,7 +58,6 @@ const createDeck = (): Card[] => {
   return deck;
 };
 
-// Fisher–Yates shuffle
 const shuffleDeck = (deck: Card[]): Card[] => {
   const shuffled = [...deck];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -78,14 +67,11 @@ const shuffleDeck = (deck: Card[]): Card[] => {
   return shuffled;
 };
 
-// Deal 5 cards each (first 3 then 2 cards) for 2 players
-// New, generalized dealing function:
 const dealCards = (
   players: Player[],
   deck: Card[]
 ): { hands: Card[][]; deck: Card[] } => {
   const deckCopy = [...deck];
-  // Create an array of hands, one per player
   const hands: Card[][] = players.map(() => []);
 
   // First round: deal 3 cards to each player
@@ -102,7 +88,7 @@ const dealCards = (
     }
   }
 
-  // (Optional duplicate-check across all hands)
+  // (Duplicate-check across all hands)
   for (let i = 0; i < players.length; i++) {
     for (let j = i + 1; j < players.length; j++) {
       for (const cardI of hands[i]) {

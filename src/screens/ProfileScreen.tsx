@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -19,6 +19,8 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
+import { GameRecord } from "../types/Types";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProfileScreen = () => {
   const navigation = useNavigation();
@@ -27,26 +29,32 @@ const ProfileScreen = () => {
   const { showAlert } = useCustomAlerts();
 
   // Animation values
-  const backgroundOpacity = useSharedValue(0);
   const cardScale = useSharedValue(0.9);
   const cardOpacity = useSharedValue(0);
   const headerOpacity = useSharedValue(0);
-  const headerTranslateY = useSharedValue(-20);
   const contentOpacity = useSharedValue(0);
-  const buttonOpacity = useSharedValue(0);
-  const buttonTranslateY = useSharedValue(20);
-  const decorationScale = useSharedValue(0);
+
+  const [records, setRecords] = useState<GameRecord[]>();
+
+  const getStoredRecords = async () => {
+    const records = await AsyncStorage.getItem("gameRecord");
+    if (!records) return;
+    const parsedRecords = JSON.parse(records) as GameRecord[];
+    if (Array.isArray(parsedRecords)) {
+      setRecords(parsedRecords);
+    }
+  };
+
+  const gameWon =
+    records?.filter((game) => game.winnerName === "You").length || 0;
 
   useEffect(() => {
-    // Animate background
-    backgroundOpacity.value = withTiming(1, { duration: 800 });
+    getStoredRecords();
+  }, []);
 
+  useEffect(() => {
     // Animate header
     headerOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
-    headerTranslateY.value = withDelay(
-      200,
-      withSpring(0, { damping: 14, stiffness: 100 })
-    );
 
     // Animate card
     cardOpacity.value = withDelay(
@@ -60,29 +68,7 @@ const ProfileScreen = () => {
 
     // Animate content
     contentOpacity.value = withDelay(600, withTiming(1, { duration: 500 }));
-
-    // Animate button
-    buttonOpacity.value = withDelay(800, withTiming(1, { duration: 500 }));
-    buttonTranslateY.value = withDelay(
-      800,
-      withSpring(0, { damping: 14, stiffness: 100 })
-    );
-
-    // Animate decorations
-    decorationScale.value = withDelay(
-      500,
-      withSpring(1, { damping: 10, stiffness: 80 })
-    );
   }, []);
-
-  const animatedBackgroundStyle = useAnimatedStyle(() => ({
-    opacity: backgroundOpacity.value,
-  }));
-
-  const animatedHeaderStyle = useAnimatedStyle(() => ({
-    opacity: headerOpacity.value,
-    transform: [{ translateY: headerTranslateY.value }],
-  }));
 
   const animatedCardStyle = useAnimatedStyle(() => ({
     opacity: cardOpacity.value,
@@ -91,16 +77,6 @@ const ProfileScreen = () => {
 
   const animatedContentStyle = useAnimatedStyle(() => ({
     opacity: contentOpacity.value,
-  }));
-
-  const animatedButtonStyle = useAnimatedStyle(() => ({
-    opacity: buttonOpacity.value,
-    transform: [{ translateY: buttonTranslateY.value }],
-  }));
-
-  const animatedDecorationStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: decorationScale.value }],
-    opacity: decorationScale.value,
   }));
 
   const handleLogout = async () => {
@@ -121,84 +97,78 @@ const ProfileScreen = () => {
     : "U";
 
   return (
-    <View style={styles.container}>
-      {/* Animated Background */}
-      <Animated.View
-        style={[styles.backgroundContainer, animatedBackgroundStyle]}
+    <View className="flex-1 bg-[#076324]">
+      <LinearGradient
+        colors={["#076324", "#076345"]}
+        className="flex-1"
+        style={[styles.backgroundContainer]}
       >
-        <LinearGradient
-          colors={["#076324", "#076345"]}
-          style={styles.gradientBackground}
-        >
-          {/* Decorative elements */}
-          <Animated.View
-            style={[styles.decorationContainer, animatedDecorationStyle]}
-          >
-            {Array(5)
-              .fill(0)
-              .map((_, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.cardDecoration,
-                    {
-                      top: 80 + i * 120,
-                      left: i % 2 === 0 ? 20 : width - 70,
-                      transform: [{ rotate: `${i * 35}deg` }],
-                    },
-                  ]}
-                />
-              ))}
-          </Animated.View>
-        </LinearGradient>
-      </Animated.View>
+        {/* Decorative elements */}
+        {Array(5)
+          .fill(0)
+          .map((_, i) => (
+            <View
+              key={i}
+              style={[
+                styles.cardDecoration,
+                {
+                  top: 80 + i * 120,
+                  left: i % 2 === 0 ? 20 : width - 70,
+                  transform: [{ rotate: `${i * 35}deg` }],
+                },
+              ]}
+            />
+          ))}
+      </LinearGradient>
 
       {/* Header with back button */}
-      <Animated.View style={[styles.header, animatedHeaderStyle]}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-          activeOpacity={0.7}
-        >
-          <Ionicons name="arrow-back" size={24} color="#fff" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Profile</Text>
-        <View style={styles.placeholderRight} />
-      </Animated.View>
+      <TouchableOpacity
+        className="absolute left-3 top-5"
+        onPress={() => navigation.goBack()}
+      >
+        <Ionicons name="arrow-back" size={28} color="#fff" />
+      </TouchableOpacity>
 
       {/* Main Content */}
-      <View style={styles.mainContent}>
+      <View className="items-center justify-center flex-1 px-5">
         {/* Profile Card */}
-        <Animated.View style={[styles.profileCardContainer, animatedCardStyle]}>
-          <LinearGradient
-            colors={["rgba(255,255,255,0.95)", "rgba(245,245,245,0.9)"]}
-            style={styles.profileCard}
+        <View className="w-full md:w-11/12 md:mb-5 md:mt-5">
+          <Animated.ScrollView
+            style={[styles.profileCardContainer, animatedCardStyle]}
+            contentContainerStyle={{
+              overflow: "hidden",
+              backgroundColor: "rgba(245,245,245,0.9)",
+              padding: 24,
+            }}
+            showsVerticalScrollIndicator={false}
           >
             {/* Avatar */}
-            <View style={styles.avatarContainer}>
+            <View className="items-center mb-6">
               <LinearGradient
                 colors={["#0a8132", "#076324"]}
                 style={styles.avatar}
               >
-                <Text style={styles.avatarText}>{userInitial}</Text>
+                <Text className="text-4xl font-bold text-white">
+                  {userInitial}
+                </Text>
               </LinearGradient>
-              <View style={styles.underline} />
+              <View className="h-1 w-16 mt-3 bg-[#FFD700] rounded-sm" />
             </View>
 
             {/* User Info */}
-            <Animated.View style={[styles.infoSection, animatedContentStyle]}>
-              {userData?.displayName && (
-                <Text style={styles.displayName}>{userData.displayName}</Text>
-              )}
+            <Animated.View style={[animatedContentStyle]} className={"mb-6"}>
+              <Text className="text-2xl font-bold text-[#333] text-center mb-4">
+                {userData?.displayName}
+              </Text>
 
-              <View style={styles.infoItem}>
+              <View className="flex-row items-center mb-3 pb-3 border-b border-b-[#0002]">
                 <Ionicons name="mail-outline" size={20} color="#076324" />
-                <Text style={styles.infoText}>{userEmail}</Text>
+                <Text className="ml-3 text-lg text-[#444]">{userEmail}</Text>
               </View>
 
-              <View style={styles.infoItem}>
+              <View className="flex-row items-center mb-3 pb-3 border-b border-b-[#0002]">
                 <Ionicons name="calendar-outline" size={20} color="#076324" />
-                <Text style={styles.infoText}>
+                <Text className="ml-3 text-lg text-[#444]">
                   Joined:{" "}
                   {userData?.createdAt
                     ? new Date(userData.createdAt).toLocaleDateString()
@@ -206,24 +176,37 @@ const ProfileScreen = () => {
                 </Text>
               </View>
 
-              <View style={styles.statsContainer}>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>0</Text>
-                  <Text style={styles.statLabel}>Games</Text>
+              {/* Game Stats */}
+              <View className="flex-row justify-around pt-4 mt-4 border-t border-t-[#0002]">
+                <View className="items-center">
+                  <Text className="font-bold text-[#076324] text-2xl">
+                    {records?.length ?? 0}
+                  </Text>
+                  <Text className="text-sm text-[#666] mt-1">Games</Text>
                 </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>0</Text>
-                  <Text style={styles.statLabel}>Wins</Text>
+                <View className="items-center">
+                  <Text className="font-bold text-[#076324] text-2xl">
+                    {gameWon}
+                  </Text>
+                  <Text className="text-sm text-[#666] mt-1">Wins</Text>
                 </View>
-                <View style={styles.statItem}>
-                  <Text style={styles.statValue}>0%</Text>
-                  <Text style={styles.statLabel}>Win Rate</Text>
+                <View className="items-center">
+                  <Text className="font-bold text-[#076324] text-2xl">
+                    {((gameWon / (records?.length ?? 0)) * 100).toFixed(2)}%
+                  </Text>
+                  <Text className="text-sm text-[#666] mt-1">Win Rate</Text>
                 </View>
+                <TouchableOpacity
+                  className="absolute right-0 top-1"
+                  onPress={() => navigation.navigate("StatsScreen" as never)}
+                >
+                  <Ionicons name="stats-chart" size={22} color={"#094319"} />
+                </TouchableOpacity>
               </View>
             </Animated.View>
 
             {/* Logout Button */}
-            <Animated.View style={[styles.buttonWrapper, animatedButtonStyle]}>
+            <View className={"w-full mt-2"}>
               <TouchableOpacity
                 style={styles.logoutButton}
                 onPress={handleLogout}
@@ -231,35 +214,28 @@ const ProfileScreen = () => {
               >
                 <LinearGradient
                   colors={["#ff7e47", "#ff5722"]}
-                  style={styles.buttonGradient}
+                  className="flex-row items-center justify-center px-6 py-4 rounded-xl"
                 >
                   <Ionicons
                     name="log-out-outline"
                     size={20}
                     color="#fff"
-                    style={styles.buttonIcon}
+                    className="mr-2.5"
                   />
                   <Text style={styles.buttonText}>Logout</Text>
                 </LinearGradient>
               </TouchableOpacity>
-            </Animated.View>
-          </LinearGradient>
-        </Animated.View>
+            </View>
+          </Animated.ScrollView>
+        </View>
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#076324",
-  },
   backgroundContainer: {
     ...StyleSheet.absoluteFillObject,
-  },
-  gradientBackground: {
-    flex: 1,
   },
   decorationContainer: {
     ...StyleSheet.absoluteFillObject,
@@ -273,22 +249,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255, 255, 255, 0.3)",
   },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 16,
-    paddingTop: 50,
-    paddingBottom: 16,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: "center",
-    justifyContent: "center",
-    // backgroundColor: "rgba(0, 0, 0, 0.2)",
-  },
   headerTitle: {
     fontSize: 22,
     fontWeight: "bold",
@@ -297,33 +257,13 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
   },
-  placeholderRight: {
-    width: 40,
-  },
-  mainContent: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 20,
-  },
   profileCardContainer: {
-    width: "100%",
-    maxWidth: 500,
-    borderRadius: 16,
-    overflow: "hidden",
     elevation: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-  },
-  profileCard: {
-    padding: 24,
     borderRadius: 16,
-  },
-  avatarContainer: {
-    alignItems: "center",
-    marginBottom: 24,
   },
   avatar: {
     width: 88,
@@ -337,66 +277,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
   },
-  avatarText: {
-    fontSize: 36,
-    fontWeight: "bold",
-    color: "#fff",
-  },
-  underline: {
-    width: 60,
-    height: 3,
-    backgroundColor: "#FFD700",
-    borderRadius: 2,
-    marginTop: 12,
-  },
-  displayName: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#333",
-    textAlign: "center",
-    marginBottom: 16,
-  },
-  infoSection: {
-    marginBottom: 24,
-  },
-  infoItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "rgba(0,0,0,0.1)",
-  },
-  infoText: {
-    marginLeft: 12,
-    fontSize: 16,
-    color: "#444",
-  },
-  statsContainer: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 16,
-    paddingTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: "rgba(0,0,0,0.1)",
-  },
-  statItem: {
-    alignItems: "center",
-  },
-  statValue: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: "#076324",
-  },
-  statLabel: {
-    fontSize: 12,
-    color: "#666",
-    marginTop: 4,
-  },
-  buttonWrapper: {
-    width: "100%",
-    marginTop: 8,
-  },
   logoutButton: {
     width: "100%",
     borderRadius: 12,
@@ -406,17 +286,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
-  },
-  buttonGradient: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    borderRadius: 12,
-  },
-  buttonIcon: {
-    marginRight: 10,
   },
   buttonText: {
     color: "#fff",

@@ -20,7 +20,12 @@ import GameControls from "../components/GameControls";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { GameScore, Player } from "../types/Types";
+import {
+  GameRecord,
+  GameRecordPlayer,
+  GameScore,
+  Player,
+} from "../types/Types";
 import CardsGame, {
   CardsGameUIState,
 } from "../gameLogic/SinglePlayerGameClass";
@@ -29,6 +34,8 @@ import OpponentSection from "../components/OpponentSection";
 import PlayerSection from "../components/PlayerSection";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
 import { useSettingsStore } from "../context/SettingsStore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { storeGameRecordToFirestore } from "../gameLogic/FirestoreFunctions";
 
 type GameScreenStackParamList = {
   GameOver: {
@@ -76,7 +83,6 @@ const GameScreen = () => {
       if (gameRef.current) {
         gameRef.current.targetScore = targetScore;
         setGameState(gameRef.current.getState());
-        console.log(gameRef.current.targetScore);
       }
     }, 2000);
     return () => clearTimeout(timer);
@@ -141,6 +147,20 @@ const GameScreen = () => {
       BackHandler.removeEventListener("hardwareBackPress", onBackPress);
   }, []);
 
+  const playersListBuilder = () => {
+    const playersList: GameRecordPlayer[] = [];
+    if (!gameRef.current || !gameRef.current.players) return [];
+    for (const player of gameRef.current.players) {
+      playersList.push({
+        finalScore: player.score,
+        id: player.id,
+        name: player.name === userData?.displayName ? "You" : player.name,
+        position: 1,
+      });
+    }
+    return playersList;
+  };
+
   useEffect(() => {
     if (!gameRef.current) return;
 
@@ -148,6 +168,30 @@ const GameScreen = () => {
       gameRef?.current?.players[0].score >= gameRef.current.targetScore ||
       gameRef?.current?.players[1].score >= gameRef.current.targetScore
     ) {
+      const gameRecord: GameRecord = {
+        dateString: new Date().toUTCString(),
+        gameId: "game" + Math.random().toString(),
+        mode: "single-player",
+        playerCount: 2,
+        targetScore: targetScore,
+        winnerName:
+          gameRef.current.gameOverData.winner.name === userData?.displayName
+            ? "You"
+            : gameRef.current.gameOverData.winner.name,
+        winnerId: gameRef.current.gameOverData.winner.id,
+        players: playersListBuilder(),
+      };
+
+      // Retrieve existing records, append the new one, and save back
+      AsyncStorage.getItem("gameRecord")
+        .then(async (storedRecords) => {
+          const records = storedRecords ? JSON.parse(storedRecords) : [];
+          records.push(gameRecord); // Add the new record to the list
+          return AsyncStorage.setItem("gameRecord", JSON.stringify(records));
+        })
+        .then(() => console.log("Record Stored"))
+        .catch((error) => console.error("Error saving game record:", error));
+      storeGameRecordToFirestore(userId || "", gameRecord);
       navigation.navigate("GameOver", gameRef.current.gameOverData);
     }
   }, [gameState?.cardsPlayed]);
@@ -283,7 +327,7 @@ const GameScreen = () => {
         {/* MAIN GAME AREA */}
         <View className="flex-col items-center justify-between flex-1 my-4 md:flex-row">
           <View
-            className={`items-center bg-opponentArea rounded-[20px] p-2.5 w-10/12 md:w-1/3`}
+            className={`items-center bg-opponentArea rounded-[20px] p-2.5 w-10/12 md:w-1/3 h-36`}
           >
             <OpponentSection
               opponent={opponent}
@@ -295,11 +339,11 @@ const GameScreen = () => {
           </View>
 
           {/* Game Results in the Middle */}
-          <View className="items-center gap-8 mx-4 md:w-1/4 justify-evenly">
+          <View className="items-center w-full gap-8 mx-4 md:w-1/4 justify-evenly">
             {width < 500 && (
               <View
-                className="w-max-[200px] px-5 p-1 bg-logContainerBackground 
-                rounded-2xl items-center"
+                className="p-1 px-5 bg-logContainerBackground rounded-2xl"
+                style={{ minWidth: "50%" }}
               >
                 <Text
                   numberOfLines={2}
@@ -344,7 +388,7 @@ const GameScreen = () => {
             </View>
           </View>
 
-          <View className="items-center bg-playerArea rounded-[20px] p-2.5 w-10/12 md:w-1/3">
+          <View className="items-center bg-playerArea rounded-[20px] p-2.5 w-10/12 md:w-1/3 h-36">
             <PlayerSection
               player={currentUser}
               isDealing={gameState.isDealing}
@@ -358,7 +402,7 @@ const GameScreen = () => {
                 }
               }
               width={width}
-              opponentHandsLength={opponent.hands.length}
+              playersHandsLength={opponent.hands.length}
             />
           </View>
         </View>
@@ -377,7 +421,9 @@ const GameScreen = () => {
           </View>
         )}
 
-        {<GameHistory gameHistory={gameState.gameHistory} />}
+        {(height > 700 || width > 600) && (
+          <GameHistory gameHistory={gameState.gameHistory} />
+        )}
       </SafeAreaView>
     </GestureHandlerRootView>
   );

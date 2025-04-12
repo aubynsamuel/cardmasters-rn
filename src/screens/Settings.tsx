@@ -33,7 +33,7 @@ const SettingsScreen = () => {
     setSfxVolume,
     setMuted,
     setTargetScore,
-    setShowTutorials,
+    // setShowTutorials,
     setFriendNotifications,
     loadSettings,
     saveSettings,
@@ -44,7 +44,7 @@ const SettingsScreen = () => {
   const contentOpacity = useSharedValue(0);
   const translateY = useSharedValue(50);
 
-  const targetScoreOptions = [5, 10, 20, 30, 40];
+  const targetScoreOptions = [1, 5, 10, 20, 30];
 
   useEffect(() => {
     loadSettings();
@@ -204,7 +204,7 @@ const SettingsScreen = () => {
               </View>
             </View>
 
-            <View style={styles.settingRow}>
+            {/* <View style={styles.settingRow}>
               <Text style={styles.settingLabel}>Show Tutorials</Text>
               <Switch
                 value={showTutorials}
@@ -212,6 +212,23 @@ const SettingsScreen = () => {
                 trackColor={{ false: "#767577", true: "#FFD700" }}
                 thumbColor={showTutorials ? "#f4f3f4" : "#f4f3f4"}
               />
+            </View> */}
+
+            <View style={styles.settingRow}>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("GameRulesScreen" as never)}
+                style={{ alignItems: "center", width: "100%" }}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.settingLabel,
+                    { fontWeight: "bold", color: "#FFD700" },
+                  ]}
+                >
+                  Game Rules
+                </Text>
+              </TouchableOpacity>
             </View>
           </View>
 
@@ -250,7 +267,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     padding: 10,
-    paddingLeft: 30,
+    paddingLeft: 10,
     borderBottomWidth: 1,
     borderBottomColor: "rgba(255, 255, 255, 0.2)",
   },
@@ -322,8 +339,9 @@ const styles = StyleSheet.create({
   },
   optionsContainer: {
     flexDirection: "row",
-    justifyContent: "flex-end",
-    flexWrap: "wrap",
+    justifyContent: "center",
+    // flexWrap: "wrap",
+    width: "100%",
   },
   optionButton: {
     backgroundColor: "rgba(255, 255, 255, 0.2)",
