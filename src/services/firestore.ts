@@ -5,8 +5,8 @@ import {
   addDoc,
   getDocs,
 } from "firebase/firestore";
-import { db } from "../firebaseConfig";
-import { GameRecord } from "../types/Types";
+import { db } from "../config/firebase";
+import { GameRecord } from "../types/types";
 
 const storeGameRecordToFirestore = async (
   userId: string,

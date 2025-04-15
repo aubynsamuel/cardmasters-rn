@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   BackHandler,
 } from "react-native";
-import getStyles from "../styles/GameScreenStyles";
+import getStyles from "../styles/gameScreenStyles";
 import { StatusBar } from "expo-status-bar";
 import GameHistory from "../components/GameHistory";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -25,17 +25,17 @@ import {
   GameRecordPlayer,
   GameScore,
   Player,
-} from "../types/Types";
+} from "../types/types";
 import CardsGame, {
   CardsGameUIState,
-} from "../gameLogic/SinglePlayerGameClass";
+} from "../gameLogic/singlePlayerGameClass";
 import { useAuth } from "../context/AuthContext";
 import OpponentSection from "../components/OpponentSection";
 import PlayerSection from "../components/PlayerSection";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
-import { useSettingsStore } from "../context/SettingsStore";
+import { useSettingsStore } from "../store/settingsStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { storeGameRecordToFirestore } from "../gameLogic/FirestoreFunctions";
+import { storeGameRecordToFirestore } from "../services/firestore";
 
 type GameScreenStackParamList = {
   GameOver: {

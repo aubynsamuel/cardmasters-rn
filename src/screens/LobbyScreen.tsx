@@ -10,8 +10,8 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { LobbyRoom } from "../types/Types";
-import { useLobby } from "../customHooks/useLobby";
+import { LobbyRoom } from "../types/types";
+import { useLobby } from "../hooks/useLobby";
 
 interface RoomItemProps {
   item: LobbyRoom;

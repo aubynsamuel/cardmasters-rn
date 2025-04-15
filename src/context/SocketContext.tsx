@@ -6,8 +6,8 @@ import React, {
   ReactNode,
 } from "react";
 import { io, Socket } from "socket.io-client";
-import { SERVER_URL } from "../firebaseConfig";
 
+const SERVER_URL = process.env.SERVER_URL;
 // const SERVER_URL = "http://192.168.7.88:3000";
 
 interface SocketContextProps {

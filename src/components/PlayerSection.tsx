@@ -3,7 +3,7 @@ import { View, Text } from "react-native";
 import Animated, { FlipInEasyX, SharedValue } from "react-native-reanimated";
 import CardComponent from "./CardComponent";
 import AnimatedScoreDisplay from "./AccumulatedScoreDisplay";
-import { Card, Player } from "../types/Types";
+import { Card, Player } from "../types/types";
 
 type PlayerSectionProps = {
   player: Player;

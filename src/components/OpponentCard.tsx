@@ -1,7 +1,7 @@
 import { StyleSheet, View } from "react-native";
 import React from "react";
 import DiagonalStripes from "./DiagonalStripes";
-import Colors from "../theme/Colors";
+import Colors from "../theme/colors";
 
 const OpponentCard = () => {
   return (

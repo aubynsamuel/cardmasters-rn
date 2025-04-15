@@ -14,10 +14,12 @@ import { useAuth } from "../context/AuthContext";
 import { FirebaseError } from "firebase/app";
 import { useNavigation } from "@react-navigation/native";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
+import { Ionicons } from "@expo/vector-icons";
 
 const AuthScreen = () => {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -141,7 +143,7 @@ const AuthScreen = () => {
         end={{ x: 1, y: 1 }}
       >
         <ScrollView
-          contentContainerClassName="flex-grow justify-center px-6 py-8"
+          contentContainerClassName="flex-grow justify-center px-6 py-8 md:w-8/12 md:self-center"
           showsVerticalScrollIndicator={false}
         >
           <View className="items-center mb-10">
@@ -150,18 +152,18 @@ const AuthScreen = () => {
           </View>
 
           <View className="p-6 bg-white shadow-lg rounded-3xl">
-            <Text className="mb-6 text-2xl font-bold text-center text-gray-800">
+            <Text className="mb-6 text-3xl font-bold text-center text-gray-800">
               {isLogin ? "Welcome Back" : "Create Account"}
             </Text>
 
             <View className="space-y-4">
-              <View>
-                <Text className="mb-1 ml-1 text-sm font-medium text-gray-600">
+              <View className="my-1">
+                <Text className="mb-1 ml-1 text-[16px] font-medium text-gray-600">
                   Email
                 </Text>
                 <TextInput
                   className="px-4 py-3 text-gray-800 border border-gray-200 bg-gray-50 rounded-xl"
-                  placeholder="your@email.com"
+                  placeholder="example@email.com"
                   placeholderTextColor="#9CA3AF"
                   value={email}
                   onChangeText={setEmail}
@@ -172,8 +174,8 @@ const AuthScreen = () => {
               </View>
 
               {!isLogin && (
-                <View>
-                  <Text className="mb-1 ml-1 text-sm font-medium text-gray-600">
+                <View className="my-1">
+                  <Text className="mb-1 ml-1 text-[16px] font-medium text-gray-600">
                     Display Name (optional)
                   </Text>
                   <TextInput
@@ -187,24 +189,32 @@ const AuthScreen = () => {
                 </View>
               )}
 
-              <View>
-                <Text className="mb-1 ml-1 text-sm font-medium text-gray-600">
+              <View className="my-1">
+                <Text className="mb-1 ml-1 text-[16px] font-medium text-gray-600">
                   Password
                 </Text>
-                <TextInput
-                  className="px-4 py-3 text-gray-800 border border-gray-200 bg-gray-50 rounded-xl"
-                  placeholder="••••••••"
-                  placeholderTextColor="#9CA3AF"
-                  value={password}
-                  onChangeText={setPassword}
-                  secureTextEntry
-                  autoComplete="password"
-                />
+                <View className="flex-row items-center w-full">
+                  <TextInput
+                    className="w-full px-4 py-3 text-gray-800 border border-gray-200 bg-gray-50 rounded-xl"
+                    placeholder="••••••••"
+                    placeholderTextColor="#9CA3AF"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                    autoComplete="password"
+                  />
+                  <Ionicons
+                    name={showPassword ? "eye" : "eye-off"}
+                    size={22}
+                    className="absolute z-30 right-2"
+                    onPress={() => setShowPassword((prev) => !prev)}
+                  />
+                </View>
               </View>
 
               {!isLogin && (
-                <View>
-                  <Text className="mb-1 ml-1 text-sm font-medium text-gray-600">
+                <View className="my-1">
+                  <Text className="mb-1 ml-1 text-[16px] font-medium text-gray-600">
                     Confirm Password
                   </Text>
                   <TextInput
@@ -245,7 +255,7 @@ const AuthScreen = () => {
               className="mt-6"
               activeOpacity={0.7}
             >
-              <Text className="font-medium text-center text-emerald-600">
+              <Text className="text-[16px] font-medium text-center text-emerald-600">
                 {isLogin
                   ? "Don't have an account? Create one"
                   : "Already have an account? Log in"}

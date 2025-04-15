@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { BackHandler } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { JoinRequestResponsePayload, LobbyRoom, Room } from "../types/Types";
+import { JoinRequestResponsePayload, LobbyRoom, Room } from "../types/types";
 import { useSocket } from "../context/SocketContext";
 import { useAuth } from "../context/AuthContext";
 import { useCustomAlerts } from "../context/CustomAlertsContext";

@@ -19,7 +19,7 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
-import { GameRecord } from "../types/Types";
+import { GameRecord } from "../types/types";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProfileScreen = () => {

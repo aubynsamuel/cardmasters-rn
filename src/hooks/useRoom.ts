@@ -16,7 +16,7 @@ import {
   Player,
   PlayerStatus,
   Message,
-} from "../types/Types";
+} from "../types/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
 import { useSocket } from "../context/SocketContext";

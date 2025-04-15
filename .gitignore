@@ -36,6 +36,6 @@ yarn-error.*
 *.tsbuildinfo
 
 app-example
-eas.json
-src/firebaseConfig.ts
 .vscode
+eas.json
+.env

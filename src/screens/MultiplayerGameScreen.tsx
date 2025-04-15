@@ -7,7 +7,7 @@ import {
   BackHandler,
   ActivityIndicator,
 } from "react-native";
-import getStyles from "../styles/GameScreenStyles";
+import getStyles from "../styles/gameScreenStyles";
 import { StatusBar } from "expo-status-bar";
 import GameHistory from "../components/GameHistory";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -30,15 +30,15 @@ import {
   Player,
   PlayerLeftPayload,
   validPlay,
-} from "../types/Types";
+} from "../types/types";
 import { useSocket } from "../context/SocketContext";
 import { useAuth } from "../context/AuthContext";
 import PlayerSection from "../components/PlayerSection";
 import OpponentSection from "../components/OpponentSection";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
-import Colors from "../theme/Colors";
+import Colors from "../theme/colors";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { storeGameRecordToFirestore } from "../gameLogic/FirestoreFunctions";
+import { storeGameRecordToFirestore } from "../services/firestore";
 
 type GameScreenStackParamList = {
   RoomScreen: GameStartedPayload;

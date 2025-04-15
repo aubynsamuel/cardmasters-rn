@@ -1,6 +1,6 @@
-import { GameRecord, GameScore } from "./Types";
+import { GameRecord } from "../types/types";
 
-export const dummyGameRecords: GameRecord[] = [
+export const dummyRecords: GameRecord[] = [
   {
     gameId: "game-123456",
     dateString: new Date().toUTCString(),
@@ -65,11 +65,4 @@ export const dummyGameRecords: GameRecord[] = [
     winnerId: "p11",
     winnerName: "You",
   },
-];
-
-export const dummyScores: GameScore[] = [
-  { playerName: "Alice", score: 120 },
-  { playerName: "Bob", score: 95 },
-  { playerName: "Charlie", score: 150 },
-  { playerName: "Diana", score: 110 },
 ];

@@ -180,6 +180,7 @@ interface GameRecord {
   winnerId: string;
   winnerName: string;
 }
+
 interface GameRecordPlayer {
   id: string;
   name: string;

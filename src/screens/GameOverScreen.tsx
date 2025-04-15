@@ -18,8 +18,8 @@ import Animated, {
   withDelay,
   Easing,
 } from "react-native-reanimated";
-import { gameScoreToString } from "../gameLogic/GameUtils";
-import { Player, Room } from "../types/Types";
+import { gameScoreToString } from "../gameLogic/utils";
+import { Player, Room } from "../types/types";
 
 interface GameOverScreenProps {
   route: {

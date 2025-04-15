@@ -8,8 +8,8 @@ import {
   User,
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
-import { auth, db } from "../firebaseConfig";
-import { useSettingsStore } from "./SettingsStore";
+import { auth, db } from "../config/firebase";
+import { useSettingsStore } from "../store/settingsStore";
 
 type UserData = {
   email: string;

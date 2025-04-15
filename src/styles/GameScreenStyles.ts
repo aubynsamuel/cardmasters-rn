@@ -1,42 +1,12 @@
 import { StyleSheet } from "react-native";
-import Colors from "../theme/Colors";
+import Colors from "../theme/colors";
 
 const getStyles = (width: number, height: number) => {
   const styles = StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: Colors.containerBackground,
-      paddingHorizontal: 10,
-      justifyContent: "center",
-    },
-    mainGameArea: {
-      flexDirection: width > 500 ? "row" : "column",
-      flex: 1,
-      alignItems: "center",
-      justifyContent: "space-between",
-      alignSelf: "center",
-    },
-    hand: {
-      flexDirection: "row",
-    },
-    gameResultSection: {
-      justifyContent: "space-evenly",
-      alignItems: "center",
-      gap: "4%",
-    },
     message: {
       fontSize: 16,
       textAlign: "center",
       color: Colors.mainTextColor,
-    },
-    messageContainer: {
-      bottom: 10,
-      width: "auto",
-      minWidth: 200,
-      paddingHorizontal: 20,
-      padding: 5,
-      backgroundColor: Colors.logContainerBackground,
-      borderRadius: 15,
     },
     currentRound: {
       fontSize: 18,

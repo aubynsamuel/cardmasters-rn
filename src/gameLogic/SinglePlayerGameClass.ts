@@ -4,7 +4,7 @@ import {
   dealCards,
   shuffleDeck,
   suitSymbols,
-} from "./GameUtils";
+} from "./utils";
 import {
   Card,
   gameHistoryType,
@@ -13,7 +13,7 @@ import {
   GameScore,
   Suit,
   Deck,
-} from "../types/Types";
+} from "../types/types";
 
 export interface CardsGameUIState {
   players: Player[];
