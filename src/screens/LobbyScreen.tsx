@@ -10,12 +10,8 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
-import { LobbyRoom } from "../types/types";
 import { useLobby } from "../hooks/useLobby";
-
-interface RoomItemProps {
-  item: LobbyRoom;
-}
+import { LobbyRoom } from "../types/serverPayloadTypes";
 
 const MultiplayerLobbyScreen = () => {
   const {
@@ -28,7 +24,7 @@ const MultiplayerLobbyScreen = () => {
     navigation,
   } = useLobby();
 
-  const renderRoomItem = ({ item }: RoomItemProps) => (
+  const renderRoomItem = ({ item }: { item: LobbyRoom }) => (
     <TouchableOpacity
       style={styles.roomItemContainer}
       onPress={() => handleJoinRoom(item.id)}
@@ -68,7 +64,6 @@ const MultiplayerLobbyScreen = () => {
 
   return (
     <LinearGradient colors={["#076324", "#076345"]} style={styles.container}>
-      {/* Background decorative elements */}
       <View style={styles.decorationContainer}>
         {Array(5)
           .fill(0)

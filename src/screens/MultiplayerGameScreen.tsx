@@ -1,189 +1,47 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  useWindowDimensions,
   TouchableOpacity,
-  BackHandler,
   ActivityIndicator,
+  useWindowDimensions,
+  BackHandler,
 } from "react-native";
-import getStyles from "../styles/gameScreenStyles";
 import { StatusBar } from "expo-status-bar";
 import GameHistory from "../components/GameHistory";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { useSharedValue, withSpring } from "react-native-reanimated";
 import ShufflingAnimation from "../components/ShufflingAnimations";
 import EmptyCard from "../components/EmptySlotCard";
 import SlotCard from "../components/SlotCard";
 import TopRow from "../components/TopRow";
 import GameControls from "../components/GameControls";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import {
-  CardsGameState,
-  GameRecord,
-  GameRecordPlayer,
-  GameScore,
-  GameStartedPayload,
-  Player,
-  PlayerLeftPayload,
-  validPlay,
-} from "../types/types";
-import { useSocket } from "../context/SocketContext";
-import { useAuth } from "../context/AuthContext";
 import PlayerSection from "../components/PlayerSection";
 import OpponentSection from "../components/OpponentSection";
-import { useCustomAlerts } from "../context/CustomAlertsContext";
 import Colors from "../theme/colors";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { storeGameRecordToFirestore } from "../services/firestore";
-
-type GameScreenStackParamList = {
-  RoomScreen: GameStartedPayload;
-  GameOver: {
-    winner: Player;
-    score: GameScore[];
-    isCurrentPlayer: boolean;
-    isMultiPlayer: boolean;
-  };
-};
-
-type GameScreenProps = NativeStackNavigationProp<
-  GameScreenStackParamList,
-  "GameOver",
-  "RoomScreen"
->;
-
-const RECONNECTION_RETRIES = 4;
+import getStyles from "../styles/gameScreenStyles";
+import { useSharedValue, withSpring } from "react-native-reanimated";
+import { useMultiplayerGame } from "../hooks/useMultiplayerGame";
 
 const MultiPlayerGameScreen = () => {
-  const navigation = useNavigation<GameScreenProps>();
-  const route = useRoute();
   const { width, height } = useWindowDimensions();
   const styles = getStyles(width, height);
-  const { isConnected, socket, socketId } = useSocket();
-  const { userId, userData } = useAuth();
-  const { roomId, roomData } = route.params as GameStartedPayload;
-  const [gameState, setGameState] = useState<CardsGameState | null>(null);
   const [showControlsOverlay, setShowControlsOverlay] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
   const computerControlScale = useSharedValue(0);
   const humanControlScale = useSharedValue(0);
-  const { showAlert, showToast, hideAlert } = useCustomAlerts();
-  const reconnectionRetries = useRef(0);
-  const reconnectionTimeOut = useRef<NodeJS.Timeout>();
-  const waitingReconnectionTimeOut = useRef<NodeJS.Timeout>();
-  const thirtySecondsTimer = useRef<NodeJS.Timeout>();
-  const reconnectionId = useRef<string | null | undefined>();
-  const [reconnectionDisplay, setReconnectionDisplay] = useState({
-    message: "",
-    show: false,
-  });
+  const {
+    gameState,
+    isLoading,
+    userId,
+    socketId,
+    reconnectionDisplay,
+    socket,
+    roomId,
+    QuitGameAlert,
+  } = useMultiplayerGame();
 
-  useEffect(() => {
-    reconnectionId.current = socketId;
-    return () => {
-      clearTimeout(waitingReconnectionTimeOut.current);
-      clearTimeout(reconnectionTimeOut.current);
-      clearTimeout(thirtySecondsTimer.current);
-    };
-  }, []);
-
-  // Hardware-Back-Press Event Handler
-  useEffect(() => {
-    const onBackPress = () => {
-      QuitGameAlert();
-      return true;
-    };
-    BackHandler.addEventListener("hardwareBackPress", onBackPress);
-    return () =>
-      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
-  }, []);
-
-  const playersListBuilder = () => {
-    const playersList: GameRecordPlayer[] = [];
-    if (!gameState || !gameState.players) return [];
-    for (const player of gameState.players) {
-      playersList.push({
-        finalScore: player.score,
-        id: player.id,
-        name: player.name === userData?.displayName ? "You" : player.name,
-        position: 1,
-      });
-    }
-    return playersList;
-  };
-
-  // Game over event handler
-  useEffect(() => {
-    if (!gameState) return;
-
-    const currentPlayer = gameState.players.find(
-      (player) => player.id === userId || player.id === socketId
-    );
-
-    const opponentPlayer = gameState.players.find(
-      (player) => player.id !== userId && player.id !== socketId
-    );
-
-    if (!currentPlayer || !opponentPlayer) return;
-
-    if (gameState.players.some((p) => p.score >= gameState.gameTo)) {
-      const gameRecord: GameRecord = {
-        dateString: new Date().toUTCString(),
-        gameId: "game" + Math.random().toString(),
-        mode: "multiplayer",
-        playerCount: 2,
-        targetScore: gameState.gameTo,
-        winnerName:
-          gameState.gameOverData.winner.name === userData?.displayName
-            ? "You"
-            : gameState.gameOverData.winner.name,
-        winnerId: gameState.gameOverData.winner.id,
-        players: playersListBuilder(),
-      };
-
-      // Retrieve existing records, append the new one, and save back
-      AsyncStorage.getItem("gameRecord")
-        .then(async (storedRecords) => {
-          const records = storedRecords ? JSON.parse(storedRecords) : [];
-          records.push(gameRecord); // Add the new record to the list
-          return AsyncStorage.setItem("gameRecord", JSON.stringify(records));
-        })
-        .then(() => console.log("Record Stored"))
-        .catch((error) => console.error("Error saving game record:", error));
-      storeGameRecordToFirestore(userId || "", gameRecord);
-
-      socket?.emit("game_ended", { roomId });
-      const gameScoreList = gameState.players.map((player) => ({
-        playerName: player.name,
-        score: player.score,
-      }));
-      if (gameState.gameOverData) {
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: "GameOver",
-              params: {
-                winner: gameState.gameOverData.winner,
-                isCurrentPlayer:
-                  gameState.gameOverData.winner.id === currentPlayer?.id,
-                isMultiPlayer: true,
-                score: gameScoreList,
-                roomId: roomId,
-                initialRoomData: roomData,
-              },
-            },
-          ],
-        });
-      }
-    }
-  }, [gameState?.cardsPlayed, gameState?.players]);
-
-  // CurrentControl Indicator Animation Handlers
+  // Current Control Indicator Animation
   useEffect(() => {
     if (!gameState || !gameState.currentControl) return;
 
@@ -216,240 +74,18 @@ const MultiPlayerGameScreen = () => {
         duration: 500,
         stiffness: 300,
       });
-  }, [gameState?.currentControl, gameState?.players, userId, socketId]);
+  }, [gameState?.currentControl]);
 
-  // Socket Events Registration and cleanup
+  // Hardware-Back-Press Event Handler
   useEffect(() => {
-    if (socket && isConnected) {
-      socket.on("game_state_update", handleGameStateUpdate);
-      socket.on("player_left", handlePlayerLeft);
-      socket.on("play_error", handlePlayError);
-      socket.on("disconnect", handleDisconnect);
-      socket.on("reconnection_response", handleReconnectionResponse);
-      socket.on("player_reconnected", handlePlayerReconnected);
-
-      return () => {
-        socket.off("game_state_update", handleGameStateUpdate);
-        socket.off("player_left", handlePlayerLeft);
-        socket.off("play_error", handlePlayError);
-        socket.off("disconnect", handleDisconnect);
-        socket?.off("reconnection_response", handleReconnectionResponse);
-        socket.off("player_reconnected", handlePlayerReconnected);
-      };
-    }
-  }, [socket, isConnected, roomId]);
-
-  // Socket Event Handlers
-  const handleReconnectionResponse = ({
-    message,
-    status,
-  }: {
-    message: string;
-    status: string;
-  }) => {
-    if (status === "success") {
-      // Reset all reconnection state
-      setReconnectionDisplay({ message: message, show: true });
-      if (message === "Reconnected Waiting for next round") {
-        setTimeout(() => {
-          setReconnectionDisplay({ show: false, message: "" });
-        }, 8000);
-      } else setReconnectionDisplay({ show: false, message: "" });
-
-      clearTimeout(reconnectionTimeOut.current);
-      reconnectionRetries.current = 0;
-      reconnectionId.current = socketId;
-      console.log("reconnection message");
-      // showToast({ message, type: "success", duration: 3000 });
-      setIsLoading(false);
-    } else {
-      handleReconnectionFailure(message);
-    }
-  };
-
-  const handlePlayerReconnected = ({ message }: { message: string }) => {
-    showToast({ message, type: "info" });
-    clearTimeout(waitingReconnectionTimeOut.current);
-    hideAlert();
-    clearTimeout(thirtySecondsTimer.current);
-    setReconnectionDisplay({ message: "", show: false });
-  };
-
-  const handlePlayError = ({ valid }: validPlay) => {
-    showToast({
-      message: valid.message,
-      duration: 2000,
-      type: "error",
-    });
-  };
-
-  const handleGameStateUpdate = (newState: CardsGameState) => {
-    clearTimeout(reconnectionTimeOut.current);
-    setGameState((prev) => ({ ...prev, ...newState }));
-    setIsLoading(false);
-  };
-
-  const handleDisconnect = () => {
-    reconnectionRetries.current = 0;
-    console.log("[MultiPlayerGameScreen] Handling disconnect");
-    reconnectToServer();
-  };
-
-  const handlePlayerLeft = (data: PlayerLeftPayload) => {
-    if (data.userId === socket?.id) return;
-
-    clearTimeout(waitingReconnectionTimeOut.current);
-
-    if (data.updatedPlayers && data.updatedPlayers.length >= 2) {
-      showToast({
-        message: `${data.playerName} has lost connection`,
-        type: "warning",
-        duration: 3000,
-      });
-
-      setGameState((prevState) =>
-        prevState
-          ? {
-              ...prevState,
-              players: data.updatedPlayers,
-            }
-          : null
-      );
-    } else if (data.isIntentional) {
-      showAlert({
-        title: `${data.playerName} left the game`,
-        message: "Not enough players to continue, Returning to lobby",
-        type: "warning",
-        buttons: [
-          {
-            text: "Ok",
-            onPress: () => {
-              socket?.emit("leave_room", { roomId });
-              navigateToLobby();
-              clearTimeout(thirtySecondsTimer.current);
-            },
-          },
-        ],
-      });
-    } else {
-      showToast({
-        message: `${data.playerName} has lost connection reconnecting...`,
-        type: "warning",
-        duration: 3000,
-      });
-
-      thirtySecondsTimer.current = setTimeout(() => {
-        handleReconnectionFailure(
-          `${data.playerName} could not be reconnected`
-        );
-      }, 25000);
-
-      waitingReconnectionTimeOut.current = setTimeout(() => {
-        showAlert({
-          title: `${data.playerName} has lost connection`,
-          message: "Not enough players to continue",
-          type: "error",
-          buttons: [
-            { text: "Wait", onPress: () => {}, negative: true },
-            {
-              text: "Leave Game",
-              onPress: () => {
-                socket?.emit("leave_room", { roomId });
-                navigateToLobby();
-                clearTimeout(thirtySecondsTimer.current);
-              },
-            },
-          ],
-        });
-      }, 5000);
-    }
-  };
-
-  // Helper Functions
-  const reconnectToServer = () => {
-    // Don't start a new reconnection if we've already reached the max retries
-    if (reconnectionRetries.current >= RECONNECTION_RETRIES) {
-      handleReconnectionFailure("Reconnection attempts exceeded");
-      return;
-    }
-
-    // Update the display to show current reconnection attempt
-    setReconnectionDisplay({
-      message: `Reconnecting... (${reconnectionRetries.current}/3)`,
-      show: true,
-    });
-
-    clearTimeout(reconnectionTimeOut.current);
-
-    if (reconnectionId.current) {
-      console.log(
-        `[MultiPlayerGameScreen] Attempting reconnection ${reconnectionRetries.current}/3 with ID:`,
-        reconnectionId.current
-      );
-      socket?.emit("reconnection", { savedId: reconnectionId.current });
-
-      reconnectionRetries.current += 1;
-
-      reconnectionTimeOut.current = setTimeout(() => {
-        if (reconnectionRetries.current < RECONNECTION_RETRIES) {
-          reconnectToServer();
-        } else {
-          handleReconnectionFailure(
-            "Reconnection timed out after multiple attempts"
-          );
-        }
-      }, 10000);
-    } else {
-      handleReconnectionFailure("No session information found");
-    }
-  };
-
-  const handleReconnectionFailure = (message: string) => {
-    clearTimeout(reconnectionTimeOut.current);
-    showAlert({
-      title: "Connection Lost",
-      message: `${message}. Returning to lobby.`,
-      type: "error",
-      buttons: [
-        {
-          text: "OK",
-          onPress: () => {
-            navigateToLobby();
-            socket?.emit("leave_room", { roomId });
-          },
-        },
-      ],
-    });
-  };
-
-  const navigateToLobby = () => {
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "MultiplayerLobby" as never }],
-    });
-  };
-
-  const QuitGameAlert = () => {
-    showAlert({
-      title: "Quit Game",
-      message: "Do you want to quit game",
-      type: "warning",
-      buttons: [
-        {
-          text: "No",
-          onPress: () => {},
-        },
-        {
-          text: "Yes",
-          negative: true,
-          onPress: () => {
-            socket?.emit("leave_room", { roomId });
-            navigateToLobby();
-          },
-        },
-      ],
-    });
-  };
+    const onBackPress = () => {
+      QuitGameAlert();
+      return true;
+    };
+    BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    return () =>
+      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+  }, []);
 
   if (isLoading || !gameState || !gameState.players) {
     return (
@@ -566,11 +202,7 @@ const MultiPlayerGameScreen = () => {
 
         {/* Controls Overlay */}
         {showControlsOverlay && (
-          <TouchableOpacity
-            activeOpacity={1}
-            style={styles.overlayContainer}
-            // onPress={() => setShowControlsOverlay(false)}
-          >
+          <TouchableOpacity activeOpacity={1} style={styles.overlayContainer}>
             <View style={styles.overlayContent}>
               <View style={styles.overlayHeader}>
                 <Text style={styles.overlayTitle}>Options</Text>

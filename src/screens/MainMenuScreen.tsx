@@ -22,7 +22,6 @@ const MainMenuScreen = () => {
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
   const extendedStyles = getStyles();
-
   const titleOpacity = useSharedValue(0);
   const titleScale = useSharedValue(0.8);
   const buttonOpacity1 = useSharedValue(0);

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { StyleSheet, View } from "react-native";
+import { View } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -39,7 +39,6 @@ const AccumulatedScoreDisplay: React.FC<AccumulatedScoreDisplay> = ({
     }
   }, [visible, points]);
 
-  // When points change, add a little bounce effect
   useEffect(() => {
     if (visible && points > 0) {
       // eslint-disable-next-line react-compiler/react-compiler
@@ -49,7 +48,6 @@ const AccumulatedScoreDisplay: React.FC<AccumulatedScoreDisplay> = ({
       });
       rotation.value = withSpring(-0.05, { damping: 3 });
 
-      // Return to normal size after the bounce
       setTimeout(() => {
         scale.value = withSpring(1);
         rotation.value = withSpring(0);
@@ -77,30 +75,20 @@ const AccumulatedScoreDisplay: React.FC<AccumulatedScoreDisplay> = ({
   });
 
   return (
-    <Animated.View style={[styles.container, animatedStyle]}>
-      <View style={styles.textContainer}>
-        <Animated.Text style={[styles.mainText, textColorStyle]}>
+    <Animated.View
+      style={[animatedStyle]}
+      className={`absolute top-[5px] right-4`}
+    >
+      <View className="relative">
+        <Animated.Text
+          style={[textColorStyle]}
+          className={`text-xl font-bold text-white`}
+        >
           + {points}
         </Animated.Text>
       </View>
     </Animated.View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    position: "absolute",
-    top: 5,
-    right: 15,
-  },
-  textContainer: {
-    position: "relative",
-  },
-  mainText: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#FFFFFF",
-  },
-});
 
 export default AccumulatedScoreDisplay;

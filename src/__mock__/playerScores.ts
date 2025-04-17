@@ -1,4 +1,4 @@
-import { GameScore } from "../types/types";
+import { GameScore } from "../types/gamePlayTypes";
 
 export const dummyScores: GameScore[] = [
   { playerName: "Alice", score: 120 },

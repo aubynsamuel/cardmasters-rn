@@ -6,20 +6,20 @@ import {
   useFocusEffect,
   RouteProp,
 } from "@react-navigation/native";
-import {
-  Room,
-  OwnerChangedPayload,
-  PlayerJoinedPayload,
-  PlayerLeftPayload,
-  GameStartedPayload,
-  ErrorPayload,
-  Player,
-  PlayerStatus,
-  Message,
-} from "../types/types";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
 import { useSocket } from "../context/SocketContext";
+import {
+  Room,
+  PlayerJoinedPayload,
+  PlayerLeftPayload,
+  OwnerChangedPayload,
+  GameStartedPayload,
+  ErrorPayload,
+  PlayerStatus,
+  Player,
+  Message,
+} from "../types/serverPayloadTypes";
 
 type RootStackParamList = {
   RoomScreen: {

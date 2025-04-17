@@ -112,7 +112,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       );
       const user = userCredential.user;
 
-      // Create user document in Firestore
       const userData: UserData = {
         email: email,
         displayName: displayName || "",

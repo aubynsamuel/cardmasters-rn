@@ -19,7 +19,7 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
-import { GameRecord } from "../types/types";
+import { GameRecord } from "../types/gamePlayTypes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ProfileScreen = () => {
@@ -28,7 +28,6 @@ const ProfileScreen = () => {
   const { width } = useWindowDimensions();
   const { showAlert } = useCustomAlerts();
 
-  // Animation values
   const cardScale = useSharedValue(0.9);
   const cardOpacity = useSharedValue(0);
   const headerOpacity = useSharedValue(0);

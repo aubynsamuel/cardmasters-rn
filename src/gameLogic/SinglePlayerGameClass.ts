@@ -8,12 +8,12 @@ import {
 import {
   Card,
   gameHistoryType,
-  Player,
   Play,
   GameScore,
   Suit,
   Deck,
-} from "../types/types";
+} from "../types/gamePlayTypes";
+import { Player } from "../types/serverPayloadTypes";
 
 export interface CardsGameUIState {
   players: Player[];
@@ -83,7 +83,6 @@ class CardsGame {
     this.accumulatedPoints = 0;
     this.lastPlayedSuit = null;
     this.currentControl = players[0];
-    // Initialize gameState with empty arrays:
     this.deck = [];
     this.callbacks = {
       onStateChange: () => {},
@@ -99,12 +98,10 @@ class CardsGame {
     this.targetScore = targetScore;
   }
 
-  // Register callbacks from the React component
   setCallbacks(callbacks: Partial<Callbacks>): void {
     this.callbacks = { ...this.callbacks, ...callbacks };
   }
 
-  // Get current UI state for React component
   getState(): CardsGameUIState {
     return {
       players: this.players,
@@ -127,7 +124,6 @@ class CardsGame {
     };
   }
 
-  // Update state and notify React component
   updateState(newState: Partial<CardsGameUIState>): void {
     Object.assign(this, newState);
     this.callbacks.onStateChange(this.getState());
@@ -171,7 +167,6 @@ class CardsGame {
       currentControl: this.players[nextControlIndex],
     });
 
-    // Show the shuffling animation for 2 seconds
     setTimeout(
       () => {
         this.updateState({
@@ -182,10 +177,8 @@ class CardsGame {
         this.handleGameState();
         this.updateState({ isDealing: true });
 
-        // Deal cards with animation
         setTimeout(() => {
           this.canPlayCard = this.currentControl.id === this.players[0].id;
-          // End dealing animation after cards are shown
           setTimeout(() => {
             this.updateState({
               isDealing: false,
@@ -266,7 +259,6 @@ class CardsGame {
       gameHistory: newHistory,
     });
 
-    // If two cards have been played, finish the round
     if (newPlays.length === 2) {
       this.finishRound();
     }
@@ -275,7 +267,7 @@ class CardsGame {
   calculateCardPoints(card: Card): number {
     if (card.rank === "6") return 3;
     if (card.rank === "7") return 2;
-    return 1; // For ranks 8-K
+    return 1;
   }
 
   resetRound(): void {
@@ -298,30 +290,25 @@ class CardsGame {
       };
     }
 
-    // If no one has played this round, only currentControl can play.
     if (
       this.currentPlays.length === 0 &&
       this.currentControl.id !== this.players[0].id
     ) {
-      // Optionally: trigger an alert that only the round leader may start.
       return {
         error: "Error",
         message: "It is not your turn to play.",
       };
     }
 
-    // If this player has already played this round, disallow double play.
     if (
       this.currentPlays.some((play) => play.player.id === this.players[0].id)
     ) {
-      // Optionally: trigger an alert that they've already played.
       return {
         error: "Error",
         message: "You have already played in this round.",
       };
     }
 
-    // Enforce following suit if necessary
     if (this.currentLeadCard) {
       const requiredSuit = this.currentLeadCard.suit;
       const hasRequired = this.players[0].hands.some(
@@ -329,7 +316,6 @@ class CardsGame {
       );
 
       if (hasRequired && card.suit !== requiredSuit) {
-        // Optionally: trigger an alert that they must play the required suit.
         return {
           error: "Invalid Move",
           message: `You must play a ${suitSymbols[requiredSuit]} if you have one`,

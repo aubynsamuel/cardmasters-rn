@@ -2,7 +2,7 @@ import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import React from "react";
 import DeckCard from "./DeckCard";
 import Colors from "../theme/colors";
-import { Deck, GameScore } from "../types/types";
+import { Deck, GameScore } from "../types/gamePlayTypes";
 import { Ionicons } from "@expo/vector-icons";
 import { gameScoreToString } from "../gameLogic/utils";
 import { LinearGradient } from "expo-linear-gradient";

@@ -7,5 +7,5 @@
       "@firebase/auth": ["./node_modules/@firebase/auth/dist/index.rn.d.ts"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx", "nativewind-env.d.ts", "src/config/firebaseConfig.js"]
+  "include": ["**/*.ts", "**/*.tsx", "nativewind-env.d.ts"]
 }

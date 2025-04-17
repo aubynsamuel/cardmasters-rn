@@ -35,8 +35,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
   useEffect(() => {
     const newSocket = io(SERVER_URL, {
-      transports: ["websocket"], // Explicitly use websockets
-      // autoConnect: false, // Optionally connect manually
+      transports: ["websocket"],
     });
 
     newSocket.on("connect", () => {
@@ -50,9 +49,8 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       setIsConnected(false);
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     newSocket.on("connect_error", (err) => {
-      // console.error("[SocketContext] Socket connection error:", err.message);
+      console.error("[SocketContext] Socket connection error:", err.message);
     });
 
     setSocket(newSocket);

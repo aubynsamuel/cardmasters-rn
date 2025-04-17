@@ -1,4 +1,5 @@
-import { Card, GameScore, Player, Rank, Suit } from "../types/types";
+import { Card, GameScore, Rank, Suit } from "../types/gamePlayTypes";
+import { Player } from "../types/serverPayloadTypes";
 
 const suits: Suit[] = ["diamond", "spade", "love", "club"];
 const ranks: Rank[] = ["6", "7", "8", "9", "10", "J", "Q", "K"];
@@ -12,6 +13,7 @@ const rankValues: Record<Rank, number> = {
   Q: 12,
   K: 13,
 };
+
 const suitSymbols: Record<Suit, string> = {
   diamond: "♦",
   spade: "♠",
@@ -25,27 +27,6 @@ const gameScoreToString = (gameScoreList: GameScore[]) => {
     Score += `${gameScore.playerName} : ${gameScore.score}\n`;
   }
   return Score;
-};
-
-// For testing scoring system
-export const getFixedHands = (): { computer: Card[]; human: Card[] } => {
-  const computerHand: Card[] = [
-    { suit: "diamond", rank: "6", value: rankValues["6"] },
-    { suit: "diamond", rank: "7", value: rankValues["7"] },
-    { suit: "diamond", rank: "K", value: rankValues["K"] },
-    { suit: "spade", rank: "6", value: rankValues["6"] },
-    { suit: "spade", rank: "7", value: rankValues["7"] },
-  ];
-
-  const humanHand: Card[] = [
-    { suit: "love", rank: "6", value: rankValues["6"] },
-    { suit: "love", rank: "7", value: rankValues["7"] },
-    { suit: "love", rank: "K", value: rankValues["K"] },
-    { suit: "club", rank: "6", value: rankValues["6"] },
-    { suit: "club", rank: "7", value: rankValues["7"] },
-  ];
-
-  return { computer: computerHand, human: humanHand };
 };
 
 const createDeck = (): Card[] => {

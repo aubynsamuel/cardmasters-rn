@@ -2,10 +2,14 @@ import { useState, useCallback, useEffect } from "react";
 import { BackHandler } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { JoinRequestResponsePayload, LobbyRoom, Room } from "../types/types";
 import { useSocket } from "../context/SocketContext";
 import { useAuth } from "../context/AuthContext";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
+import {
+  Room,
+  LobbyRoom,
+  JoinRequestResponsePayload,
+} from "../types/serverPayloadTypes";
 
 type RoomJoined = {
   roomId: string;
@@ -71,7 +75,6 @@ export const useLobby = () => {
 
   const handleJoinRequestResponse = useCallback(
     (response: JoinRequestResponsePayload) => {
-      // Remove from pending requests
       setJoinRequests((prev) => {
         const updated = { ...prev };
         delete updated[response.requestId];
@@ -140,7 +143,6 @@ export const useLobby = () => {
     const playerName =
       userData?.displayName || `Player${(Math.random() * 100).toFixed(0)}`;
 
-    // Save this request in our local state
     const requestKey = `${roomId}_${Date.now()}`;
     setJoinRequests((prev) => ({
       ...prev,

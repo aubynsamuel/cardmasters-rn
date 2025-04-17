@@ -9,7 +9,7 @@ import Animated, {
   Easing,
   withRepeat,
   interpolate,
-  Extrapolate,
+  Extrapolation,
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 
@@ -29,18 +29,14 @@ const AnimatedShuffleCard: React.FC<AnimatedShuffleCardProps> = ({
   const scale = useSharedValue(0.8);
   const { width } = useWindowDimensions();
 
-  // Adjust card size based on screen width
-  const CARD_WIDTH = width > 500 ? width * 0.1 : width * 0.2; // Smaller cards for wider screens
+  const CARD_WIDTH = width > 500 ? width * 0.1 : width * 0.2;
   const CARD_HEIGHT = CARD_WIDTH * 1.5;
 
   useEffect(() => {
-    // Fade in with delay based on card index
     opacity.value = withDelay(delay * index, withTiming(1, { duration: 300 }));
 
-    // Scale up with delay
     scale.value = withDelay(delay * index, withTiming(1, { duration: 300 }));
 
-    // Start the shuffling animation after the card appears
     progress.value = withDelay(
       delay * index + 300,
       withRepeat(
@@ -55,31 +51,27 @@ const AnimatedShuffleCard: React.FC<AnimatedShuffleCardProps> = ({
   }, []);
 
   const animatedStyle = useAnimatedStyle(() => {
-    // Calculate the vertical position based on card index
     const basePosition = (totalCards / 2 - index) * 5;
 
-    // Create a fan-like effect with cards moving in arcs
     const translateY = interpolate(
       progress.value,
       [0, 0.5, 1],
       [basePosition, basePosition - 20, basePosition],
-      Extrapolate.CLAMP
+      Extrapolation.CLAMP
     );
 
-    // Cards move horizontally based on their position in the deck
     const translateX = interpolate(
       progress.value,
       [0, 0.5, 1],
       [0, index % 2 === 0 ? 30 : -30, 0],
-      Extrapolate.CLAMP
+      Extrapolation.CLAMP
     );
 
-    // Cards rotate with different angles based on position
     const rotateZ = interpolate(
       progress.value,
       [0, 0.5, 1],
       [0, index % 2 === 0 ? 15 : -15, 0],
-      Extrapolate.CLAMP
+      Extrapolation.CLAMP
     );
 
     return {
@@ -93,7 +85,6 @@ const AnimatedShuffleCard: React.FC<AnimatedShuffleCardProps> = ({
     };
   });
 
-  // Generate a gradient color pair based on the card's index
   const gradientColors = (() => {
     const baseHue = (index * 25) % 360;
     return [`hsl(${baseHue}, 80%, 60%)`, `hsl(${baseHue + 20}, 80%, 40%)`] as [
@@ -145,10 +136,9 @@ const AnimatedShuffleCard: React.FC<AnimatedShuffleCardProps> = ({
 };
 
 const EnhancedShufflingAnimation: React.FC = () => {
-  // Create an array of cards
   const totalCards = 12;
   const cards = Array(totalCards).fill(0);
-  const delay = 100; // Delay between each card's animation
+  const delay = 100;
 
   return (
     <View

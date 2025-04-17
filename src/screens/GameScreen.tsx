@@ -19,13 +19,7 @@ import TopRow from "../components/TopRow";
 import GameControls from "../components/GameControls";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import {
-  GameRecord,
-  GameRecordPlayer,
-  GameScore,
-  Player,
-} from "../types/types";
+import { GameRecord, GameRecordPlayer } from "../types/gamePlayTypes";
 import CardsGame, {
   CardsGameUIState,
 } from "../gameLogic/singlePlayerGameClass";
@@ -36,20 +30,7 @@ import { useCustomAlerts } from "../context/CustomAlertsContext";
 import { useSettingsStore } from "../store/settingsStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { storeGameRecordToFirestore } from "../services/firestore";
-
-type GameScreenStackParamList = {
-  GameOver: {
-    winner: Player;
-    score: GameScore[];
-    isCurrentPlayer: boolean;
-    isMultiPlayer: boolean;
-  };
-};
-
-type GameScreenProps = NativeStackNavigationProp<
-  GameScreenStackParamList,
-  "GameOver"
->;
+import { GameScreenProps } from "../types/screenTypes";
 
 const GameScreen = () => {
   const navigation = useNavigation<GameScreenProps>();
@@ -58,6 +39,11 @@ const GameScreen = () => {
   const { userData, userId } = useAuth();
   const { showAlert } = useCustomAlerts();
   const { targetScore } = useSettingsStore();
+  const gameRef = useRef<CardsGame | null>(null);
+  const [gameState, setGameState] = useState<CardsGameUIState | null>(null);
+  const [showControlsOverlay, setShowControlsOverlay] = useState(false);
+  const computerControlScale = useSharedValue(0);
+  const humanControlScale = useSharedValue(0);
 
   const initialPlayers = [
     {
@@ -74,10 +60,6 @@ const GameScreen = () => {
     },
   ];
 
-  const gameRef = useRef<CardsGame | null>(null);
-  const [gameState, setGameState] = useState<CardsGameUIState | null>(null);
-  const [showControlsOverlay, setShowControlsOverlay] = useState(false);
-
   useEffect(() => {
     const timer = setTimeout(() => {
       if (gameRef.current) {
@@ -87,9 +69,6 @@ const GameScreen = () => {
     }, 2000);
     return () => clearTimeout(timer);
   }, [targetScore]);
-
-  const computerControlScale = useSharedValue(0);
-  const humanControlScale = useSharedValue(0);
 
   useEffect(() => {
     if (!gameRef.current) {
@@ -273,11 +252,7 @@ const GameScreen = () => {
 
         {/* Controls Overlay */}
         {showControlsOverlay && (
-          <TouchableOpacity
-            activeOpacity={1}
-            style={styles.overlayContainer}
-            // onPress={() => setShowControlsOverlay(false)}
-          >
+          <TouchableOpacity activeOpacity={1} style={styles.overlayContainer}>
             <View style={styles.overlayContent}>
               <View style={styles.overlayHeader}>
                 <Text style={styles.overlayTitle}>Options</Text>
