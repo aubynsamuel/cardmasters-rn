@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Card Master",
-    "slug": "cards",
+    "name": "Card Masters",
+    "slug": "card_masters",
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
-    "scheme": "cardgame",
+    "scheme": "card_masters",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -14,9 +14,9 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#005426"
       },
-      "package": "com.aubynsamuel.cardmaster"
+      "package": "com.aubynsamuel.cardmasters"
     },
     "plugins": [
       [
@@ -25,7 +25,7 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#005426"
         }
       ]
     ],
