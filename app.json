@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "default",
     "icon": "./assets/images/icon.png",
-    "scheme": "card_masters",
+    "scheme": "cardmasters",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#005426"
       },
-      "package": "com.aubynsamuel.cardmasters"
+      "package": "com.aubynsamuel.cardmasters",
+      "icon": "./assets/images/icon.png"
     },
     "plugins": [
       [

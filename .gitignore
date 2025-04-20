@@ -39,3 +39,4 @@ app-example
 .vscode
 eas.json
 .env
+android
