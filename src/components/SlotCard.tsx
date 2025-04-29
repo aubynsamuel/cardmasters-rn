@@ -1,6 +1,6 @@
 import { TextStyle, Text, StyleSheet, View } from "react-native";
 import { suitSymbols } from "../gameLogic/utils";
-import { Card } from "../types/gamePlayTypes";
+import { Card } from "../types/GamePlayTypes";
 import React from "react";
 import Animated, { ZoomIn } from "react-native-reanimated";
 

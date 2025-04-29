@@ -8,7 +8,7 @@ import {
   FlatList,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Message } from "../types/serverPayloadTypes";
+import { Message } from "../types/ServerPayloadTypes";
 
 interface ChatComponentProps {
   messages: Message[];

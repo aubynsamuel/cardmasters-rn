@@ -19,8 +19,8 @@ import GameControls from "../components/GameControls";
 import { Ionicons } from "@expo/vector-icons";
 import PlayerSection from "../components/PlayerSection";
 import OpponentSection from "../components/OpponentSection";
-import Colors from "../theme/colors";
-import getStyles from "../styles/gameScreenStyles";
+import Colors from "../theme/Colors";
+import getStyles from "../styles/GameScreenStyles";
 import { useSharedValue, withSpring } from "react-native-reanimated";
 import { useMultiplayerGame } from "../hooks/useMultiplayerGame";
 

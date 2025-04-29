@@ -18,7 +18,7 @@ import Animated, {
   Easing,
 } from "react-native-reanimated";
 import { gameScoreToString } from "../gameLogic/utils";
-import { GameOverScreenProps } from "../types/screenTypes";
+import { GameOverScreenProps } from "../types/ScreenTypes";
 
 const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
   const navigation = useNavigation();

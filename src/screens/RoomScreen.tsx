@@ -15,7 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import useRoom from "../hooks/useRoom";
 import RoomChatComponent from "../components/RoomChatComponent";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
-import { Player, PlayerStatus } from "../types/serverPayloadTypes";
+import { Player, PlayerStatus } from "../types/ServerPayloadTypes";
 
 const RoomScreen = () => {
   const {

@@ -9,7 +9,7 @@ import {
 } from "firebase/auth";
 import { doc, setDoc, getDoc } from "firebase/firestore";
 import { auth, db } from "../config/firebase";
-import { useSettingsStore } from "../store/settingsStore";
+import { useSettingsStore } from "../store/SettingsStore";
 
 type UserData = {
   email: string;

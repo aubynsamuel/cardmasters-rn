@@ -6,7 +6,7 @@ import {
   TouchableOpacity,
   BackHandler,
 } from "react-native";
-import getStyles from "../styles/gameScreenStyles";
+import getStyles from "../styles/GameScreenStyles";
 import { StatusBar } from "expo-status-bar";
 import GameHistory from "../components/GameHistory";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -19,18 +19,18 @@ import TopRow from "../components/TopRow";
 import GameControls from "../components/GameControls";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { GameRecord, GameRecordPlayer } from "../types/gamePlayTypes";
+import { GameRecord, GameRecordPlayer } from "../types/GamePlayTypes";
 import CardsGame, {
   CardsGameUIState,
-} from "../gameLogic/singlePlayerGameClass";
+} from "../gameLogic/SinglePlayerGameClass";
 import { useAuth } from "../context/AuthContext";
 import OpponentSection from "../components/OpponentSection";
 import PlayerSection from "../components/PlayerSection";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
-import { useSettingsStore } from "../store/settingsStore";
+import { useSettingsStore } from "../store/SettingsStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { storeGameRecordToFirestore } from "../services/firestore";
-import { GameScreenProps } from "../types/screenTypes";
+import { GameScreenProps } from "../types/ScreenTypes";
 
 const GameScreen = () => {
   const navigation = useNavigation<GameScreenProps>();

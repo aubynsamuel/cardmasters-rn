@@ -1,4 +1,4 @@
-import { Card } from "./gamePlayTypes";
+import { Card } from "./GamePlayTypes";
 
 interface Message {
   text: string;

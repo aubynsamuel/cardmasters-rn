@@ -12,8 +12,8 @@ import {
   GameScore,
   Suit,
   Deck,
-} from "../types/gamePlayTypes";
-import { Player } from "../types/serverPayloadTypes";
+} from "../types/GamePlayTypes";
+import { Player } from "../types/ServerPayloadTypes";
 
 export interface CardsGameUIState {
   players: Player[];

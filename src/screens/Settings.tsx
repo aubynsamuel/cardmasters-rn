@@ -17,7 +17,7 @@ import Animated, {
   withDelay,
   Easing,
 } from "react-native-reanimated";
-import { useSettingsStore } from "../store/settingsStore";
+import { useSettingsStore } from "../store/SettingsStore";
 import { Slider } from "@miblanchard/react-native-slider";
 
 const SettingsScreen = () => {

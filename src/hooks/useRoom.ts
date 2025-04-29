@@ -19,7 +19,7 @@ import {
   PlayerStatus,
   Player,
   Message,
-} from "../types/serverPayloadTypes";
+} from "../types/ServerPayloadTypes";
 
 type RootStackParamList = {
   RoomScreen: {

@@ -9,7 +9,7 @@ import {
   Room,
   LobbyRoom,
   JoinRequestResponsePayload,
-} from "../types/serverPayloadTypes";
+} from "../types/ServerPayloadTypes";
 
 type RoomJoined = {
   roomId: string;
