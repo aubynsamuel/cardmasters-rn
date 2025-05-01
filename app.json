@@ -3,7 +3,7 @@
     "name": "Card Masters",
     "slug": "card_masters",
     "version": "1.0.0",
-    "orientation": "default",
+    "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "cardmasters",
     "userInterfaceStyle": "automatic",
@@ -16,8 +16,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#005426"
       },
-      "package": "com.aubynsamuel.cardmasters",
-      "icon": "./assets/images/icon.png"
+      "package": "com.aubynsamuel.cardmasters"
     },
     "plugins": [
       [

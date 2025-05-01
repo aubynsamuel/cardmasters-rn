@@ -13,7 +13,7 @@ import { useNavigation } from "@react-navigation/native";
 
 const { width } = Dimensions.get("window");
 
-const GameRulesScreen = () => {
+const RulesScreen = () => {
   const navigation = useNavigation();
 
   const renderRuleSection = (title, icon, content) => (
@@ -382,4 +382,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default GameRulesScreen;
+export default RulesScreen;

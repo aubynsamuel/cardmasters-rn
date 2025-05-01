@@ -17,7 +17,7 @@ import Animated, {
   withDelay,
   Easing,
 } from "react-native-reanimated";
-import { gameScoreToString } from "../gameLogic/utils";
+import { gameScoreToString } from "../gameLogic/GamePlayUtils";
 import { GameOverScreenProps } from "../types/ScreenTypes";
 
 const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {

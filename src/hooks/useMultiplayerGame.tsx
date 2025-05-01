@@ -4,7 +4,7 @@ import { useNavigation, useRoute } from "@react-navigation/native";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "../context/AuthContext";
-import { storeGameRecordToFirestore } from "../services/firestore";
+import { saveGameRecord } from "../services/firestore";
 import {
   CardsGameState,
   GameRecordPlayer,
@@ -85,7 +85,7 @@ export const useMultiplayerGame = () => {
         })
         .then(() => console.log("Record Stored"))
         .catch((error) => console.error("Error saving game record:", error));
-      storeGameRecordToFirestore(userId || "", gameRecord);
+      saveGameRecord(userId || "", gameRecord);
 
       socket?.emit("game_ended", { roomId });
       const gameScoreList = gameState.players.map((player) => ({

@@ -216,7 +216,7 @@ const SettingsScreen = () => {
 
             <View style={styles.settingRow}>
               <TouchableOpacity
-                onPress={() => navigation.navigate("GameRulesScreen" as never)}
+                onPress={() => navigation.navigate("RulesScreen" as never)}
                 style={{ alignItems: "center", width: "100%" }}
                 activeOpacity={0.7}
               >

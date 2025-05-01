@@ -8,10 +8,7 @@ import {
 import { db } from "../config/firebase";
 import { GameRecord } from "../types/GamePlayTypes";
 
-const storeGameRecordToFirestore = async (
-  userId: string,
-  gameRecord: GameRecord
-) => {
+const saveGameRecord = async (userId: string, gameRecord: GameRecord) => {
   try {
     const gameRecordRef = collection(doc(db, "users", userId), "game_record");
 
@@ -25,7 +22,7 @@ const storeGameRecordToFirestore = async (
   }
 };
 
-const fetchGameRecordsFromFirestore = async (
+const fetchGameRecords = async (
   userId: string
 ): Promise<GameRecord[] | null> => {
   try {
@@ -43,4 +40,4 @@ const fetchGameRecordsFromFirestore = async (
   }
 };
 
-export { storeGameRecordToFirestore, fetchGameRecordsFromFirestore };
+export { saveGameRecord, fetchGameRecords };

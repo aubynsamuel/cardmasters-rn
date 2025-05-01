@@ -2,7 +2,7 @@ import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import SplashScreen from "../screens/SplashScreen";
 import MainMenuScreen from "../screens/MainMenuScreen";
-import GameScreen from "../screens/GameScreen";
+import SinglePlayerGameScreen from "../screens/SinglePlayerGameScreen";
 import LobbyScreen from "../screens/LobbyScreen";
 import RoomScreen from "../screens/RoomScreen";
 import GameOverScreen from "../screens/GameOverScreen";
@@ -11,7 +11,7 @@ import MultiPlayerGameScreen from "../screens/MultiplayerGameScreen";
 import ProfileScreen from "../screens/ProfileScreen";
 import AuthScreen from "../screens/AuthScreen";
 import SettingsScreen from "../screens/Settings";
-import GameRulesScreen from "../screens/GameRules";
+import RulesScreen from "../screens/RulesScreen";
 import StatsScreen from "../screens/StatsScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
@@ -32,7 +32,7 @@ const StackNavigation = () => {
         <Stack.Screen name="MainMenu" component={MainMenuScreen} />
         <Stack.Screen
           name="Game"
-          component={GameScreen}
+          component={SinglePlayerGameScreen}
           options={{ navigationBarColor: "#076324" }}
         />
         <Stack.Screen name="MultiplayerLobby" component={LobbyScreen} />
@@ -47,8 +47,8 @@ const StackNavigation = () => {
           options={{ navigationBarColor: "#076324" }}
         />
         <Stack.Screen
-          name="GameRulesScreen"
-          component={GameRulesScreen}
+          name="RulesScreen"
+          component={RulesScreen}
           options={{ navigationBarColor: "#076345" }}
         />
         <Stack.Screen

@@ -13,8 +13,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSharedValue, withSpring } from "react-native-reanimated";
 import ShufflingAnimation from "../components/ShufflingAnimations";
-import EmptyCard from "../components/EmptySlotCard";
-import SlotCard from "../components/SlotCard";
 import TopRow from "../components/TopRow";
 import GameControls from "../components/GameControls";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,8 +27,9 @@ import PlayerSection from "../components/PlayerSection";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
 import { useSettingsStore } from "../store/SettingsStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { storeGameRecordToFirestore } from "../services/firestore";
+import { saveGameRecord } from "../services/firestore";
 import { GameScreenProps } from "../types/ScreenTypes";
+import GameResults from "../components/SinglePlayerGameResults";
 
 const GameScreen = () => {
   const navigation = useNavigation<GameScreenProps>();
@@ -170,7 +169,7 @@ const GameScreen = () => {
         })
         .then(() => console.log("Record Stored"))
         .catch((error) => console.error("Error saving game record:", error));
-      storeGameRecordToFirestore(userId || "", gameRecord);
+      saveGameRecord(userId || "", gameRecord);
       navigation.navigate("GameOver", gameRef.current.gameOverData);
     }
   }, [gameState?.cardsPlayed]);
@@ -313,55 +312,15 @@ const GameScreen = () => {
             />
           </View>
 
-          {/* Game Results in the Middle */}
-          <View className="items-center w-full gap-8 mx-4 md:w-1/4 justify-evenly">
-            {width < 500 && (
-              <View
-                className="p-1 px-5 bg-logContainerBackground rounded-2xl"
-                style={{ minWidth: "50%" }}
-              >
-                <Text
-                  numberOfLines={2}
-                  className="text-lg text-center text-mainTextColor"
-                >
-                  {gameState.message}
-                </Text>
-              </View>
-            )}
-
-            {/* Current Play Cards */}
-            <View style={styles.currentRound}>
-              {/* Opponent's Play Spot */}
-              {gameState.currentPlays.find(
-                (play) => play.player.id === opponent.id
-              ) ? (
-                <SlotCard
-                  card={
-                    gameState.currentPlays.find(
-                      (play) => play.player.id === opponent.id
-                    )!.card
-                  }
-                />
-              ) : (
-                <EmptyCard />
-              )}
-
-              {/* Human Play Spot */}
-              {gameState.currentPlays.find(
-                (play) => play.player.id === currentUser.id
-              ) ? (
-                <SlotCard
-                  card={
-                    gameState.currentPlays.find(
-                      (play) => play.player.id === currentUser.id
-                    )!.card
-                  }
-                />
-              ) : (
-                <EmptyCard />
-              )}
-            </View>
-          </View>
+          {/* Game Results { Message, Slots and PlayedCards} */}
+          <GameResults
+            width={width}
+            gameStateMessage={gameState.message}
+            currentRoundStyles={styles.currentRound}
+            currentPlays={gameState.currentPlays}
+            opponent={opponent}
+            currentUser={currentUser}
+          />
 
           <View className="items-center bg-playerArea rounded-[20px] p-2.5 w-10/12 md:w-1/3 h-36">
             <PlayerSection

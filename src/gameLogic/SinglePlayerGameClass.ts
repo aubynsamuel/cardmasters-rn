@@ -1,10 +1,9 @@
 import {
-  chooseCardAI,
   createDeck,
   dealCards,
   shuffleDeck,
   suitSymbols,
-} from "./utils";
+} from "./GamePlayUtils";
 import {
   Card,
   gameHistoryType,
@@ -14,6 +13,7 @@ import {
   Deck,
 } from "../types/GamePlayTypes";
 import { Player } from "../types/ServerPayloadTypes";
+import { chooseCardAI } from "./ChooseCardAI";
 
 export interface CardsGameUIState {
   players: Player[];
@@ -51,7 +51,6 @@ class CardsGame {
   players: Player[];
   currentPlays: Play[];
   currentLeadCard: Card | null;
-  currentCard: Card | null;
   cardsPlayed: number;
   message: string;
   gameOver: boolean;
@@ -72,7 +71,6 @@ class CardsGame {
     this.players = players;
     this.currentPlays = [];
     this.currentLeadCard = null;
-    this.currentCard = null;
     this.cardsPlayed = 0;
     this.message = "";
     this.gameOver = false;
@@ -338,7 +336,6 @@ class CardsGame {
 
       const isLeading = this.currentPlays.length === 1;
       if (isLeading) {
-        this.currentCard = card;
         this.updateState({ message: `${this.players[1].name} is thinking...` });
         setTimeout(() => this.computerTurn(), 1000);
       }
