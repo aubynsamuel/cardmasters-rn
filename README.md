@@ -57,39 +57,12 @@ For the **full rules**, read [Game Rules](Game_Play_Rules).
 - Consider playing low-value cards when you don't want control
 - Use 6s and 7s strategically to maximize point accumulation
 
-## 📱 Getting Started
-
-1. **Download & Install**
-
-   - Available on App Store / Play Store
-   - Or scan our QR code in Expo Go
-
-2. **Create Your Profile**
-
-   - Sign up to play
-
-3. **Choose Your Mode**
-
-   - Practice against AI
-   - Create or join multiplayer rooms
-
-4. **Start Playing!**
-   - Follow the in-game tutorial for a hands-on introduction
 
 ## 🏆 Game Modes
 
-- **Single Player**: Hone your skills against adaptive AI opponents
+- **Single Player**: Hone your skills against adaptive AI opponent
 - **Multiplayer**: Challenge friends or random opponents in real-time matches
 - **Custom Games**: Adjust target scores and other settings for personalized gameplay
 
-<!-- ## 💬 Support & Community
-
-Found a bug or have suggestions? We'd love to hear from you!
-
-- Visit the **Settings → Feedback** menu in-app
-- Join our community Discord at [discord.gg/cardmaster](https://discord.gg/cardmaster)
-- Email us: **support@cardmaster.com** -->
-
----
 
 _Shuffle up and claim your control!_ 🃏♠️♥️♣️♦️
