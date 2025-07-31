@@ -53,15 +53,7 @@ SERVER_URL=http://localhost:3000
    npm start
    ```
 
-2. **Configure the Client**
-
-   ```bash
-   # In your client directory
-   cp .env.example .env
-   # Edit .env and set SERVER_URL to your game server URL
-   ```
-
-3. **Start Development**
+2. **Start Development**
 
    ```bash
    npm start
@@ -78,10 +70,10 @@ The client uses Socket.io for real-time communication. The connection is managed
 
 ### Environment Variables
 
-Required environment variables for multiplayer:
+Add the following environment variables to your `.env` file:
 
 ```.env
-SERVER_URL=http://localhost:3000           # Local development
+SERVER_URL=http://localhost:3000           # Local development adjust if needed
 SERVER_URL=https://your-server.com         # Production server
 ```
 
