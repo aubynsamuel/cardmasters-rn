@@ -20,6 +20,41 @@ Card Masters is a multiplayer card game where players compete to reach a target 
 - **Multiplayer Mode**: Socket.io websockets
 - **Game Stats**: Firebase Firestore
 
+## Development Setup
+
+### Prerequisites
+
+- Node.js
+- Firebase
+
+### Installation
+
+```bash
+# Clone repository
+git clone https://github.com/aubynsamuel/cardmasters-rn.git
+cd cardmasters-rn
+
+# Install dependencies
+npm install
+
+# Start development server
+npm start
+```
+
+### Firebase Configuration
+
+Create `.env` file:
+Set up a Firebase project and add project configuration details.
+
+```.env
+FIREBASE_API_KEY=your_api_key
+FIREBASE_AUTH_DOMAIN=your_auth_domain
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_STORAGE_BUCKET=your_storage_bucket
+FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+FIREBASE_APP_ID=your_app_id
+```
+
 ## Multiplayer Setup
 
 This project requires a game server for multiplayer functionality. The game server is available at [aubynsamuel/cards-game-server](https://github.com/aubynsamuel/cards-game-server).
@@ -83,41 +118,6 @@ SERVER_URL=https://your-server.com         # Production server
 2. Run the client with `npm start`
 3. Open multiple instances (devices/emulators) to test multiplayer functionality
 4. Create or join game rooms through the app interface
-
-## Development Setup
-
-### Prerequisites
-
-- Node.js
-- Firebase
-
-### Installation
-
-```bash
-# Clone repository
-git clone [repository-url]
-cd cardmasters-rn
-
-# Install dependencies
-npm install
-
-# Start development server
-npm start
-```
-
-### Firebase Configuration
-
-Create `.env` file:
-Set up a Firebase project and add project configuration details.
-
-```.env
-FIREBASE_API_KEY=your_api_key
-FIREBASE_AUTH_DOMAIN=your_auth_domain
-FIREBASE_PROJECT_ID=your_project_id
-FIREBASE_STORAGE_BUCKET=your_storage_bucket
-FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-FIREBASE_APP_ID=your_app_id
-```
 
 ## Contributing
 
