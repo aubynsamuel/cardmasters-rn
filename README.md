@@ -1,6 +1,6 @@
 # Card Masters
 
-A React Native trick-taking card game built with Expo, Socket.io and Firebase.
+A React Native trick-taking card game built with Expo and Firebase.
 
 ## Overview
 
@@ -19,6 +19,78 @@ Card Masters is a multiplayer card game where players compete to reach a target 
 - **State Management**: Zustand
 - **Multiplayer Mode**: Socket.io websockets
 - **Game Stats**: Firebase Firestore
+
+## Multiplayer Setup
+
+This project requires a game server for multiplayer functionality. The game server is available at [aubynsamuel/cards-game-server](https://github.com/aubynsamuel/cards-game-server).
+
+### Prerequisites for Multiplayer
+
+1. **Game Server**: Clone and set up the game server from the repository above
+2. **Environment Configuration**: Update your `.env` file with the server URL
+
+### Configuration
+
+Add the server URL to your `.env` file:
+
+```.env
+SERVER_URL=http://localhost:3000
+```
+
+### Game Server Setup
+
+1. **Start the Game Server**
+
+   ```bash
+   # Clone the game server
+   git clone https://github.com/aubynsamuel/cards-game-server.git
+   cd cards-game-server
+   
+   # Install dependencies
+   npm install
+   
+   # Start the server
+   npm start
+   ```
+
+2. **Configure the Client**
+
+   ```bash
+   # In your client directory
+   cp .env.example .env
+   # Edit .env and set SERVER_URL to your game server URL
+   ```
+
+3. **Start Development**
+
+   ```bash
+   npm start
+   ```
+
+### Socket Configuration
+
+The client uses Socket.io for real-time communication. The connection is managed through the SocketContext provider which:
+
+- Establishes websocket connection to the game server
+- Handles connection/disconnection events
+- Provides socket state to child components
+- Manages reconnection logic
+
+### Environment Variables
+
+Required environment variables for multiplayer:
+
+```.env
+SERVER_URL=http://localhost:3000           # Local development
+SERVER_URL=https://your-server.com         # Production server
+```
+
+### Testing Multiplayer
+
+1. Start the game server
+2. Run the client with `npm start`
+3. Open multiple instances (devices/emulators) to test multiplayer functionality
+4. Create or join game rooms through the app interface
 
 ## Development Setup
 
