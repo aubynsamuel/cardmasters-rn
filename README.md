@@ -1,95 +1,68 @@
-# 🃏 Card Masters: Strategic Trick-Taking Challenge
+# Card Masters
 
-Welcome to **Card Masters**, a strategic multiplayer card game where clever play, timing, and tactical use of cards leads you to victory! Challenge friends or AI opponents, take control of tricks, and race to the target score in this engaging twist on traditional trick-taking games.
+A React Native trick-taking card game built with Expo and Firebase.
 
-## ✨ Game Features
+## Overview
 
-- **Single & Multiplayer Modes**  
-  Play against AI opponents or challenge friends in real-time multiplayer matches
+Card Masters is a multiplayer card game where players compete to reach a target score by strategically controlling tricks and accumulating points. The game supports both single-player (vs AI) and multiplayer modes.
 
-- **Unique Control-Based Scoring**
+<!-- ## Screenshots -->
 
-  - **6s** earn **3 points**, **7s** earn **2 points**, all other cards **1 point**
-  - Stack points by playing 6s & 7s of different suits while maintaining control
-  - Lose control and your points reset—choose your plays carefully!
+## Rules and Gameplay
 
-- **Seamless Online Experience**  
-  Robust reconnection system keeps your games running smoothly, even when connections drop
+[Read the rules and gameplay details here](Game_Play_Rules.md).
 
-- **Comprehensive Stats**  
-  Track your performance with detailed statistics on wins, games played, and multiplayer record
+## Tech Stack
 
-- **Intuitive Interface**  
-  Clean, green-themed design with smooth animations and easy-to-read game state information
+- **Frontend**: React Native with Expo
+- **Authentication**: Firebase Authentication
+- **State Management**: Zustand
+- **Multiplayer Mode**: Socket.io websockets
+- **Game Stats**: Firebase Firestore
 
-## 🎮 How to Play
+## Development Setup
 
-### Basic Rules
+### Prerequisites
 
-1. **Setup**
+- Node.js
+- Firebase
 
-   - Using cards **6 through to King** of each suit
-   - Each player receives **5 cards** per round
+### Installation
 
-2. **Gameplay**
+```bash
+# Clone repository
+git clone [repository-url]
+cd cardmasters-rn
 
-   - First player "controls" the trick and plays any card
-   - Other players must follow suit if possible
-   - Highest card of the led suit gains control for the next play
-   - After 5 cards have been played, the player in control wins the round
+# Install dependencies
+npm install
 
-3. **Scoring System**
+# Start development server
+npm start
+```
 
-   - **6s = 3 points**, **7s = 2 points**, **8-K = 1 point**
-   - Points from 6s and 7s of different suits accumulate while maintaining control
-   - Playing any 8-K (or losing control) resets point accumulation
-   - Only the final player in control scores points for the round
+### Firebase Configuration
 
-4. **Winning**
-   - First player to reach the target score (default: 20 points) wins the game
+Create `.env` file:
+Set up a Firebase project and add project configuration details.
 
-For the **full rules**, read [Game Rules](Game_Play_Rules).
+```.env
+FIREBASE_API_KEY=your_api_key
+FIREBASE_AUTH_DOMAIN=your_auth_domain
+FIREBASE_PROJECT_ID=your_project_id
+FIREBASE_STORAGE_BUCKET=your_storage_bucket
+FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+FIREBASE_APP_ID=your_app_id
+```
 
-### Strategy Tips
+## Contributing
 
-- Save high cards to capture control at crucial moments
-- Track which suits other players might be out of
-- Consider playing low-value cards when you don't want control
-- Use 6s and 7s strategically to maximize point accumulation
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 📱 Getting Started
+## License
 
-1. **Download & Install**
-
-   - Available on App Store / Play Store
-   - Or scan our QR code in Expo Go
-
-2. **Create Your Profile**
-
-   - Sign up to play
-
-3. **Choose Your Mode**
-
-   - Practice against AI
-   - Create or join multiplayer rooms
-
-4. **Start Playing!**
-   - Follow the in-game tutorial for a hands-on introduction
-
-## 🏆 Game Modes
-
-- **Single Player**: Hone your skills against adaptive AI opponents
-- **Multiplayer**: Challenge friends or random opponents in real-time matches
-- **Custom Games**: Adjust target scores and other settings for personalized gameplay
-
-<!-- ## 💬 Support & Community
-
-Found a bug or have suggestions? We'd love to hear from you!
-
-- Visit the **Settings → Feedback** menu in-app
-- Join our community Discord at [discord.gg/cardmaster](https://discord.gg/cardmaster)
-- Email us: **support@cardmaster.com** -->
-
----
-
-_Shuffle up and claim your control!_ 🃏♠️♥️♣️♦️
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
