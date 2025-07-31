@@ -1,6 +1,6 @@
 # Card Masters
 
-A React Native trick-taking card game built with Expo and Firebase.
+A React Native trick-taking card game built with Expo, Socket.io and Firebase.
 
 ## Overview
 
