@@ -37,13 +37,8 @@ export const chooseCardAI = (
       );
 
       if (winningCards.length > 0) {
-        if (remainingRounds <= 2) {
-          // Play highest winner in final rounds
-          return winningCards.sort((a, b) => b.value - a.value)[0];
-        } else {
-          // Play lowest winner in early rounds
-          return winningCards.sort((a, b) => a.value - b.value)[0];
-        }
+        // Win with the lowest winning card always
+        return winningCards.sort((a, b) => a.value - b.value)[0];
       } else {
         // Can't win, so play lowest card of required suit
         return cardsOfSuit.sort((a, b) => a.value - b.value)[0];
