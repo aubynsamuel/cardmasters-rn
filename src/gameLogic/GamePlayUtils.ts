@@ -1,5 +1,5 @@
-import { Card, GameScore, Rank, Suit } from "../types/GamePlayTypes";
-import { Player } from "../types/ServerPayloadTypes";
+import { Card, GameScore, Rank, Suit } from "@/src/types/gamePlayTypes";
+import { Player } from "../types/serverPayloadTypes";
 
 const suits: Suit[] = ["diamond", "spade", "love", "club"];
 const ranks: Rank[] = ["6", "7", "8", "9", "10", "J", "Q", "K"];

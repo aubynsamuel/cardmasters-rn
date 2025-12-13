@@ -1,6 +1,6 @@
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { GameScore } from "./GamePlayTypes";
-import { Player, Room } from "./ServerPayloadTypes";
+import { GameScore } from "@/src/types/gamePlayTypes";
+import { Player, Room } from "./serverPayloadTypes";
 
 type GameScreenStackParamList = {
   GameOver: {

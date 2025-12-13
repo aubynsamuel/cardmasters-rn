@@ -1,7 +1,7 @@
 import React from "react";
 import DiagonalStripes from "./DiagonalStripes";
 import { StyleSheet, View } from "react-native";
-import Colors from "../theme/Colors";
+import Colors from "../theme/colors";
 
 interface DecKCardInterface {
   index: number;

@@ -11,7 +11,7 @@ import {
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { useLobby } from "../hooks/useLobby";
-import { LobbyRoom } from "../types/ServerPayloadTypes";
+import { LobbyRoom } from "../types/serverPayloadTypes";
 
 const MultiplayerLobbyScreen = () => {
   const {
