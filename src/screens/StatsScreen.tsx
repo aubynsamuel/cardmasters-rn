@@ -5,6 +5,8 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { GameRecord } from "@/src/types/gamePlayTypes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useNavigation } from "@react-navigation/native";
+import { useAuth } from "../context/AuthContext";
+import { fetchGameRecords } from "../services/firestore";
 
 const StatsScreen = () => {
   const [filterMode, setFilterMode] = useState<
@@ -12,19 +14,36 @@ const StatsScreen = () => {
   >("all");
   const [records, setRecords] = useState<GameRecord[]>();
   const navigation = useNavigation();
+  const { userId } = useAuth();
 
   const getStoredRecords = async () => {
-    const records = await AsyncStorage.getItem("gameRecord");
-    if (!records) return;
-    const parsedRecords = JSON.parse(records) as GameRecord[];
-    if (Array.isArray(parsedRecords)) {
-      setRecords(parsedRecords);
+    try {
+      const stored = await AsyncStorage.getItem("gameRecord");
+      if (!stored) return;
+      const parsedRecords = JSON.parse(stored) as GameRecord[];
+      if (Array.isArray(parsedRecords)) {
+        setRecords(parsedRecords);
+      }
+    } catch (error) {
+      console.error("[StatsScreen] Failed to load local game records:", error);
     }
   };
 
+  const loadRecords = async () => {
+    if (userId) {
+      const remote = await fetchGameRecords(userId);
+      if (remote && Array.isArray(remote)) {
+        setRecords(remote);
+        await AsyncStorage.setItem("gameRecord", JSON.stringify(remote));
+        return;
+      }
+    }
+    await getStoredRecords();
+  };
+
   useEffect(() => {
-    getStoredRecords();
-  }, []);
+    loadRecords();
+  }, [userId]);
 
   const filteredRecords =
     filterMode === "all"
@@ -183,7 +202,7 @@ const StatsScreen = () => {
       </View>
 
       <FlatList
-        data={filteredRecords.reverse()}
+        data={[...filteredRecords].reverse()}
         renderItem={renderGameRecord}
         keyExtractor={(item, index) =>
           item.gameId ? item.gameId.toString() : index.toString()

@@ -21,10 +21,11 @@ import Animated, {
 import {useCustomAlerts} from "../context/CustomAlertsContext";
 import {GameRecord} from "../types/gamePlayTypes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fetchGameRecords } from "../services/firestore";
 
 const ProfileScreen = () => {
     const navigation = useNavigation();
-    const {userEmail, userData, logout} = useAuth();
+    const {userEmail, userData, logout, userId} = useAuth();
     const {width} = useWindowDimensions();
     const {showAlert} = useCustomAlerts();
 
@@ -36,20 +37,40 @@ const ProfileScreen = () => {
     const [records, setRecords] = useState<GameRecord[]>();
 
     const getStoredRecords = async () => {
-        const records = await AsyncStorage.getItem("gameRecord");
-        if (!records) return;
-        const parsedRecords = JSON.parse(records) as GameRecord[];
-        if (Array.isArray(parsedRecords)) {
-            setRecords(parsedRecords);
+        try {
+            const stored = await AsyncStorage.getItem("gameRecord");
+            if (!stored) return;
+            const parsedRecords = JSON.parse(stored) as GameRecord[];
+            if (Array.isArray(parsedRecords)) {
+                setRecords(parsedRecords);
+            }
+        } catch (error) {
+            console.error("[ProfileScreen] Failed to load local game records:", error);
         }
+    };
+
+    const loadRecords = async () => {
+        if (userId) {
+            const remote = await fetchGameRecords(userId);
+            if (remote && Array.isArray(remote)) {
+                setRecords(remote);
+                await AsyncStorage.setItem("gameRecord", JSON.stringify(remote));
+                return;
+            }
+        }
+        await getStoredRecords();
     };
 
     const gameWon =
         records?.filter((game) => game.winnerName === "You").length || 0;
 
+    const winRate = records?.length
+        ? ((gameWon / records.length) * 100).toFixed(2)
+        : "0.00";
+
     useEffect(() => {
-        getStoredRecords();
-    }, []);
+        loadRecords();
+    }, [userId]);
 
     useEffect(() => {
         // Animate header
@@ -191,7 +212,7 @@ const ProfileScreen = () => {
                                 </View>
                                 <View className="items-center">
                                     <Text className="font-bold text-[#076324] text-2xl">
-                                        {((gameWon / (records?.length ?? 0)) * 100).toFixed(2)}%
+                                        {winRate}%
                                     </Text>
                                     <Text className="text-sm text-[#666] mt-1">Win Rate</Text>
                                 </View>

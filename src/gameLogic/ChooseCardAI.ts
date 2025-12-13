@@ -16,10 +16,10 @@ export const chooseCardAI = (
     // console.log("[GameUtils] AI is leading");
     if (remainingRounds <= 2) {
       // In final 2 rounds, play highest cards to secure control
-      return hand.sort((a, b) => b.value - a.value)[0];
+      return [...hand].sort((a, b) => b.value - a.value)[0];
     } else {
       // Otherwise play lowest card to preserve high cards
-      return hand.sort((a, b) => a.value - b.value)[0];
+      return [...hand].sort((a, b) => a.value - b.value)[0];
     }
   }
   // If AI is following
@@ -38,17 +38,17 @@ export const chooseCardAI = (
 
       if (winningCards.length > 0) {
         // Win with the lowest winning card always
-        return winningCards.sort((a, b) => a.value - b.value)[0];
+        return [...winningCards].sort((a, b) => a.value - b.value)[0];
       } else {
         // Can't win, so play lowest card of required suit
-        return cardsOfSuit.sort((a, b) => a.value - b.value)[0];
+        return [...cardsOfSuit].sort((a, b) => a.value - b.value)[0];
       }
     }
     // If AI doesn't have required suit
     else {
       // Play lowest value card to minimize loss
       // console.log("[GameUtils] AI doesn't have the required suit");
-      return hand.sort((a, b) => a.value - b.value)[0];
+      return [...hand].sort((a, b) => a.value - b.value)[0];
     }
   }
 };

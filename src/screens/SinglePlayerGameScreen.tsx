@@ -148,7 +148,7 @@ const GameScreen = () => {
     ) {
       const gameRecord: GameRecord = {
         dateString: new Date().toUTCString(),
-        gameId: "game" + Math.random().toString(),
+        gameId: `game_${Date.now()}_${Math.random().toString(16).slice(2)}`,
         mode: "single-player",
         playerCount: 2,
         targetScore: targetScore,
@@ -169,7 +169,9 @@ const GameScreen = () => {
         })
         .then(() => console.log("Record Stored"))
         .catch((error) => console.error("Error saving game record:", error));
-      saveGameRecord(userId || "", gameRecord);
+      if (userId) {
+        saveGameRecord(userId, gameRecord);
+      }
       navigation.navigate("GameOver", gameRef.current.gameOverData);
     }
   }, [gameState?.cardsPlayed]);

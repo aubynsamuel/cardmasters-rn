@@ -64,7 +64,7 @@ export const useMultiplayerGame = () => {
     if (gameState.players.some((p) => p.score >= gameState.gameTo)) {
       const gameRecord: GameRecord = {
         dateString: new Date().toUTCString(),
-        gameId: "game" + Math.random().toString(),
+        gameId: `game_${Date.now()}_${Math.random().toString(16).slice(2)}`,
         mode: "multiplayer",
         playerCount: 2,
         targetScore: gameState.gameTo,
@@ -85,7 +85,9 @@ export const useMultiplayerGame = () => {
         })
         .then(() => console.log("Record Stored"))
         .catch((error) => console.error("Error saving game record:", error));
-      saveGameRecord(userId || "", gameRecord);
+      if (userId) {
+        saveGameRecord(userId, gameRecord);
+      }
 
       socket?.emit("game_ended", { roomId });
       const gameScoreList = gameState.players.map((player) => ({
