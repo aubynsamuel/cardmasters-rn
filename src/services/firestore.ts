@@ -5,7 +5,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
-import { GameRecord } from "../types/GamePlayTypes";
+import { GameRecord } from "@/src/types/gamePlayTypes";
 
 type LegacyGameRecordsDoc = {
   gameRecords?: unknown;

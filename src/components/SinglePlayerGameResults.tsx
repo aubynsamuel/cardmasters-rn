@@ -2,8 +2,8 @@ import { StyleProp, Text, View, ViewStyle } from "react-native";
 import React from "react";
 import EmptyCard from "./EmptySlotCard";
 import SlotCard from "./SlotCard";
-import { Player } from "../types/ServerPayloadTypes";
-import { Play } from "../types/GamePlayTypes";
+import { Player } from "../types/serverPayloadTypes";
+import { Play } from "@/src/types/gamePlayTypes";
 
 interface gamePlaySlot {
   width: number;

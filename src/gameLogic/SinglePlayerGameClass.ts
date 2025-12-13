@@ -11,8 +11,8 @@ import {
   GameScore,
   Suit,
   Deck,
-} from "../types/GamePlayTypes";
-import { Player } from "../types/ServerPayloadTypes";
+} from "@/src/types/gamePlayTypes";
+import { Player } from "../types/serverPayloadTypes";
 import { chooseCardAI } from "./ChooseCardAI";
 
 export interface CardsGameUIState {

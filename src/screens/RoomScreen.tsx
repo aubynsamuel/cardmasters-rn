@@ -15,7 +15,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import useRoom from "../hooks/useRoom";
 import RoomChatComponent from "../components/RoomChatComponent";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
-import { Player, PlayerStatus } from "../types/ServerPayloadTypes";
+import { Player, PlayerStatus } from "../types/serverPayloadTypes";
 
 const RoomScreen = () => {
   const {
@@ -43,7 +43,7 @@ const RoomScreen = () => {
     if (
       roomState?.messages?.length > 0 &&
       roomState?.messages[roomState.messages.length - 1]?.senderId !==
-        socket?.id
+      socket?.id
     ) {
       setShowUnreadBadge(true);
     }

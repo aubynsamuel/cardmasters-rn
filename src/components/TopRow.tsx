@@ -1,8 +1,8 @@
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import React from "react";
 import DeckCard from "./DeckCard";
-import Colors from "../theme/Colors";
-import { Deck, GameScore } from "../types/GamePlayTypes";
+import Colors from "../theme/colors";
+import { Deck, GameScore } from "@/src/types/gamePlayTypes";
 import { Ionicons } from "@expo/vector-icons";
 import { gameScoreToString } from "../gameLogic/GamePlayUtils";
 import { LinearGradient } from "expo-linear-gradient";

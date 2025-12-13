@@ -40,3 +40,4 @@ app-example
 eas.json
 .env
 android
+.idea

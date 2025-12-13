@@ -1,4 +1,4 @@
-import { Player } from "./ServerPayloadTypes";
+import { Player } from "@/src/types/serverPayloadTypes";
 
 type Suit = "diamond" | "spade" | "love" | "club";
 type Rank = "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K";

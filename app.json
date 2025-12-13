@@ -27,7 +27,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#005426"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "reactCompiler": true
