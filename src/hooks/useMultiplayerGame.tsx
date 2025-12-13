@@ -9,13 +9,13 @@ import {
   CardsGameState,
   GameRecordPlayer,
   GameRecord,
-} from "../types/GamePlayTypes";
-import { GameScreenProps } from "../types/ScreenTypes";
+} from "@/src/types/gamePlayTypes";
+import { GameScreenProps } from "@/src/types/screenTypes";
 import {
   GameStartedPayload,
   validPlay,
   PlayerLeftPayload,
-} from "../types/ServerPayloadTypes";
+} from "../types/serverPayloadTypes";
 
 const RECONNECTION_RETRIES = 4;
 

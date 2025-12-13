@@ -17,7 +17,7 @@ import TopRow from "../components/TopRow";
 import GameControls from "../components/GameControls";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-import { GameRecord, GameRecordPlayer } from "../types/GamePlayTypes";
+import { GameRecord, GameRecordPlayer } from "@/src/types/gamePlayTypes";
 import CardsGame, {
   CardsGameUIState,
 } from "../gameLogic/SinglePlayerGameClass";
@@ -25,10 +25,10 @@ import { useAuth } from "../context/AuthContext";
 import OpponentSection from "../components/OpponentSection";
 import PlayerSection from "../components/PlayerSection";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
-import { useSettingsStore } from "../store/SettingsStore";
+import { useSettingsStore } from "../store/settingsStore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { saveGameRecord } from "../services/firestore";
-import { GameScreenProps } from "../types/ScreenTypes";
+import { GameScreenProps } from "../types/screenTypes";
 import GameResults from "../components/SinglePlayerGameResults";
 
 const GameScreen = () => {
@@ -96,7 +96,7 @@ const GameScreen = () => {
       buttons: [
         {
           text: "No",
-          onPress: () => {},
+          onPress: () => { },
         },
         {
           text: "Yes",

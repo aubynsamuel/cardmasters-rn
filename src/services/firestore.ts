@@ -6,7 +6,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
-import { GameRecord } from "../types/GamePlayTypes";
+import { GameRecord } from "@/src/types/gamePlayTypes";
 
 const saveGameRecord = async (userId: string, gameRecord: GameRecord) => {
   try {

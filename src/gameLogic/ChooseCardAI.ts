@@ -1,4 +1,4 @@
-import { Card } from "../types/GamePlayTypes";
+import { Card } from "@/src/types/gamePlayTypes";
 
 /**
  * AI helper that chooses a card based on the lead
@@ -16,10 +16,10 @@ export const chooseCardAI = (
     // console.log("[GameUtils] AI is leading");
     if (remainingRounds <= 2) {
       // In final 2 rounds, play highest cards to secure control
-      return [...hand].sort((a, b) => b.value - a.value)[0];
+      return hand.sort((a, b) => b.value - a.value)[0];
     } else {
       // Otherwise play lowest card to preserve high cards
-      return [...hand].sort((a, b) => a.value - b.value)[0];
+      return hand.sort((a, b) => a.value - b.value)[0];
     }
   }
   // If AI is following
@@ -48,7 +48,7 @@ export const chooseCardAI = (
     else {
       // Play lowest value card to minimize loss
       // console.log("[GameUtils] AI doesn't have the required suit");
-      return [...hand].sort((a, b) => a.value - b.value)[0];
+      return hand.sort((a, b) => a.value - b.value)[0];
     }
   }
 };

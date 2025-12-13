@@ -1,6 +1,6 @@
 import { TextStyle, Text, StyleSheet, View } from "react-native";
 import { suitSymbols } from "../gameLogic/GamePlayUtils";
-import { Card } from "../types/GamePlayTypes";
+import { Card } from "@/src/types/gamePlayTypes";
 import React from "react";
 import Animated, {
   runOnJS,
