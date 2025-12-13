@@ -1,20 +1,32 @@
 import {
   doc,
-  arrayUnion,
   collection,
-  addDoc,
+  setDoc,
   getDocs,
 } from "firebase/firestore";
 import { db } from "../config/firebase";
 import { GameRecord } from "../types/GamePlayTypes";
 
+type LegacyGameRecordsDoc = {
+  gameRecords?: unknown;
+};
+
 const saveGameRecord = async (userId: string, gameRecord: GameRecord) => {
   try {
-    const gameRecordRef = collection(doc(db, "users", userId), "game_record");
+    if (!userId) {
+      console.error("Error storing game record to Firestore: missing userId");
+      return;
+    }
 
-    await addDoc(gameRecordRef, {
-      gameRecords: arrayUnion(gameRecord),
-    });
+    const gameRecordDocRef = doc(
+      db,
+      "users",
+      userId,
+      "game_records",
+      gameRecord.gameId
+    );
+
+    await setDoc(gameRecordDocRef, gameRecord, { merge: true });
 
     console.log("Game record successfully stored in Firestore!");
   } catch (error) {
@@ -26,14 +38,41 @@ const fetchGameRecords = async (
   userId: string
 ): Promise<GameRecord[] | null> => {
   try {
-    const gameRecordsRef = collection(doc(db, "users", userId), "game_record");
-    const querySnapshot = await getDocs(gameRecordsRef);
+    if (!userId) {
+      console.error("Error fetching game records from Firestore: missing userId");
+      return null;
+    }
 
-    const gameRecords: GameRecord[] = querySnapshot.docs.map(
-      (doc) => doc.data() as GameRecord
+    const newRecordsRef = collection(db, "users", userId, "game_records");
+    const newSnapshot = await getDocs(newRecordsRef);
+
+    const newRecords: GameRecord[] = newSnapshot.docs.map(
+      (d) => d.data() as GameRecord
     );
 
-    return gameRecords;
+    const legacyRecordsRef = collection(db, "users", userId, "game_record");
+    const legacySnapshot = await getDocs(legacyRecordsRef);
+    const legacyRecords: GameRecord[] = [];
+
+    for (const d of legacySnapshot.docs) {
+      const data = d.data() as unknown;
+      const legacyContainer = data as LegacyGameRecordsDoc;
+
+      if (Array.isArray(legacyContainer.gameRecords)) {
+        for (const r of legacyContainer.gameRecords) {
+          legacyRecords.push(r as GameRecord);
+        }
+      } else {
+        legacyRecords.push(data as GameRecord);
+      }
+    }
+
+    const byId = new Map<string, GameRecord>();
+    for (const r of [...legacyRecords, ...newRecords]) {
+      if (r?.gameId) byId.set(r.gameId, r);
+    }
+
+    return Array.from(byId.values());
   } catch (error) {
     console.error("Error fetching game records from Firestore:", error);
     return null;

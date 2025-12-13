@@ -21,12 +21,13 @@ import Animated, {
 import { useCustomAlerts } from "../context/CustomAlertsContext";
 import { GameRecord } from "../types/GamePlayTypes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { fetchGameRecords } from "../services/firestore";
 
 const ProfileScreen = () => {
-  const navigation = useNavigation();
-  const { userEmail, userData, logout } = useAuth();
-  const { width } = useWindowDimensions();
-  const { showAlert } = useCustomAlerts();
+    const navigation = useNavigation();
+    const {userEmail, userData, logout, userId} = useAuth();
+    const {width} = useWindowDimensions();
+    const {showAlert} = useCustomAlerts();
 
   const cardScale = useSharedValue(0.9);
   const cardOpacity = useSharedValue(0);
@@ -35,21 +36,41 @@ const ProfileScreen = () => {
 
   const [records, setRecords] = useState<GameRecord[]>();
 
-  const getStoredRecords = async () => {
-    const records = await AsyncStorage.getItem("gameRecord");
-    if (!records) return;
-    const parsedRecords = JSON.parse(records) as GameRecord[];
-    if (Array.isArray(parsedRecords)) {
-      setRecords(parsedRecords);
-    }
-  };
+    const getStoredRecords = async () => {
+        try {
+            const stored = await AsyncStorage.getItem("gameRecord");
+            if (!stored) return;
+            const parsedRecords = JSON.parse(stored) as GameRecord[];
+            if (Array.isArray(parsedRecords)) {
+                setRecords(parsedRecords);
+            }
+        } catch (error) {
+            console.error("[ProfileScreen] Failed to load local game records:", error);
+        }
+    };
+
+    const loadRecords = async () => {
+        if (userId) {
+            const remote = await fetchGameRecords(userId);
+            if (remote && Array.isArray(remote)) {
+                setRecords(remote);
+                await AsyncStorage.setItem("gameRecord", JSON.stringify(remote));
+                return;
+            }
+        }
+        await getStoredRecords();
+    };
 
   const gameWon =
     records?.filter((game) => game.winnerName === "You").length || 0;
 
-  useEffect(() => {
-    getStoredRecords();
-  }, []);
+    const winRate = records?.length
+        ? ((gameWon / records.length) * 100).toFixed(2)
+        : "0.00";
+
+    useEffect(() => {
+        loadRecords();
+    }, [userId]);
 
   useEffect(() => {
     // Animate header
@@ -175,34 +196,34 @@ const ProfileScreen = () => {
                 </Text>
               </View>
 
-              {/* Game Stats */}
-              <View className="flex-row justify-around pt-4 mt-4 border-t border-t-[#0002]">
-                <View className="items-center">
-                  <Text className="font-bold text-[#076324] text-2xl">
-                    {records?.length ?? 0}
-                  </Text>
-                  <Text className="text-sm text-[#666] mt-1">Games</Text>
-                </View>
-                <View className="items-center">
-                  <Text className="font-bold text-[#076324] text-2xl">
-                    {gameWon}
-                  </Text>
-                  <Text className="text-sm text-[#666] mt-1">Wins</Text>
-                </View>
-                <View className="items-center">
-                  <Text className="font-bold text-[#076324] text-2xl">
-                    {((gameWon / (records?.length ?? 0)) * 100).toFixed(2)}%
-                  </Text>
-                  <Text className="text-sm text-[#666] mt-1">Win Rate</Text>
-                </View>
-                <TouchableOpacity
-                  className="absolute right-0 top-1"
-                  onPress={() => navigation.navigate("StatsScreen" as never)}
-                >
-                  <Ionicons name="stats-chart" size={22} color={"#094319"} />
-                </TouchableOpacity>
-              </View>
-            </Animated.View>
+                            {/* Game Stats */}
+                            <View className="flex-row justify-around pt-4 mt-4 border-t border-t-[#0002]">
+                                <View className="items-center">
+                                    <Text className="font-bold text-[#076324] text-2xl">
+                                        {records?.length ?? 0}
+                                    </Text>
+                                    <Text className="text-sm text-[#666] mt-1">Games</Text>
+                                </View>
+                                <View className="items-center">
+                                    <Text className="font-bold text-[#076324] text-2xl">
+                                        {gameWon}
+                                    </Text>
+                                    <Text className="text-sm text-[#666] mt-1">Wins</Text>
+                                </View>
+                                <View className="items-center">
+                                    <Text className="font-bold text-[#076324] text-2xl">
+                                        {winRate}%
+                                    </Text>
+                                    <Text className="text-sm text-[#666] mt-1">Win Rate</Text>
+                                </View>
+                                <TouchableOpacity
+                                    className="absolute right-0 top-1"
+                                    onPress={() => navigation.navigate("StatsScreen" as never)}
+                                >
+                                    <Ionicons name="stats-chart" size={22} color={"#094319"}/>
+                                </TouchableOpacity>
+                            </View>
+                        </Animated.View>
 
             {/* Logout Button */}
             <View className={"w-full mt-2"}>
