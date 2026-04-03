@@ -22,6 +22,11 @@ export default defineConfig([
     plugins: {
       "react-compiler": reactCompiler,
     },
+    settings: {
+      react: {
+        version: "detect",
+      },
+    },
     rules: {
       "react-compiler/react-compiler": "error",
     },
