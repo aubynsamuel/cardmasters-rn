@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Slider } from "@miblanchard/react-native-slider";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -18,7 +18,10 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useLegacyNavigation } from "../navigation/legacyNavigation";
+import {
+  useFocusEffect,
+  useLegacyNavigation,
+} from "../navigation/legacyNavigation";
 import { useSettingsStore } from "../store/settingsStore";
 
 const SettingsScreen = () => {
@@ -50,18 +53,29 @@ const SettingsScreen = () => {
 
   useEffect(() => {
     loadSettings();
-
-    // Animate elements
-    headerOpacity.value = withTiming(1, { duration: 600 });
-    contentOpacity.value = withDelay(300, withTiming(1, { duration: 800 }));
-    translateY.value = withDelay(
-      300,
-      withTiming(0, {
-        duration: 800,
-        easing: Easing.out(Easing.cubic),
-      })
-    );
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      headerOpacity.value = 0;
+      contentOpacity.value = 0;
+      translateY.value = 50;
+
+      const frame = requestAnimationFrame(() => {
+        headerOpacity.value = withTiming(1, { duration: 220 });
+        contentOpacity.value = withDelay(80, withTiming(1, { duration: 280 }));
+        translateY.value = withDelay(
+          80,
+          withTiming(0, {
+            duration: 300,
+            easing: Easing.out(Easing.cubic),
+          })
+        );
+      });
+
+      return () => cancelAnimationFrame(frame);
+    }, [contentOpacity, headerOpacity, translateY])
+  );
 
   useEffect(() => {
     saveSettings();

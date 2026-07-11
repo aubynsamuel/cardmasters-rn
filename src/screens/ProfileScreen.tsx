@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -24,7 +24,10 @@ import {
   getLocalGameRecords,
   migrateLegacyGameRecords,
 } from "../data/gameRecordRepository";
-import { useLegacyNavigation } from "../navigation/legacyNavigation";
+import {
+  useFocusEffect,
+  useLegacyNavigation,
+} from "../navigation/legacyNavigation";
 import { fetchGameRecords } from "../services/firestore";
 import { GameRecord } from "../types/gamePlayTypes";
 
@@ -68,23 +71,32 @@ const ProfileScreen = () => {
     loadRecords();
   }, [userId]);
 
-  useEffect(() => {
-    // Animate header
-    headerOpacity.value = withDelay(200, withTiming(1, { duration: 600 }));
+  useFocusEffect(
+    useCallback(() => {
+      headerOpacity.value = 0;
+      cardOpacity.value = 0;
+      cardScale.value = 0.9;
+      contentOpacity.value = 0;
 
-    // Animate card
-    cardOpacity.value = withDelay(
-      300,
-      withTiming(1, { duration: 800, easing: Easing.out(Easing.cubic) })
-    );
-    cardScale.value = withDelay(
-      300,
-      withSpring(1, { damping: 12, stiffness: 90 })
-    );
+      const frame = requestAnimationFrame(() => {
+        headerOpacity.value = withDelay(40, withTiming(1, { duration: 220 }));
+        cardOpacity.value = withDelay(
+          80,
+          withTiming(1, { duration: 280, easing: Easing.out(Easing.cubic) })
+        );
+        cardScale.value = withDelay(
+          80,
+          withSpring(1, { duration: 320, dampingRatio: 0.85 })
+        );
+        contentOpacity.value = withDelay(
+          140,
+          withTiming(1, { duration: 240 })
+        );
+      });
 
-    // Animate content
-    contentOpacity.value = withDelay(600, withTiming(1, { duration: 500 }));
-  }, []);
+      return () => cancelAnimationFrame(frame);
+    }, [cardOpacity, cardScale, contentOpacity, headerOpacity])
+  );
 
   const animatedCardStyle = useAnimatedStyle(() => ({
     opacity: cardOpacity.value,

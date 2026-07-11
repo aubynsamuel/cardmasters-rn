@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import { useEffect } from "react";
+import { useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -16,7 +16,10 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import { useLegacyNavigation } from "../navigation/legacyNavigation";
+import {
+  useFocusEffect,
+  useLegacyNavigation,
+} from "../navigation/legacyNavigation";
 
 const MainMenuScreen = () => {
   const navigation = useLegacyNavigation();
@@ -32,42 +35,70 @@ const MainMenuScreen = () => {
   const buttonTranslateY3 = useSharedValue(50);
   const decorationScale = useSharedValue(0);
 
-  useEffect(() => {
-    // Animate title: fade in and scale up
-    titleOpacity.value = withDelay(
-      300,
-      withTiming(1, { duration: 800, easing: Easing.out(Easing.cubic) })
-    );
-    titleScale.value = withDelay(
-      300,
-      withSpring(1, { damping: 12, stiffness: 100 })
-    );
+  useFocusEffect(
+    useCallback(() => {
+      titleOpacity.value = 0;
+      titleScale.value = 0.8;
+      decorationScale.value = 0;
+      buttonOpacity1.value = 0;
+      buttonOpacity2.value = 0;
+      buttonOpacity3.value = 0;
+      buttonTranslateY1.value = 50;
+      buttonTranslateY2.value = 50;
+      buttonTranslateY3.value = 50;
 
-    // Animate decorative elements
-    decorationScale.value = withDelay(
-      500,
-      withSpring(1, { damping: 10, stiffness: 80 })
-    );
+      const frame = requestAnimationFrame(() => {
+        titleOpacity.value = withDelay(
+          50,
+          withTiming(1, { duration: 250, easing: Easing.out(Easing.cubic) })
+        );
+        titleScale.value = withDelay(
+          50,
+          withSpring(1, { duration: 300, dampingRatio: 0.85 })
+        );
+        decorationScale.value = withDelay(
+          80,
+          withSpring(1, { duration: 300, dampingRatio: 0.85 })
+        );
+        buttonOpacity1.value = withDelay(
+          100,
+          withTiming(1, { duration: 220 })
+        );
+        buttonTranslateY1.value = withDelay(
+          100,
+          withSpring(0, { duration: 280, dampingRatio: 0.9 })
+        );
+        buttonOpacity2.value = withDelay(
+          150,
+          withTiming(1, { duration: 220 })
+        );
+        buttonTranslateY2.value = withDelay(
+          150,
+          withSpring(0, { duration: 280, dampingRatio: 0.9 })
+        );
+        buttonOpacity3.value = withDelay(
+          200,
+          withTiming(1, { duration: 220 })
+        );
+        buttonTranslateY3.value = withDelay(
+          200,
+          withSpring(0, { duration: 280, dampingRatio: 0.9 })
+        );
+      });
 
-    // Animate buttons sequentially
-    buttonOpacity1.value = withDelay(600, withTiming(1, { duration: 500 }));
-    buttonTranslateY1.value = withDelay(
-      600,
-      withSpring(0, { damping: 14, stiffness: 100 })
-    );
-
-    buttonOpacity2.value = withDelay(750, withTiming(1, { duration: 500 }));
-    buttonTranslateY2.value = withDelay(
-      750,
-      withSpring(0, { damping: 14, stiffness: 100 })
-    );
-
-    buttonOpacity3.value = withDelay(900, withTiming(1, { duration: 500 }));
-    buttonTranslateY3.value = withDelay(
-      900,
-      withSpring(0, { damping: 14, stiffness: 100 })
-    );
-  }, []);
+      return () => cancelAnimationFrame(frame);
+    }, [
+      buttonOpacity1,
+      buttonOpacity2,
+      buttonOpacity3,
+      buttonTranslateY1,
+      buttonTranslateY2,
+      buttonTranslateY3,
+      decorationScale,
+      titleOpacity,
+      titleScale,
+    ])
+  );
 
   const animatedTitleStyle = useAnimatedStyle(() => ({
     opacity: titleOpacity.value,
