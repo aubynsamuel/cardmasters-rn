@@ -1,3 +1,4 @@
+import { environment } from "@/config/environment";
 import React, {
   createContext,
   ReactNode,
@@ -9,8 +10,8 @@ import { io, Socket } from "socket.io-client";
 import { auth } from "../config/firebase";
 import { useAuth } from "./AuthContext";
 
-const SERVER_URL = "http://10.51.230.88:3000";
-// const SERVER_URL = environment.serverUrl;
+// const SERVER_URL = "http://10.51.230.88:3000";
+const SERVER_URL = environment.serverUrl;
 
 interface SocketContextProps {
   socket: Socket | null;
