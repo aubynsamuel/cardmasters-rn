@@ -1,132 +1,79 @@
-# Card Masters
+# Card Masters React Native
 
-A React Native trick-taking card game built with Expo and Firebase.
+Card Masters is a trick-taking card game for Android. It includes single-player games against an AI and real-time multiplayer games for two to four players.
 
-## Overview
+This project is the Expo Router recovery of the original `CardMaster` client. It preserves the existing interface, Firebase data, gameplay rules, and Socket.IO server contract.
 
-Card Masters is a multiplayer card game where players compete to reach a target score by strategically controlling tricks and accumulating points. The game supports both single-player (vs AI) and multiplayer modes.
+## Requirements
 
-<!-- ## Screenshots -->
+- Node.js 22.13 or newer
+- Expo Go with SDK 57 support on an Android device
+- A Firebase project with Authentication and Firestore enabled
+- The Card Masters Socket.IO server for multiplayer games
 
-## Rules and Gameplay
+This recovery uses Expo Go. It does not require Gradle, Android Studio, a development build, or a generated `android` directory.
 
-[Read the rules and gameplay details here](Game_Play_Rules.md).
+## Setup
 
-## Tech Stack
+Install dependencies:
 
-- **Frontend**: React Native with Expo
-- **Authentication**: Firebase Authentication
-- **State Management**: Zustand
-- **Multiplayer Mode**: Socket.io websockets
-- **Game Stats**: Firebase Firestore
-
-## Development Setup
-
-### Prerequisites
-
-- Node.js
-- Firebase
-
-### Installation
-
-```bash
-# Clone repository
-git clone https://github.com/aubynsamuel/cardmasters-rn.git
-cd cardmasters-rn
-
-# Install dependencies
+```powershell
 npm install
-
-# Start development server
-npm start
 ```
 
-### Firebase Configuration
+Copy `.env.example` to `.env`, then replace the example values:
 
-Create `.env` file:
-Set up a Firebase project and add project configuration details.
-
-```.env
-FIREBASE_API_KEY=your_api_key
-FIREBASE_AUTH_DOMAIN=your_auth_domain
-FIREBASE_PROJECT_ID=your_project_id
-FIREBASE_STORAGE_BUCKET=your_storage_bucket
-FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
-FIREBASE_APP_ID=your_app_id
+```dotenv
+EXPO_PUBLIC_FIREBASE_API_KEY=your_api_key
+EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN=your_auth_domain
+EXPO_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
+EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_messaging_sender_id
+EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
+EXPO_PUBLIC_FIREBASE_MEASUREMENT_ID=your_measurement_id
+EXPO_PUBLIC_SERVER_URL=http://192.168.1.10:3000
 ```
 
-## Multiplayer Setup
+Use a server address that the Android device can reach. `localhost` on a physical device points to the device itself, not the development computer.
 
-This project requires a game server for multiplayer functionality. The game server is available at [aubynsamuel/cards-game-server](https://github.com/aubynsamuel/cards-game-server).
+## Run with Expo Go
 
-### Prerequisites for Multiplayer
+Start Metro:
 
-1. **Game Server**: Clone and set up the game server from the repository above
-2. **Environment Configuration**: Update your `.env` file with the server URL
-
-### Configuration
-
-Add the server URL to your `.env` file:
-
-```.env
-SERVER_URL=http://localhost:3000
+```powershell
+npx expo start --clear
 ```
 
-### Game Server Setup
+Open Expo Go on the Android device and scan the QR code. The device and development computer should normally be on the same network.
 
-1. **Start the Game Server**
+Start the multiplayer server separately from `CardsGameServer`:
 
-   ```bash
-   # Clone the game server
-   git clone https://github.com/aubynsamuel/cards-game-server.git
-   cd cards-game-server
-   
-   # Install dependencies
-   npm install
-   
-   # Start the server
-   npm start
-   ```
-
-2. **Start Development**
-
-   ```bash
-   npm start
-   ```
-
-### Socket Configuration
-
-The client uses Socket.io for real-time communication. The connection is managed through the SocketContext provider which:
-
-- Establishes websocket connection to the game server
-- Handles connection/disconnection events
-- Provides socket state to child components
-- Manages reconnection logic
-
-### Environment Variables
-
-Add the following environment variables to your `.env` file:
-
-```.env
-SERVER_URL=http://localhost:3000           # Local development adjust if needed
-SERVER_URL=https://your-server.com         # Production server
+```powershell
+yarn dev
 ```
 
-### Testing Multiplayer
+## Checks
 
-1. Start the game server
-2. Run the client with `npm start`
-3. Open multiple instances (devices/emulators) to test multiplayer functionality
-4. Create or join game rooms through the app interface
+Run the managed-workflow checks without invoking Gradle:
 
-## Contributing
+```powershell
+npx tsc --noEmit
+npm run lint
+npm test
+npx expo-doctor
+```
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## Main routes
 
-## License
+- `/` — splash and session routing
+- `/(auth)/sign-in` — registration and login
+- `/(app)/menu` — main menu
+- `/(app)/single-player` — local game against the AI
+- `/(app)/multiplayer/lobby` — available multiplayer rooms
+- `/(app)/multiplayer/room/[roomId]` — waiting room and chat
+- `/(app)/multiplayer/game/[roomId]` — live multiplayer game
+- `/(app)/profile`, `settings`, `rules`, and `stats` — account and supporting screens
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Data
+
+Firebase Authentication owns user sessions. Firestore stores profiles and authenticated game records. AsyncStorage stores settings and local game records. The Socket.IO server remains authoritative for live multiplayer rooms and matches.
