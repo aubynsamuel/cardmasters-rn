@@ -1,4 +1,4 @@
-import { GameRecord } from "@/src/types/gamePlayTypes";
+import { GameRecord } from "@/types/gamePlayTypes";
 
 export const dummyRecords: GameRecord[] = [
   {

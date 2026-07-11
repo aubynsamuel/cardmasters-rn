@@ -1,27 +1,30 @@
-import { useEffect, useRef, useState } from "react";
-import { useSocket } from "../context/SocketContext";
-import { useNavigation, useRoute } from "@react-navigation/native";
-import { useCustomAlerts } from "../context/CustomAlertsContext";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useAuth } from "../context/AuthContext";
-import { saveGameRecord } from "../services/firestore";
 import {
   CardsGameState,
-  GameRecordPlayer,
   GameRecord,
-} from "@/src/types/gamePlayTypes";
-import { GameScreenProps } from "@/src/types/screenTypes";
+  GameRecordPlayer,
+} from "@/types/gamePlayTypes";
+import { GameScreenProps } from "@/types/screenTypes";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useCustomAlerts } from "../context/CustomAlertsContext";
+import { useSocket } from "../context/SocketContext";
+import {
+  useLegacyNavigation,
+  useLegacyRoute,
+} from "../navigation/legacyNavigation";
+import { saveGameRecord } from "../services/firestore";
 import {
   GameStartedPayload,
-  validPlay,
   PlayerLeftPayload,
+  validPlay,
 } from "../types/serverPayloadTypes";
 
 const RECONNECTION_RETRIES = 4;
 
 export const useMultiplayerGame = () => {
-  const navigation = useNavigation<GameScreenProps>();
-  const route = useRoute();
+  const navigation = useLegacyNavigation<GameScreenProps>();
+  const route = useLegacyRoute();
   const { isConnected, socket, socketId } = useSocket();
   const { userId, userData } = useAuth();
   const { roomId, roomData } = route.params as GameStartedPayload;
@@ -29,10 +32,16 @@ export const useMultiplayerGame = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { showAlert, showToast, hideAlert } = useCustomAlerts();
   const reconnectionRetries = useRef(0);
-  const reconnectionTimeOut = useRef<NodeJS.Timeout>();
-  const waitingReconnectionTimeOut = useRef<NodeJS.Timeout>();
-  const thirtySecondsTimer = useRef<NodeJS.Timeout>();
-  const reconnectionId = useRef<string | null | undefined>();
+  const reconnectionTimeOut = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
+  const waitingReconnectionTimeOut = useRef<
+    ReturnType<typeof setTimeout> | undefined
+  >(undefined);
+  const thirtySecondsTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
+  const reconnectionId = useRef<string | null | undefined>(undefined);
   const [reconnectionDisplay, setReconnectionDisplay] = useState({
     message: "",
     show: false,

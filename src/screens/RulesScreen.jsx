@@ -1,20 +1,19 @@
-import React from "react";
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-} from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
+import {
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useLegacyNavigation } from "../navigation/legacyNavigation";
 
 const { width } = Dimensions.get("window");
 
 const RulesScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useLegacyNavigation();
 
   const renderRuleSection = (title, icon, content) => (
     <View style={styles.sectionCard}>

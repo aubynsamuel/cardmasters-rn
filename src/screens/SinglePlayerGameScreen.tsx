@@ -1,38 +1,38 @@
-import React, { useEffect, useRef, useState } from "react";
-import {
-  View,
-  Text,
-  useWindowDimensions,
-  TouchableOpacity,
-  BackHandler,
-} from "react-native";
-import getStyles from "../styles/GameScreenStyles";
+import { GameRecord, GameRecordPlayer } from "@/types/gamePlayTypes";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar } from "expo-status-bar";
-import GameHistory from "../components/GameHistory";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useEffect, useRef, useState } from "react";
+import {
+  BackHandler,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { useSharedValue, withSpring } from "react-native-reanimated";
-import ShufflingAnimation from "../components/ShufflingAnimations";
-import TopRow from "../components/TopRow";
+import { SafeAreaView } from "react-native-safe-area-context";
 import GameControls from "../components/GameControls";
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
-import { GameRecord, GameRecordPlayer } from "@/src/types/gamePlayTypes";
+import GameHistory from "../components/GameHistory";
+import OpponentSection from "../components/OpponentSection";
+import PlayerSection from "../components/PlayerSection";
+import ShufflingAnimation from "../components/ShufflingAnimations";
+import GameResults from "../components/SinglePlayerGameResults";
+import TopRow from "../components/TopRow";
+import { useAuth } from "../context/AuthContext";
+import { useCustomAlerts } from "../context/CustomAlertsContext";
 import CardsGame, {
   CardsGameUIState,
 } from "../gameLogic/SinglePlayerGameClass";
-import { useAuth } from "../context/AuthContext";
-import OpponentSection from "../components/OpponentSection";
-import PlayerSection from "../components/PlayerSection";
-import { useCustomAlerts } from "../context/CustomAlertsContext";
-import { useSettingsStore } from "../store/settingsStore";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLegacyNavigation } from "../navigation/legacyNavigation";
 import { saveGameRecord } from "../services/firestore";
+import { useSettingsStore } from "../store/settingsStore";
+import getStyles from "../styles/GameScreenStyles";
 import { GameScreenProps } from "../types/screenTypes";
-import GameResults from "../components/SinglePlayerGameResults";
 
 const GameScreen = () => {
-  const navigation = useNavigation<GameScreenProps>();
+  const navigation = useLegacyNavigation<GameScreenProps>();
   const { width, height } = useWindowDimensions();
   const styles = getStyles(width, height);
   const { userData, userId } = useAuth();
@@ -96,7 +96,7 @@ const GameScreen = () => {
       buttons: [
         {
           text: "No",
-          onPress: () => { },
+          onPress: () => {},
         },
         {
           text: "Yes",
@@ -121,8 +121,8 @@ const GameScreen = () => {
       return true;
     };
     BackHandler.addEventListener("hardwareBackPress", onBackPress);
-    return () =>
-      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    // return () =>
+    //   BackHandler.removeEventListener("hardwareBackPress", onBackPress);
   }, []);
 
   const playersListBuilder = () => {
@@ -182,23 +182,19 @@ const GameScreen = () => {
     if (gameState.currentControl.id === gameState.players[1].id)
       computerControlScale.value = withSpring(1.2, {
         duration: 500,
-        stiffness: 300,
       });
     else
       computerControlScale.value = withSpring(0, {
         duration: 500,
-        stiffness: 300,
       });
 
     if (gameState.currentControl.id === gameState.players[0].id)
       humanControlScale.value = withSpring(1.2, {
         duration: 500,
-        stiffness: 300,
       });
     else
       humanControlScale.value = withSpring(0, {
         duration: 500,
-        stiffness: 300,
       });
   }, [gameState?.currentControl]);
 
@@ -218,7 +214,7 @@ const GameScreen = () => {
   return (
     <GestureHandlerRootView>
       <SafeAreaView className="justify-center flex-1 px-2.5 bg-containerBackground">
-        <StatusBar backgroundColor="transparent" style="light" hidden={true} />
+        <StatusBar style="light" hidden />
 
         <View style={styles.decorationContainer}>
           {Array(5)
@@ -301,7 +297,7 @@ const GameScreen = () => {
         )}
 
         {/* MAIN GAME AREA */}
-        <View className="flex-col items-center justify-between flex-1 my-4 md:flex-row">
+        <View className="flex-col flex-1 justify-between items-center my-4 md:flex-row">
           <View
             className={`items-center bg-opponentArea rounded-[20px] p-2.5 w-10/12 md:w-1/3 h-36`}
           >
@@ -344,7 +340,7 @@ const GameScreen = () => {
         </View>
 
         {gameState.showStartButton && (
-          <View className="items-center w-full mt-2 md:top-3">
+          <View className="items-center mt-2 w-full md:top-3">
             <TouchableOpacity
               style={styles.startButton}
               onPress={() => {

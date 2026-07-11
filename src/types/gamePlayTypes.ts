@@ -1,4 +1,4 @@
-import { Player } from "@/src/types/serverPayloadTypes";
+import { Player } from "@/types/serverPayloadTypes";
 
 type Suit = "diamond" | "spade" | "love" | "club";
 type Rank = "6" | "7" | "8" | "9" | "10" | "J" | "Q" | "K";
@@ -76,16 +76,16 @@ interface GameRecordPlayer {
 }
 
 export {
-  Suit,
-  Rank,
+  Callbacks,
   Card,
+  CardsGameState,
   Deck,
   gameHistoryType,
-  Play,
-  GameScore,
-  CardsGameState,
   GameOverData,
-  Callbacks,
   GameRecord,
   GameRecordPlayer,
+  GameScore,
+  Play,
+  Rank,
+  Suit,
 };

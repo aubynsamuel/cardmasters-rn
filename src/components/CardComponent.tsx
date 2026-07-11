@@ -1,7 +1,10 @@
-import { TextStyle, Text, StyleSheet, View } from "react-native";
-import { suitSymbols } from "../gameLogic/GamePlayUtils";
-import { Card } from "@/src/types/gamePlayTypes";
-import React from "react";
+import { Card } from "@/types/gamePlayTypes";
+import { StyleSheet, Text, TextStyle, View } from "react-native";
+import {
+  Gesture,
+  GestureDetector,
+  TouchableWithoutFeedback,
+} from "react-native-gesture-handler";
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -9,12 +12,8 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
-import {
-  Gesture,
-  GestureDetector,
-  TouchableWithoutFeedback,
-} from "react-native-gesture-handler";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
+import { suitSymbols } from "../gameLogic/GamePlayUtils";
 
 interface CardComponentInterface {
   card: Card;
@@ -35,7 +34,6 @@ const CardComponent = ({ card, playCard, width }: CardComponentInterface) => {
     const afterEffect = playCard();
     if (!afterEffect) return;
     if (afterEffect?.error !== "" && afterEffect?.message !== "") {
-      // eslint-disable-next-line react-compiler/react-compiler
       translateX.value = withSpring(0, { duration: 500 });
       translateY.value = withSpring(0, { duration: 500 });
       showToast({

@@ -1,13 +1,13 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   createUserWithEmailAndPassword,
+  onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
-  onAuthStateChanged,
   User,
 } from "firebase/auth";
-import { doc, setDoc, getDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import React, { createContext, useContext, useEffect, useState } from "react";
 import { auth, db } from "../config/firebase";
 import { useSettingsStore } from "../store/settingsStore";
 

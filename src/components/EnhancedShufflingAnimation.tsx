@@ -1,17 +1,17 @@
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect } from "react";
 import { View, useWindowDimensions } from "react-native";
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSequence,
-  withDelay,
   Easing,
-  withRepeat,
-  interpolate,
   Extrapolation,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withTiming,
 } from "react-native-reanimated";
-import { LinearGradient } from "expo-linear-gradient";
 
 interface AnimatedShuffleCardProps {
   index: number;

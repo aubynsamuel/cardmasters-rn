@@ -1,24 +1,24 @@
-import React, { useEffect, useState } from "react";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useState } from "react";
 import {
-  Text,
-  StyleSheet,
   Animated as RNAnimated,
+  StyleSheet,
+  Text,
   useWindowDimensions,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
   Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
 } from "react-native-reanimated";
-import { LinearGradient } from "expo-linear-gradient";
 import EnhancedShufflingAnimation from "../components/EnhancedShufflingAnimation";
 import { useAuth } from "../context/AuthContext";
+import { useLegacyNavigation } from "../navigation/legacyNavigation";
 
 const SplashScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useLegacyNavigation();
   const { width, height } = useWindowDimensions();
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.8);

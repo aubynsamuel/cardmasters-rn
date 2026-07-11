@@ -1,25 +1,26 @@
-/* eslint-disable react-compiler/react-compiler */
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React, {
   createContext,
-  useState,
+  ReactNode,
   useContext,
   useRef,
-  ReactNode,
+  useState,
 } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   Animated,
   Dimensions,
   Easing,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
 
 // Type definitions
 type AlertType = "info" | "success" | "warning" | "error";
+type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
+type GradientColors = readonly [string, string];
 
 interface AlertButton {
   text: string;
@@ -81,10 +82,10 @@ export const CustomAlertsProvider: React.FC<CustomAlertsProviderProps> = ({
   // Toast State
   const [toastQueue, setToastQueue] = useState<ToastConfig[]>([]);
   const toastAnimation = useRef(new Animated.Value(0)).current;
-  const toastTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Icons mapped to type
-  const getIconName = (type: AlertType): string => {
+  const getIconName = (type: AlertType): IoniconName => {
     switch (type) {
       case "success":
         return "checkmark-circle";
@@ -99,7 +100,7 @@ export const CustomAlertsProvider: React.FC<CustomAlertsProviderProps> = ({
   };
 
   // Colors mapped to type
-  const getGradientColors = (type: AlertType): string[] => {
+  const getGradientColors = (type: AlertType): GradientColors => {
     switch (type) {
       case "success":
         return ["#10B981", "#059669"];
@@ -355,14 +356,14 @@ export const useCustomAlerts = (): CustomAlertsContextType =>
 
 const styles = StyleSheet.create({
   overlayContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 1000,
     justifyContent: "center",
     alignItems: "center",
     pointerEvents: "box-none",
   },
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   alertContainer: {

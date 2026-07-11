@@ -1,4 +1,4 @@
-import { Card } from "@/src/types/gamePlayTypes";
+import { Card } from "@/types/gamePlayTypes";
 
 interface Message {
   text: string;
@@ -116,23 +116,23 @@ interface JoinRequestResponsePayload {
 }
 
 export {
-  Room,
-  LobbyRoom,
-  Player,
-  PlayerStatus,
   CreateRoomPayload,
-  JoinRoomPayload,
-  LeaveRoomPayload,
-  StartGamePayload,
-  PlayCardPayload,
-  RoomJoined,
-  RoomStatus,
-  OwnerChangedPayload,
   ErrorPayload,
   GameStartedPayload,
+  JoinRequestResponsePayload,
+  JoinRoomPayload,
+  LeaveRoomPayload,
+  LobbyRoom,
+  Message,
+  OwnerChangedPayload,
+  PlayCardPayload,
+  Player,
   PlayerJoinedPayload,
   PlayerLeftPayload,
+  PlayerStatus,
+  Room,
+  RoomJoined,
+  RoomStatus,
+  StartGamePayload,
   validPlay,
-  Message,
-  JoinRequestResponsePayload,
 };

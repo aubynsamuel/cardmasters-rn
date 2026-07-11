@@ -1,15 +1,14 @@
-import React from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
   ActivityIndicator,
   Dimensions,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
 import { useLobby } from "../hooks/useLobby";
 import { LobbyRoom } from "../types/serverPayloadTypes";
 
@@ -180,7 +179,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   decorationContainer: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     overflow: "hidden",
   },
   cardDecoration: {

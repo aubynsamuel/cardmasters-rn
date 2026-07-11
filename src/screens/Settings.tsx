@@ -1,27 +1,27 @@
-import React, { useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { Slider } from "@miblanchard/react-native-slider";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect } from "react";
 import {
-  View,
-  Text,
+  ScrollView,
   StyleSheet,
   Switch,
+  Text,
   TouchableOpacity,
-  ScrollView,
+  View,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from "@react-navigation/native";
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withDelay,
   Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withTiming,
 } from "react-native-reanimated";
+import { useLegacyNavigation } from "../navigation/legacyNavigation";
 import { useSettingsStore } from "../store/settingsStore";
-import { Slider } from "@miblanchard/react-native-slider";
 
 const SettingsScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useLegacyNavigation();
   const {
     musicVolume,
     sfxVolume,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#076324",
   },
   background: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   header: {
     flexDirection: "row",

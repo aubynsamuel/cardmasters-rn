@@ -1,14 +1,16 @@
-import { useState, useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BackHandler } from "react-native";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { useSocket } from "../context/SocketContext";
 import { useAuth } from "../context/AuthContext";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
+import { useSocket } from "../context/SocketContext";
 import {
-  Room,
-  LobbyRoom,
+  useFocusEffect,
+  useLegacyNavigation,
+} from "../navigation/legacyNavigation";
+import {
   JoinRequestResponsePayload,
+  LobbyRoom,
+  Room,
 } from "../types/serverPayloadTypes";
 
 type RoomJoined = {
@@ -16,17 +18,8 @@ type RoomJoined = {
   room: Room;
 };
 
-type RootStackParamList = {
-  RoomScreen: RoomJoined;
-};
-
-type LobbyNavigation = NativeStackNavigationProp<
-  RootStackParamList,
-  "RoomScreen"
->;
-
 export const useLobby = () => {
-  const navigation = useNavigation<LobbyNavigation>();
+  const navigation = useLegacyNavigation();
   const [rooms, setRooms] = useState<LobbyRoom[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [joinRequests, setJoinRequests] = useState<Record<string, string>>({});
@@ -43,9 +36,11 @@ export const useLobby = () => {
       console.log("[useLobby] Hardware Back Press From Lobby");
       return true;
     };
-    BackHandler.addEventListener("hardwareBackPress", onBackPress);
-    return () =>
-      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      onBackPress
+    );
+    return () => subscription.remove();
   }, []);
 
   const handleLobbyRoomsUpdate = useCallback((updatedRooms: LobbyRoom[]) => {

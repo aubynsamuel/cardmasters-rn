@@ -1,11 +1,6 @@
-import {
-  doc,
-  collection,
-  setDoc,
-  getDocs,
-} from "firebase/firestore";
+import { GameRecord } from "@/types/gamePlayTypes";
+import { collection, doc, getDocs, setDoc } from "firebase/firestore";
 import { db } from "../config/firebase";
-import { GameRecord } from "@/src/types/gamePlayTypes";
 
 type LegacyGameRecordsDoc = {
   gameRecords?: unknown;
@@ -39,7 +34,9 @@ const fetchGameRecords = async (
 ): Promise<GameRecord[] | null> => {
   try {
     if (!userId) {
-      console.error("Error fetching game records from Firestore: missing userId");
+      console.error(
+        "Error fetching game records from Firestore: missing userId"
+      );
       return null;
     }
 
@@ -79,4 +76,4 @@ const fetchGameRecords = async (
   }
 };
 
-export { saveGameRecord, fetchGameRecords };
+export { fetchGameRecords, saveGameRecord };

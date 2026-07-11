@@ -1,18 +1,18 @@
 import React, { useEffect } from "react";
 import { Text } from "react-native";
 import Animated, {
-  useSharedValue,
   useAnimatedStyle,
+  useSharedValue,
   withSpring,
   withTiming,
 } from "react-native-reanimated";
 
-interface AccumulatedScoreDisplay {
+interface AccumulatedScoreDisplayProps {
   points: number;
   visible: boolean;
 }
 
-const AccumulatedScoreDisplay: React.FC<AccumulatedScoreDisplay> = ({
+const AccumulatedScoreDisplay: React.FC<AccumulatedScoreDisplayProps> = ({
   points,
   visible,
 }) => {
@@ -34,7 +34,7 @@ const AccumulatedScoreDisplay: React.FC<AccumulatedScoreDisplay> = ({
       scale.value = withSpring(0);
       opacity.value = withTiming(0, { duration: 200 });
     }
-  }, [visible, points]);
+  }, [visible, points, opacity, scale]);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -46,7 +46,7 @@ const AccumulatedScoreDisplay: React.FC<AccumulatedScoreDisplay> = ({
   return (
     <Animated.View
       style={[animatedStyle]}
-      className={`absolute top-[5px] right-4`}
+      className={`absolute right-4 top-[5px]`}
     >
       <Text className={`text-xl font-bold text-white`}>+ {points}</Text>
     </Animated.View>

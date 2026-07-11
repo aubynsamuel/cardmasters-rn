@@ -1,25 +1,25 @@
-import React, { useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect } from "react";
 import {
-  View,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
   useWindowDimensions,
+  View,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
 import Animated, {
-  useSharedValue,
+  Easing,
   useAnimatedStyle,
-  withTiming,
+  useSharedValue,
   withDelay,
   withSpring,
-  Easing,
+  withTiming,
 } from "react-native-reanimated";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
+import { useLegacyNavigation } from "../navigation/legacyNavigation";
 
 const MainMenuScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useLegacyNavigation();
   const { width } = useWindowDimensions();
   const extendedStyles = getStyles();
   const titleOpacity = useSharedValue(0);
@@ -268,7 +268,7 @@ const menuTouchableStyles =
 const getStyles = () => {
   const styles = StyleSheet.create({
     decorationContainer: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
     },
   });
   return styles;

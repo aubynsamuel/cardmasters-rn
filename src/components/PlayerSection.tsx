@@ -1,10 +1,9 @@
-import React from "react";
-import { View, Text } from "react-native";
+import { Card } from "@/types/gamePlayTypes";
+import { Text, View } from "react-native";
 import Animated, { FlipInEasyX, SharedValue } from "react-native-reanimated";
-import CardComponent from "./CardComponent";
-import AnimatedScoreDisplay from "./AccumulatedScoreDisplay";
-import { Card } from "@/src/types/gamePlayTypes";
 import { Player } from "../types/serverPayloadTypes";
+import AnimatedScoreDisplay from "./AccumulatedScoreDisplay";
+import CardComponent from "./CardComponent";
 
 type PlayerSectionProps = {
   player: Player;
@@ -49,7 +48,7 @@ const PlayerSection = ({
             transform: [{ scale: controlScale }],
           }}
         >
-          <Text style={{ top: 2, left: 4 }}> 🔥 </Text>
+          <Text style={{ top: 2, left: 4 }}> ðŸ”¥ </Text>
         </Animated.View>
       </Text>
       <View className="flex-row">

@@ -1,20 +1,21 @@
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
-import { GameScore } from "@/src/types/gamePlayTypes";
+import { GameScore } from "@/types/gamePlayTypes";
 import { Player, Room } from "./serverPayloadTypes";
 
-type GameScreenStackParamList = {
-  GameOver: {
-    winner: Player;
-    score: GameScore[];
-    isCurrentPlayer: boolean;
-    isMultiPlayer: boolean;
-  };
-};
-
-type GameScreenProps = NativeStackNavigationProp<
-  GameScreenStackParamList,
-  "GameOver"
->;
+interface GameScreenProps {
+  navigate: (
+    name: "GameOver",
+    params: {
+      winner: Player;
+      score: GameScore[];
+      isCurrentPlayer: boolean;
+      isMultiPlayer: boolean;
+    }
+  ) => void;
+  reset: (config: {
+    index: number;
+    routes: { name: string; params?: Record<string, unknown> }[];
+  }) => void;
+}
 
 interface GameOverScreenProps {
   route: {
@@ -22,14 +23,11 @@ interface GameOverScreenProps {
       winner: Player;
       isCurrentPlayer: boolean;
       isMultiPlayer: boolean;
-      score: {
-        playerName: string;
-        score: number;
-      }[];
-      roomId: string;
-      initialRoomData: Room;
+      score: GameScore[];
+      roomId?: string;
+      initialRoomData?: Room;
     };
   };
 }
 
-export { GameScreenProps, GameOverScreenProps };
+export { GameOverScreenProps, GameScreenProps };

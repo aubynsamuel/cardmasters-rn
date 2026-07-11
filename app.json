@@ -1,42 +1,36 @@
 {
   "expo": {
     "name": "Card Masters",
-    "slug": "card_masters",
+    "slug": "card-masters-rn",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "cardmasters",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
-    "ios": {
-      "supportsTablet": true
-    },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#005426"
+        "backgroundColor": "#005426",
+        "foregroundImage": "./assets/images/adaptive-icon.png"
       },
-      "package": "com.aubynsamuel.cardmasters"
+      "package": "com.aubynsamuel.cardmasters",
+      "predictiveBackGestureEnabled": false
     },
     "plugins": [
+      "expo-router",
       [
         "expo-splash-screen",
         {
+          "backgroundColor": "#005426",
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#005426"
+          "resizeMode": "contain"
         }
       ],
       "expo-font"
     ],
     "experiments": {
+      "typedRoutes": true,
       "reactCompiler": true
-    },
-    "extra": {
-      "eas": {
-        "projectId": "325d7b98-c9fb-4585-b631-5f07450c9a52"
-      }
     }
   }
 }

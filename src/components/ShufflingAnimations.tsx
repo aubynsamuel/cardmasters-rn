@@ -1,8 +1,7 @@
+import { StyleSheet, Text, View } from "react-native";
 import Animated, { BounceInUp } from "react-native-reanimated";
-import { View, Text, StyleSheet } from "react-native";
-import DiagonalStripes from "./DiagonalStripes";
 import Colors from "../theme/colors";
-import React from "react";
+import DiagonalStripes from "./DiagonalStripes";
 
 const rotateDegree: Record<number, string> = {
   0: "-75deg",

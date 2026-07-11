@@ -1,20 +1,20 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  FlatList,
-  ActivityIndicator,
-  TextInput,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import useRoom from "../hooks/useRoom";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import RoomChatComponent from "../components/RoomChatComponent";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
+import useRoom from "../hooks/useRoom";
 import { Player, PlayerStatus } from "../types/serverPayloadTypes";
 
 const RoomScreen = () => {
@@ -43,7 +43,7 @@ const RoomScreen = () => {
     if (
       roomState?.messages?.length > 0 &&
       roomState?.messages[roomState.messages.length - 1]?.senderId !==
-      socket?.id
+        socket?.id
     ) {
       setShowUnreadBadge(true);
     }

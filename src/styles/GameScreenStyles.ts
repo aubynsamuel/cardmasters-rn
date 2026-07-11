@@ -82,7 +82,7 @@ const getStyles = (width: number, height: number) => {
       elevation: 2,
     },
     decorationContainer: {
-      ...StyleSheet.absoluteFillObject,
+      ...StyleSheet.absoluteFill,
       overflow: "hidden",
       opacity: 0.3,
     },

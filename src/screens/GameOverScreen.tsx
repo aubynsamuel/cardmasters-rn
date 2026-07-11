@@ -1,27 +1,27 @@
+import { GameOverScreenProps } from "@/types/screenTypes";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect } from "react";
 import {
-  View,
+  BackHandler,
   Text,
   TouchableOpacity,
   useWindowDimensions,
-  BackHandler,
+  View,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Ionicons } from "@expo/vector-icons";
 import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  withSequence,
-  withDelay,
   Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withSequence,
+  withTiming,
 } from "react-native-reanimated";
 import { gameScoreToString } from "../gameLogic/GamePlayUtils";
-import { GameOverScreenProps } from "@/src/types/screenTypes";
+import { useLegacyNavigation } from "../navigation/legacyNavigation";
 
 const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
-  const navigation = useNavigation();
+  const navigation = useLegacyNavigation();
   const { width } = useWindowDimensions();
   const {
     winner,
@@ -63,9 +63,11 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
       handleNavigation();
       return true;
     };
-    BackHandler.addEventListener("hardwareBackPress", onBackPress);
-    return () =>
-      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      onBackPress
+    );
+    return () => subscription.remove();
   }, []);
 
   const titleStyle = useAnimatedStyle(() => ({
@@ -118,9 +120,9 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
   return (
     <LinearGradient
       colors={["#076345", "#0a8132"]}
-      className="items-center justify-center flex-1"
+      className="flex-1 justify-center items-center"
     >
-      <View className="absolute inset-0 overflow-hidden">
+      <View className="overflow-hidden absolute inset-0">
         {Array(6)
           .fill(0)
           .map((_, i) => (
@@ -134,7 +136,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
                 },
                 confettiStyle,
               ]}
-              className="absolute w-20 border-2 rounded-lg h-28 bg-white/15 border-white/30"
+              className="absolute w-20 h-28 rounded-lg border-2 bg-white/15 border-white/30"
             />
           ))}
       </View>
@@ -151,7 +153,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
           </Animated.View>
           <Animated.View
             style={winnerStyle}
-            className="w-full mb-5 overflow-hidden shadow-lg rounded-2xl md:h-4/5"
+            className="overflow-hidden mb-5 w-full rounded-2xl shadow-lg md:h-4/5"
           >
             <LinearGradient
               colors={
@@ -192,19 +194,19 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
           </Animated.View>
         </View>
 
-        <View className="items-center justify-center w-full md:w-2/5 md:h-full">
+        <View className="justify-center items-center w-full md:w-2/5 md:h-full">
           <Animated.View
             style={buttonsStyle}
-            className="w-full gap-4 md:w-11/12"
+            className="gap-4 w-full md:w-11/12"
           >
             <TouchableOpacity
-              className="w-full overflow-hidden shadow-md rounded-xl"
+              className="overflow-hidden w-full rounded-xl shadow-md"
               onPress={handleNavigation}
               activeOpacity={0.8}
             >
               <LinearGradient
                 colors={["#FF9800", "#F57C00"]}
-                className="flex-row items-center justify-center p-4 rounded-xl"
+                className="flex-row justify-center items-center p-4 rounded-xl"
               >
                 <Ionicons
                   name="reload"
@@ -220,7 +222,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
 
             {!isMultiPlayer && (
               <TouchableOpacity
-                className="w-full overflow-hidden shadow-md rounded-xl"
+                className="overflow-hidden w-full rounded-xl shadow-md"
                 onPress={() =>
                   navigation.reset({
                     index: 0,
@@ -231,7 +233,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
               >
                 <LinearGradient
                   colors={["#4CAF50", "#2E7D32"]}
-                  className="flex-row items-center justify-center p-4 rounded-xl"
+                  className="flex-row justify-center items-center p-4 rounded-xl"
                 >
                   <Ionicons
                     name="home"

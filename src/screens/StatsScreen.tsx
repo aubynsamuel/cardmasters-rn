@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
+import { GameRecord } from "@/types/gamePlayTypes";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { GameRecord } from "@/src/types/gamePlayTypes";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useNavigation } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
+import { useEffect, useState } from "react";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "../context/AuthContext";
+import { useLegacyNavigation } from "../navigation/legacyNavigation";
 import { fetchGameRecords } from "../services/firestore";
 
 const StatsScreen = () => {
@@ -13,7 +13,7 @@ const StatsScreen = () => {
     "all" | "multiplayer" | "single-player"
   >("all");
   const [records, setRecords] = useState<GameRecord[]>();
-  const navigation = useNavigation();
+  const navigation = useLegacyNavigation();
   const { userId } = useAuth();
 
   const getStoredRecords = async () => {
@@ -81,7 +81,7 @@ const StatsScreen = () => {
             <Text className="ml-1 mr-1 text-white/70">Winner:</Text>
             <Text className="font-bold text-white">
               {item.winnerName}
-              {item.winnerName === "You" && " 🎉"}
+              {item.winnerName === "You" && " ðŸŽ‰"}
             </Text>
           </View>
           <View className="flex-row items-center">

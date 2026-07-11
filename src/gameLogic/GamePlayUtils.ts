@@ -1,4 +1,4 @@
-import { Card, GameScore, Rank, Suit } from "@/src/types/gamePlayTypes";
+import { Card, GameScore, Rank, Suit } from "@/types/gamePlayTypes";
 import { Player } from "../types/serverPayloadTypes";
 
 const suits: Suit[] = ["diamond", "spade", "love", "club"];
@@ -15,10 +15,10 @@ const rankValues: Record<Rank, number> = {
 };
 
 const suitSymbols: Record<Suit, string> = {
-  diamond: "♦",
-  spade: "♠",
-  love: "♥",
-  club: "♣",
+  diamond: "â™¦",
+  spade: "â™ ",
+  love: "â™¥",
+  club: "â™£",
 };
 
 const gameScoreToString = (gameScoreList: GameScore[]) => {
@@ -85,4 +85,4 @@ const dealCards = (
   return { hands, deck: deckCopy };
 };
 
-export { createDeck, shuffleDeck, dealCards, suitSymbols, gameScoreToString };
+export { createDeck, dealCards, gameScoreToString, shuffleDeck, suitSymbols };

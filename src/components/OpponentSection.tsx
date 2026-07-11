@@ -1,9 +1,8 @@
-import React from "react";
-import { View, Text } from "react-native";
+import { Text, View } from "react-native";
 import Animated, { FlipInEasyX, SharedValue } from "react-native-reanimated";
-import OpponentCard from "./OpponentCard";
-import AnimatedScoreDisplay from "./AccumulatedScoreDisplay";
 import { Player } from "../types/serverPayloadTypes";
+import AnimatedScoreDisplay from "./AccumulatedScoreDisplay";
+import OpponentCard from "./OpponentCard";
 
 type OpponentSectionProps = {
   opponent: Player;

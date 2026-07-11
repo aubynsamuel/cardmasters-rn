@@ -1,11 +1,11 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import React from "react";
-import DeckCard from "./DeckCard";
-import Colors from "../theme/colors";
-import { Deck, GameScore } from "@/src/types/gamePlayTypes";
+import { Deck, GameScore } from "@/types/gamePlayTypes";
 import { Ionicons } from "@expo/vector-icons";
-import { gameScoreToString } from "../gameLogic/GamePlayUtils";
 import { LinearGradient } from "expo-linear-gradient";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { gameScoreToString } from "../gameLogic/GamePlayUtils";
+import Colors from "../theme/colors";
+import DeckCard from "./DeckCard";
 
 interface TopRowInterface {
   deck: Deck;

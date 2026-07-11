@@ -1,6 +1,6 @@
-import { View, ScrollView, Text } from "react-native";
-import { gameHistoryType } from "@/src/types/gamePlayTypes";
+import { gameHistoryType } from "@/types/gamePlayTypes";
 import React, { useEffect, useRef } from "react";
+import { ScrollView, Text, View } from "react-native";
 
 interface gameHistoryInterface {
   gameHistory: gameHistoryType[];
@@ -24,7 +24,7 @@ const GameHistory: React.FC<gameHistoryInterface> = ({ gameHistory }) => {
       >
         {gameHistory?.map((item, index) => (
           <Text
-            key={index + Math.random() * 10}
+            key={`${index}-${item.message}`}
             className={
               item.importance
                 ? "text-yellow-400 font-bold mb-1.5"

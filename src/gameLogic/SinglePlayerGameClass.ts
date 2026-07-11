@@ -1,19 +1,19 @@
 import {
+  Card,
+  Deck,
+  gameHistoryType,
+  GameScore,
+  Play,
+  Suit,
+} from "@/types/gamePlayTypes";
+import { Player } from "../types/serverPayloadTypes";
+import { chooseCardAI } from "./ChooseCardAI";
+import {
   createDeck,
   dealCards,
   shuffleDeck,
   suitSymbols,
 } from "./GamePlayUtils";
-import {
-  Card,
-  gameHistoryType,
-  Play,
-  GameScore,
-  Suit,
-  Deck,
-} from "@/src/types/gamePlayTypes";
-import { Player } from "../types/serverPayloadTypes";
-import { chooseCardAI } from "./ChooseCardAI";
 
 export interface CardsGameUIState {
   players: Player[];
@@ -490,8 +490,8 @@ class CardsGame {
       players: updatedPlayers,
       message:
         newControl.id === this.players[0].id
-          ? `🏆 You won this game with ${finalPoints} points! 🏆`
-          : `🏆 ${this.players[1].name} won this game with ${finalPoints} points! 🏆`,
+          ? `ðŸ† You won this game with ${finalPoints} points! ðŸ†`
+          : `ðŸ† ${this.players[1].name} won this game with ${finalPoints} points! ðŸ†`,
     });
 
     if (computerScore < this.targetScore && humanScore < this.targetScore) {

@@ -1,4 +1,4 @@
-import { Card } from "@/src/types/gamePlayTypes";
+import { Card } from "@/types/gamePlayTypes";
 
 /**
  * AI helper that chooses a card based on the lead

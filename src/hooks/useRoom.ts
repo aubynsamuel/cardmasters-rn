@@ -1,44 +1,27 @@
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { BackHandler } from "react-native";
-import {
-  useRoute,
-  useNavigation,
-  useFocusEffect,
-  RouteProp,
-} from "@react-navigation/native";
-import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
 import { useSocket } from "../context/SocketContext";
 import {
-  Room,
+  useFocusEffect,
+  useLegacyNavigation,
+  useLegacyRoute,
+} from "../navigation/legacyNavigation";
+import {
+  ErrorPayload,
+  GameStartedPayload,
+  Message,
+  OwnerChangedPayload,
+  Player,
   PlayerJoinedPayload,
   PlayerLeftPayload,
-  OwnerChangedPayload,
-  GameStartedPayload,
-  ErrorPayload,
   PlayerStatus,
-  Player,
-  Message,
+  Room,
 } from "../types/serverPayloadTypes";
 
-type RootStackParamList = {
-  RoomScreen: {
-    roomId: string;
-    initialRoomData: Room;
-  };
-  MultiplayerLobby: undefined;
-  MultiPlayerGameScreen: {
-    roomId: string;
-    roomData: Room;
-  };
-};
-
-type RoomScreenRouteProp = RouteProp<RootStackParamList, "RoomScreen">;
-type RoomNavigation = NativeStackNavigationProp<RootStackParamList>;
-
 const useRoom = () => {
-  const route = useRoute<RoomScreenRouteProp>();
-  const navigation = useNavigation<RoomNavigation>();
+  const route = useLegacyRoute();
+  const navigation = useLegacyNavigation();
   const { socket, isConnected } = useSocket();
   const { roomId, initialRoomData } = route.params;
   const [roomState, setRoomState] = useState<Room | null>(
@@ -68,9 +51,11 @@ const useRoom = () => {
       socket?.emit("leave_room", { roomId });
       return true;
     };
-    BackHandler.addEventListener("hardwareBackPress", onBackPress);
-    return () =>
-      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    const subscription = BackHandler.addEventListener(
+      "hardwareBackPress",
+      onBackPress
+    );
+    return () => subscription.remove();
   }, []);
 
   const handlePlayerJoined = (data: PlayerJoinedPayload) => {

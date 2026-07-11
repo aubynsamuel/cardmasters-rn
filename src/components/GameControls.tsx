@@ -1,9 +1,9 @@
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import React from "react";
-import { useSettingsStore } from "../store/settingsStore";
-import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { Slider } from "@miblanchard/react-native-slider";
+import { LinearGradient } from "expo-linear-gradient";
+import React from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useSettingsStore } from "../store/settingsStore";
 interface GameControlsInterface {
   showStartButton: boolean;
   startNewGame?: () => void;

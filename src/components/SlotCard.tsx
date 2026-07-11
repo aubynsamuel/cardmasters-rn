@@ -1,8 +1,7 @@
-import { TextStyle, Text, StyleSheet, View } from "react-native";
-import { suitSymbols } from "../gameLogic/GamePlayUtils";
-import { Card } from "@/src/types/gamePlayTypes";
-import React from "react";
+import { Card } from "@/types/gamePlayTypes";
+import { StyleSheet, Text, TextStyle, View } from "react-native";
 import Animated, { ZoomIn } from "react-native-reanimated";
+import { suitSymbols } from "../gameLogic/GamePlayUtils";
 
 const SlotCard = ({ card }: { card: Card }) => {
   const colorStyle: TextStyle =

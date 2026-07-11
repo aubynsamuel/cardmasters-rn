@@ -1,28 +1,28 @@
-import React, { useEffect, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useState } from "react";
 import {
-  View,
+  ActivityIndicator,
+  BackHandler,
   Text,
   TouchableOpacity,
-  ActivityIndicator,
   useWindowDimensions,
-  BackHandler,
+  View,
 } from "react-native";
-import { StatusBar } from "expo-status-bar";
-import GameHistory from "../components/GameHistory";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import ShufflingAnimation from "../components/ShufflingAnimations";
+import { useSharedValue, withSpring } from "react-native-reanimated";
+import { SafeAreaView } from "react-native-safe-area-context";
 import EmptyCard from "../components/EmptySlotCard";
+import GameControls from "../components/GameControls";
+import GameHistory from "../components/GameHistory";
+import OpponentSection from "../components/OpponentSection";
+import PlayerSection from "../components/PlayerSection";
+import ShufflingAnimation from "../components/ShufflingAnimations";
 import SlotCard from "../components/SlotCard";
 import TopRow from "../components/TopRow";
-import GameControls from "../components/GameControls";
-import { Ionicons } from "@expo/vector-icons";
-import PlayerSection from "../components/PlayerSection";
-import OpponentSection from "../components/OpponentSection";
-import Colors from "../theme/colors";
-import getStyles from "../styles/GameScreenStyles";
-import { useSharedValue, withSpring } from "react-native-reanimated";
 import { useMultiplayerGame } from "../hooks/useMultiplayerGame";
+import getStyles from "../styles/GameScreenStyles";
+import Colors from "../theme/colors";
 
 const MultiPlayerGameScreen = () => {
   const { width, height } = useWindowDimensions();
@@ -56,23 +56,19 @@ const MultiPlayerGameScreen = () => {
     if (gameState.currentControl.id === opponentPlayer?.id)
       computerControlScale.value = withSpring(1.2, {
         duration: 500,
-        stiffness: 300,
       });
     else
       computerControlScale.value = withSpring(0, {
         duration: 500,
-        stiffness: 300,
       });
 
     if (gameState.currentControl.id === currentPlayer?.id)
       humanControlScale.value = withSpring(1.2, {
         duration: 500,
-        stiffness: 300,
       });
     else
       humanControlScale.value = withSpring(0, {
         duration: 500,
-        stiffness: 300,
       });
   }, [gameState?.currentControl]);
 
@@ -83,8 +79,8 @@ const MultiPlayerGameScreen = () => {
       return true;
     };
     BackHandler.addEventListener("hardwareBackPress", onBackPress);
-    return () =>
-      BackHandler.removeEventListener("hardwareBackPress", onBackPress);
+    // return () =>
+    //   BackHandler.removeEventListener("hardwareBackPress", onBackPress);
   }, []);
 
   if (isLoading || !gameState || !gameState.players) {
@@ -116,9 +112,7 @@ const MultiPlayerGameScreen = () => {
   );
 
   // display the hands for one opponent selected at random
-  const randomOpponent = opponentPlayers[
-    Math.floor(Math.random() * opponentPlayers.length)
-  ] || {
+  const randomOpponent = opponentPlayers[0] || {
     name: "Opponent",
     id: "player2",
     hands: [],
@@ -135,7 +129,7 @@ const MultiPlayerGameScreen = () => {
       (play) => play.player.id === currentUser.id
     );
     return (
-      <View className="items-center justify-center w-28">
+      <View className="justify-center items-center w-28">
         <Text
           style={{
             fontWeight: "bold",
@@ -156,7 +150,7 @@ const MultiPlayerGameScreen = () => {
   return (
     <GestureHandlerRootView>
       <SafeAreaView className="justify-center flex-1 px-2.5 bg-containerBackground">
-        <StatusBar backgroundColor="transparent" style="light" hidden={true} />
+        <StatusBar style="light" hidden />
 
         <View style={styles.decorationContainer}>
           {Array(5)
@@ -179,7 +173,7 @@ const MultiPlayerGameScreen = () => {
 
         {reconnectionDisplay.show && (
           <View style={styles.animationOverlay}>
-            <View className="items-center justify-center p-5 bg-mainTextColor rounded-xl elevation-md">
+            <View className="justify-center items-center p-5 rounded-xl bg-mainTextColor elevation-md">
               <Text className="text-lg text-center text-black">
                 {reconnectionDisplay.message}
               </Text>
@@ -245,7 +239,7 @@ const MultiPlayerGameScreen = () => {
         )}
 
         {/* MAIN GAME AREA */}
-        <View className="flex-col items-center justify-between flex-1 my-4 md:flex-row">
+        <View className="flex-col flex-1 justify-between items-center my-4 md:flex-row">
           <View
             className={`items-center bg-opponentArea rounded-[20px] p-2.5 w-10/12 md:w-1/3 h-36`}
           >
@@ -259,10 +253,10 @@ const MultiPlayerGameScreen = () => {
           </View>
 
           {/* Game Results in the Middle */}
-          <View className="items-center w-full gap-8 mx-4 md:w-1/4 justify-evenly">
+          <View className="gap-8 justify-evenly items-center mx-4 w-full md:w-1/4">
             {width < 600 && (
               <View
-                className="p-1 px-5 bg-logContainerBackground rounded-2xl"
+                className="p-1 px-5 rounded-2xl bg-logContainerBackground"
                 style={{ minWidth: "50%" }}
               >
                 <Text
@@ -275,7 +269,7 @@ const MultiPlayerGameScreen = () => {
             )}
 
             {/* Current Play Cards */}
-            <View className="flex-col items-center justify-around gap-5 text-xl text-center">
+            <View className="flex-col gap-5 justify-around items-center text-xl text-center">
               {/* Opponent's Play Spot */}
 
               <View className="flex-row justify-center">
@@ -288,7 +282,7 @@ const MultiPlayerGameScreen = () => {
                   return (
                     <View
                       key={opponent.id + opponent.name}
-                      className="items-center justify-center w-28"
+                      className="justify-center items-center w-28"
                     >
                       <Text
                         style={{
