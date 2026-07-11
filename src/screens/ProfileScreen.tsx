@@ -1,5 +1,4 @@
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 import {
@@ -20,6 +19,11 @@ import Animated, {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
+import {
+  cacheRemoteGameRecords,
+  getLocalGameRecords,
+  migrateLegacyGameRecords,
+} from "../data/gameRecordRepository";
 import { useLegacyNavigation } from "../navigation/legacyNavigation";
 import { fetchGameRecords } from "../services/firestore";
 import { GameRecord } from "../types/gamePlayTypes";
@@ -38,36 +42,23 @@ const ProfileScreen = () => {
 
   const [records, setRecords] = useState<GameRecord[]>();
 
-  const getStoredRecords = async () => {
-    try {
-      const stored = await AsyncStorage.getItem("gameRecord");
-      if (!stored) return;
-      const parsedRecords = JSON.parse(stored) as GameRecord[];
-      if (Array.isArray(parsedRecords)) {
-        setRecords(parsedRecords);
-      }
-    } catch (error) {
-      console.error(
-        "[ProfileScreen] Failed to load local game records:",
-        error
-      );
-    }
-  };
-
   const loadRecords = async () => {
+    await migrateLegacyGameRecords(userId);
+    setRecords(await getLocalGameRecords(userId));
+
     if (userId) {
       const remote = await fetchGameRecords(userId);
       if (remote && Array.isArray(remote)) {
-        setRecords(remote);
-        await AsyncStorage.setItem("gameRecord", JSON.stringify(remote));
-        return;
+        await cacheRemoteGameRecords(remote, userId);
+        setRecords(await getLocalGameRecords(userId));
       }
     }
-    await getStoredRecords();
   };
 
   const gameWon =
-    records?.filter((game) => game.winnerName === "You").length || 0;
+    records?.filter(
+      (game) => game.winnerName === "You" || game.winnerId === userId
+    ).length || 0;
 
   const winRate = records?.length
     ? ((gameWon / records.length) * 100).toFixed(2)

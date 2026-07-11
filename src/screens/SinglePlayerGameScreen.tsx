@@ -1,6 +1,5 @@
 import { GameRecord, GameRecordPlayer } from "@/types/gamePlayTypes";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -22,11 +21,13 @@ import GameResults from "../components/SinglePlayerGameResults";
 import TopRow from "../components/TopRow";
 import { useAuth } from "../context/AuthContext";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
+import { useSocket } from "../context/SocketContext";
+import { saveLocalGameRecord } from "../data/gameRecordRepository";
 import CardsGame, {
   CardsGameUIState,
 } from "../gameLogic/SinglePlayerGameClass";
 import { useLegacyNavigation } from "../navigation/legacyNavigation";
-import { saveGameRecord } from "../services/firestore";
+import { syncPendingGameRecords } from "../services/gameRecordSync";
 import { useSettingsStore } from "../store/settingsStore";
 import getStyles from "../styles/GameScreenStyles";
 import { GameScreenProps } from "../types/screenTypes";
@@ -36,6 +37,7 @@ const GameScreen = () => {
   const { width, height } = useWindowDimensions();
   const styles = getStyles(width, height);
   const { userData, userId } = useAuth();
+  const { socket } = useSocket();
   const { showAlert } = useCustomAlerts();
   const { targetScore } = useSettingsStore();
   const gameRef = useRef<CardsGame | null>(null);
@@ -160,18 +162,9 @@ const GameScreen = () => {
         players: playersListBuilder(),
       };
 
-      // Retrieve existing records, append the new one, and save back
-      AsyncStorage.getItem("gameRecord")
-        .then(async (storedRecords) => {
-          const records = storedRecords ? JSON.parse(storedRecords) : [];
-          records.push(gameRecord); // Add the new record to the list
-          return AsyncStorage.setItem("gameRecord", JSON.stringify(records));
-        })
-        .then(() => console.log("Record Stored"))
+      void saveLocalGameRecord(gameRecord, userId)
+        .then(() => syncPendingGameRecords(socket, userId))
         .catch((error) => console.error("Error saving game record:", error));
-      if (userId) {
-        saveGameRecord(userId, gameRecord);
-      }
       navigation.navigate("GameOver", gameRef.current.gameOverData);
     }
   }, [gameState?.cardsPlayed]);

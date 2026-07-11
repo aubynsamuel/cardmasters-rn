@@ -4,16 +4,15 @@ import {
   GameRecordPlayer,
 } from "@/types/gamePlayTypes";
 import { GameScreenProps } from "@/types/screenTypes";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { saveLocalGameRecord } from "../data/gameRecordRepository";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
 import { useSocket } from "../context/SocketContext";
 import {
   useLegacyNavigation,
   useLegacyRoute,
 } from "../navigation/legacyNavigation";
-import { saveGameRecord } from "../services/firestore";
 import {
   GameStartedPayload,
   PlayerLeftPayload,
@@ -27,7 +26,8 @@ export const useMultiplayerGame = () => {
   const route = useLegacyRoute();
   const { isConnected, socket, socketId } = useSocket();
   const { userId, userData } = useAuth();
-  const { roomId, roomData } = route.params as GameStartedPayload;
+  const { roomId, roomData, gameId: serverGameId } =
+    route.params as GameStartedPayload;
   const [gameState, setGameState] = useState<CardsGameState | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { showAlert, showToast, hideAlert } = useCustomAlerts();
@@ -71,9 +71,14 @@ export const useMultiplayerGame = () => {
     if (!currentPlayer || !opponentPlayer) return;
 
     if (gameState.players.some((p) => p.score >= gameState.gameTo)) {
+      if (!serverGameId) {
+        console.error("[useMultiplayerGame] Missing server game ID");
+        return;
+      }
+
       const gameRecord: GameRecord = {
         dateString: new Date().toUTCString(),
-        gameId: `game_${Date.now()}_${Math.random().toString(16).slice(2)}`,
+        gameId: serverGameId,
         mode: "multiplayer",
         playerCount: 2,
         targetScore: gameState.gameTo,
@@ -81,23 +86,17 @@ export const useMultiplayerGame = () => {
           gameState.gameOverData.winner.name === userData?.displayName
             ? "You"
             : gameState.gameOverData.winner.name,
-        winnerId: gameState.gameOverData.winner.id,
+        winnerId:
+          gameState.gameOverData.winner.userId ??
+          gameState.gameOverData.winner.id,
         players: playersListBuilder(),
       };
 
-      // Retrieve existing records, append the new one, and save back
-      AsyncStorage.getItem("gameRecord")
-        .then(async (storedRecords) => {
-          const records = storedRecords ? JSON.parse(storedRecords) : [];
-          records.push(gameRecord); // Add the new record to the list
-          return AsyncStorage.setItem("gameRecord", JSON.stringify(records));
-        })
-        .then(() => console.log("Record Stored"))
-        .catch((error) => console.error("Error saving game record:", error));
-      if (userId) {
-        saveGameRecord(userId, gameRecord);
-      }
-
+      void saveLocalGameRecord(
+        gameRecord,
+        userId,
+        userId ? "synced" : "local_only"
+      );
       socket?.emit("game_ended", { roomId });
       const gameScoreList = gameState.players.map((player) => ({
         playerName: player.name,
@@ -364,7 +363,7 @@ export const useMultiplayerGame = () => {
     for (const player of gameState.players) {
       playersList.push({
         finalScore: player.score,
-        id: player.id,
+        id: player.userId ?? player.id,
         name: player.name === userData?.displayName ? "You" : player.name,
         position: 1,
       });

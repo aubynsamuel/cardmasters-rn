@@ -10,6 +10,7 @@ interface Message {
 interface Player {
   name: string;
   id: string;
+  userId?: string;
   hands: Card[];
   score: number;
   status?: PlayerStatus;
@@ -95,6 +96,7 @@ interface PlayerLeftPayload {
 interface GameStartedPayload {
   roomId: string;
   roomData: Room;
+  gameId?: string;
 }
 
 interface ErrorPayload {

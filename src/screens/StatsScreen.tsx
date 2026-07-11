@@ -1,6 +1,5 @@
 import { GameRecord } from "@/types/gamePlayTypes";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
 import {
@@ -12,6 +11,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
+import {
+  cacheRemoteGameRecords,
+  getLocalGameRecords,
+  migrateLegacyGameRecords,
+} from "../data/gameRecordRepository";
 import { useLegacyNavigation } from "../navigation/legacyNavigation";
 import { fetchGameRecords } from "../services/firestore";
 
@@ -24,29 +28,17 @@ const StatsScreen = () => {
   const { userId } = useAuth();
   const insets = useSafeAreaInsets();
 
-  const getStoredRecords = async () => {
-    try {
-      const stored = await AsyncStorage.getItem("gameRecord");
-      if (!stored) return;
-      const parsedRecords = JSON.parse(stored) as GameRecord[];
-      if (Array.isArray(parsedRecords)) {
-        setRecords(parsedRecords);
-      }
-    } catch (error) {
-      console.error("[StatsScreen] Failed to load local game records:", error);
-    }
-  };
-
   const loadRecords = async () => {
+    await migrateLegacyGameRecords(userId);
+    setRecords(await getLocalGameRecords(userId));
+
     if (userId) {
       const remote = await fetchGameRecords(userId);
       if (remote && Array.isArray(remote)) {
-        setRecords(remote);
-        await AsyncStorage.setItem("gameRecord", JSON.stringify(remote));
-        return;
+        await cacheRemoteGameRecords(remote, userId);
+        setRecords(await getLocalGameRecords(userId));
       }
     }
-    await getStoredRecords();
   };
 
   useEffect(() => {
@@ -59,6 +51,8 @@ const StatsScreen = () => {
       : records?.filter((record) => record.mode === filterMode) || [];
 
   const renderGameRecord = ({ item }: { item: GameRecord }) => {
+    const currentUserWon =
+      item.winnerName === "You" || item.winnerId === userId;
     const sortedPlayers = [...item.players].sort(
       (a, b) => b.finalScore - a.finalScore
     );
@@ -66,7 +60,7 @@ const StatsScreen = () => {
     return (
       <LinearGradient
         colors={
-          item.winnerName === "You"
+          currentUserWon
             ? ["#0a8132", "#076324"]
             : ["#4a5568", "#2d3748"]
         }
@@ -88,8 +82,8 @@ const StatsScreen = () => {
             <MaterialCommunityIcons name="trophy" size={18} color="#FFD700" />
             <Text className="ml-1 mr-1 text-white/70">Winner:</Text>
             <Text className="font-bold text-white">
-              {item.winnerName}
-              {item.winnerName === "You" && " \uD83C\uDF89"}
+              {currentUserWon ? "You" : item.winnerName}
+              {currentUserWon && " \uD83C\uDF89"}
             </Text>
           </View>
           <View className="flex-row items-center">
@@ -111,7 +105,7 @@ const StatsScreen = () => {
               >
                 <Text className="w-6 text-xs text-white/60">#{index + 1}</Text>
                 <Text className="flex-1 font-medium text-white">
-                  {player.name}
+                  {player.id === userId ? "You" : player.name}
                 </Text>
                 <Text className="font-bold text-white">
                   {player.finalScore} pts
@@ -194,7 +188,11 @@ const StatsScreen = () => {
         </View>
         <View className="items-center flex-1 p-3 mx-1 bg-white/15 rounded-2xl">
           <Text className="text-2xl font-bold text-white">
-            {records?.filter((game) => game.winnerName === "You").length}
+            {
+              records?.filter(
+                (game) => game.winnerName === "You" || game.winnerId === userId
+              ).length
+            }
           </Text>
           <Text className="mt-1 text-xs text-white/80">Wins</Text>
         </View>
@@ -207,7 +205,7 @@ const StatsScreen = () => {
       </View>
 
       <FlatList
-        data={[...filteredRecords].reverse()}
+        data={filteredRecords}
         renderItem={renderGameRecord}
         keyExtractor={(item, index) =>
           item.gameId ? item.gameId.toString() : index.toString()

@@ -10,15 +10,18 @@ export type GameOverRouteData = GameOverData & {
 interface NavigationState {
   roomId: string | null;
   roomData: Room | null;
+  gameId: string | null;
   gameOverData: GameOverRouteData | null;
   setRoom: (roomId: string, roomData?: Room | null) => void;
   setGameOverData: (data: GameOverRouteData) => void;
+  setGameId: (gameId: string) => void;
   clearRoom: () => void;
 }
 
 export const useNavigationStore = create<NavigationState>((set) => ({
   roomId: null,
   roomData: null,
+  gameId: null,
   gameOverData: null,
   setRoom: (roomId, roomData) =>
     set((state) => ({
@@ -26,5 +29,6 @@ export const useNavigationStore = create<NavigationState>((set) => ({
       roomData: roomData ?? state.roomData,
     })),
   setGameOverData: (gameOverData) => set({ gameOverData }),
-  clearRoom: () => set({ roomId: null, roomData: null }),
+  setGameId: (gameId) => set({ gameId }),
+  clearRoom: () => set({ roomId: null, roomData: null, gameId: null }),
 }));

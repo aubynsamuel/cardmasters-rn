@@ -8,6 +8,7 @@ import {
 } from "firebase/auth";
 import { doc, getDoc, setDoc } from "firebase/firestore";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { View } from "react-native";
 import { auth, db } from "../config/firebase";
 import { useSettingsStore } from "../store/settingsStore";
 
@@ -153,7 +154,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
         isLoading,
       }}
     >
-      {children}
+      <View style={{ backgroundColor: "#076324", flex: 1 }}>{children}</View>
     </AuthContext.Provider>
   );
 };

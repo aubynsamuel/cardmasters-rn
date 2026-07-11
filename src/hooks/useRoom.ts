@@ -103,6 +103,7 @@ const useRoom = () => {
         params: {
           roomId: roomId,
           roomData: data.roomData || roomState,
+          gameId: data.gameId,
         },
       });
     },

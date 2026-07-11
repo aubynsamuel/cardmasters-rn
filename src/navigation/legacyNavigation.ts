@@ -50,6 +50,10 @@ const saveRouteState = (name: LegacyRouteName, params?: LegacyParams) => {
     store.setRoom(roomId, roomData);
   }
 
+  if (typeof params.gameId === "string") {
+    store.setGameId(params.gameId);
+  }
+
   if (name === "GameOver") {
     store.setGameOverData(params as never);
   }
@@ -127,12 +131,14 @@ export const useLegacyRoute = () => {
   const storedRoomId = useNavigationStore((state) => state.roomId);
   const roomId = params.roomId ?? storedRoomId;
   const roomData = useNavigationStore((state) => state.roomData);
+  const gameId = useNavigationStore((state) => state.gameId);
 
   return {
     params: {
       roomId,
       initialRoomData: roomData,
       roomData,
+      gameId,
     },
   };
 };
