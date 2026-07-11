@@ -490,8 +490,8 @@ class CardsGame {
       players: updatedPlayers,
       message:
         newControl.id === this.players[0].id
-          ? `ðŸ† You won this game with ${finalPoints} points! ðŸ†`
-          : `ðŸ† ${this.players[1].name} won this game with ${finalPoints} points! ðŸ†`,
+          ? `\uD83C\uDFC6 You won this game with ${finalPoints} points! \uD83C\uDFC6`
+          : `\uD83C\uDFC6 ${this.players[1].name} won this game with ${finalPoints} points! \uD83C\uDFC6`,
     });
 
     if (computerScore < this.targetScore && humanScore < this.targetScore) {

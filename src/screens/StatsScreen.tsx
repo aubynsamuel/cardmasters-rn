@@ -81,7 +81,7 @@ const StatsScreen = () => {
             <Text className="ml-1 mr-1 text-white/70">Winner:</Text>
             <Text className="font-bold text-white">
               {item.winnerName}
-              {item.winnerName === "You" && " ðŸŽ‰"}
+              {item.winnerName === "You" && " \uD83C\uDF89"}
             </Text>
           </View>
           <View className="flex-row items-center">

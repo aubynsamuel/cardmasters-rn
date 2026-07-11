@@ -15,10 +15,10 @@ const rankValues: Record<Rank, number> = {
 };
 
 const suitSymbols: Record<Suit, string> = {
-  diamond: "â™¦",
-  spade: "â™ ",
-  love: "â™¥",
-  club: "â™£",
+  diamond: "\u2666",
+  spade: "\u2660",
+  love: "\u2665",
+  club: "\u2663",
 };
 
 const gameScoreToString = (gameScoreList: GameScore[]) => {

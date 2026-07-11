@@ -48,7 +48,7 @@ const PlayerSection = ({
             transform: [{ scale: controlScale }],
           }}
         >
-          <Text style={{ top: 2, left: 4 }}> ðŸ”¥ </Text>
+          <Text style={{ top: 2, left: 4 }}>{" \uD83D\uDD25 "}</Text>
         </Animated.View>
       </Text>
       <View className="flex-row">
