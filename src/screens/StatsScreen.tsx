@@ -3,7 +3,13 @@ import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useState } from "react";
-import { FlatList, Text, TouchableOpacity, View } from "react-native";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useAuth } from "../context/AuthContext";
 import { useLegacyNavigation } from "../navigation/legacyNavigation";
 import { fetchGameRecords } from "../services/firestore";
@@ -64,7 +70,7 @@ const StatsScreen = () => {
         }
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 0 }}
-        className="p-4 mb-4 overflow-hidden shadow-md rounded-2xl"
+        style={styles.recordCard}
       >
         <View className="flex-row items-center justify-between mb-3">
           <View className="px-2 py-1 rounded-lg bg-white/20">
@@ -117,10 +123,7 @@ const StatsScreen = () => {
   };
 
   return (
-    <LinearGradient
-      colors={["#076324", "#076345"]}
-      className="flex-1 pt-8 md:pt-5"
-    >
+    <LinearGradient colors={["#076324", "#076345"]} style={styles.screen}>
       <TouchableOpacity
         className="absolute left-3 top-5"
         onPress={() => navigation.goBack()}
@@ -217,5 +220,23 @@ const StatsScreen = () => {
     </LinearGradient>
   );
 };
+
+const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+    paddingTop: 32,
+  },
+  recordCard: {
+    marginBottom: 16,
+    padding: 16,
+    borderRadius: 16,
+    overflow: "hidden",
+    elevation: 4,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+  },
+});
 
 export default StatsScreen;

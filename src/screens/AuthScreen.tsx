@@ -143,7 +143,7 @@ const AuthScreen = () => {
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      className="flex-1"
+      style={{ flex: 1 }}
     >
       <LinearGradient
         colors={["#10b981", "#065f46"]}
@@ -215,7 +215,7 @@ const AuthScreen = () => {
                   <Ionicons
                     name={showPassword ? "eye" : "eye-off"}
                     size={22}
-                    className="absolute z-30 right-2"
+                    style={{ position: "absolute", zIndex: 30, right: 8 }}
                     onPress={() => setShowPassword((prev) => !prev)}
                   />
                 </View>

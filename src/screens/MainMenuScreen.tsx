@@ -124,8 +124,7 @@ const MainMenuScreen = () => {
       <View className="items-center justify-center flex-1 px-5">
         {/* Title */}
         <Animated.View
-          style={[animatedTitleStyle]}
-          className={"items-center mb-[60px]"}
+          style={[extendedStyles.titleContainer, animatedTitleStyle]}
         >
           <Text className="text-[38px] font-bold text-white shadow-xl">
             Card Masters
@@ -136,8 +135,7 @@ const MainMenuScreen = () => {
         <View className="flex-row flex-wrap items-center w-full gap-5 justify-evenly">
           {/* SinglePlayer Button */}
           <Animated.View
-            style={[animatedButtonStyle1]}
-            className={buttonStyles + "elevation-2xl"}
+            style={[extendedStyles.buttonContainer, animatedButtonStyle1]}
           >
             <TouchableOpacity
               className={menuTouchableStyles}
@@ -146,18 +144,15 @@ const MainMenuScreen = () => {
             >
               <LinearGradient
                 colors={["#0a8132", "#076324"]}
-                className={linearGradientStyles}
+                style={extendedStyles.buttonGradient}
               >
                 <Ionicons
                   name="game-controller"
                   size={24}
                   color="#fff"
-                  className="mr-3"
+                  style={extendedStyles.buttonIcon}
                 />
-                <Text
-                  numberOfLines={1}
-                  className="text-white text-[18px] font-bold shadow-sm"
-                >
+                <Text numberOfLines={1} style={extendedStyles.buttonText}>
                   SinglePlayer
                 </Text>
               </LinearGradient>
@@ -166,8 +161,7 @@ const MainMenuScreen = () => {
 
           {/* Multiplayer Button */}
           <Animated.View
-            style={[animatedButtonStyle2]}
-            className={buttonStyles}
+            style={[extendedStyles.buttonContainer, animatedButtonStyle2]}
           >
             <TouchableOpacity
               className={menuTouchableStyles}
@@ -176,18 +170,15 @@ const MainMenuScreen = () => {
             >
               <LinearGradient
                 colors={["#ff7e47", "#ff5722"]}
-                className={linearGradientStyles}
+                style={extendedStyles.buttonGradient}
               >
                 <Ionicons
                   name="people"
                   size={24}
                   color="#fff"
-                  className="mr-3"
+                  style={extendedStyles.buttonIcon}
                 />
-                <Text
-                  numberOfLines={1}
-                  className="text-white text-[18px] font-bold shadow-sm"
-                >
+                <Text numberOfLines={1} style={extendedStyles.buttonText}>
                   Multiplayer
                 </Text>
               </LinearGradient>
@@ -196,8 +187,7 @@ const MainMenuScreen = () => {
 
           {/* Profile Button */}
           <Animated.View
-            style={[animatedButtonStyle3]}
-            className={buttonStyles}
+            style={[extendedStyles.buttonContainer, animatedButtonStyle3]}
           >
             <TouchableOpacity
               className={menuTouchableStyles}
@@ -206,18 +196,15 @@ const MainMenuScreen = () => {
             >
               <LinearGradient
                 colors={["plum", "#2d3748"]}
-                className={linearGradientStyles}
+                style={extendedStyles.buttonGradient}
               >
                 <Ionicons
                   name="person-circle-sharp"
                   size={24}
                   color="#fff"
-                  className="mr-3"
+                  style={extendedStyles.buttonIcon}
                 />
-                <Text
-                  numberOfLines={1}
-                  className="text-white text-[18px] font-bold shadow-sm"
-                >
+                <Text numberOfLines={1} style={extendedStyles.buttonText}>
                   Profile
                 </Text>
               </LinearGradient>
@@ -226,8 +213,7 @@ const MainMenuScreen = () => {
 
           {/* Settings Button */}
           <Animated.View
-            style={[animatedButtonStyle3]}
-            className={buttonStyles}
+            style={[extendedStyles.buttonContainer, animatedButtonStyle3]}
           >
             <TouchableOpacity
               className={menuTouchableStyles}
@@ -236,18 +222,15 @@ const MainMenuScreen = () => {
             >
               <LinearGradient
                 colors={["#4a5568", "#2d3748"]}
-                className={linearGradientStyles}
+                style={extendedStyles.buttonGradient}
               >
                 <Ionicons
                   name="settings"
                   size={24}
                   color="#fff"
-                  className="mr-3"
+                  style={extendedStyles.buttonIcon}
                 />
-                <Text
-                  numberOfLines={1}
-                  className="text-white text-[18px] font-bold shadow-sm"
-                >
+                <Text numberOfLines={1} style={extendedStyles.buttonText}>
                   Settings
                 </Text>
               </LinearGradient>
@@ -259,9 +242,6 @@ const MainMenuScreen = () => {
   );
 };
 
-const buttonStyles = "w-[280px] md:w-[300px] h-[60px] md:h-[90px] mb-4";
-const linearGradientStyles =
-  "w-full flex-row md:flex-col h-full rounded-[12px] items-center py-4 px-6";
 const menuTouchableStyles =
   "z-10 w-full overflow-hidden shadow-2xl rounded-xl elevation-xl bottom-3";
 
@@ -269,6 +249,36 @@ const getStyles = () => {
   const styles = StyleSheet.create({
     decorationContainer: {
       ...StyleSheet.absoluteFill,
+    },
+    titleContainer: {
+      alignItems: "center",
+      marginBottom: 60,
+    },
+    buttonContainer: {
+      width: "100%",
+      maxWidth: 300,
+      height: 60,
+      marginBottom: 16,
+    },
+    buttonGradient: {
+      width: "100%",
+      height: "100%",
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 24,
+      paddingVertical: 12,
+      borderRadius: 12,
+    },
+    buttonIcon: {
+      marginRight: 12,
+    },
+    buttonText: {
+      color: "#FFFFFF",
+      fontSize: 18,
+      fontWeight: "700",
+      textShadowColor: "rgba(0, 0, 0, 0.3)",
+      textShadowOffset: { width: 0, height: 1 },
+      textShadowRadius: 2,
     },
   });
   return styles;

@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Text } from "react-native";
+import { StyleSheet, Text } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -44,13 +44,14 @@ const AccumulatedScoreDisplay: React.FC<AccumulatedScoreDisplayProps> = ({
   });
 
   return (
-    <Animated.View
-      style={[animatedStyle]}
-      className={`absolute right-4 top-[5px]`}
-    >
+    <Animated.View style={[styles.container, animatedStyle]}>
       <Text className={`text-xl font-bold text-white`}>+ {points}</Text>
     </Animated.View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: { position: "absolute", right: 16, top: 5 },
+});
 
 export default AccumulatedScoreDisplay;

@@ -4,6 +4,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect } from "react";
 import {
   BackHandler,
+  StyleSheet,
   Text,
   TouchableOpacity,
   useWindowDimensions,
@@ -118,10 +119,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
   };
 
   return (
-    <LinearGradient
-      colors={["#076345", "#0a8132"]}
-      className="flex-1 justify-center items-center"
-    >
+    <LinearGradient colors={["#076345", "#0a8132"]} style={styles.screen}>
       <View className="overflow-hidden absolute inset-0">
         {Array(6)
           .fill(0)
@@ -129,6 +127,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
             <Animated.View
               key={i}
               style={[
+                styles.confettiCard,
                 {
                   top: 50 + i * 90,
                   left: i % 2 === 0 ? -20 : width - 40,
@@ -136,14 +135,16 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
                 },
                 confettiStyle,
               ]}
-              className="absolute w-20 h-28 rounded-lg border-2 bg-white/15 border-white/30"
             />
           ))}
       </View>
 
       <Animated.View
-        style={containerStyle}
-        className={`flex-1 md:flex-row flex-col gap-5 w-[90%] items-center justify-center my-5`}
+        style={[
+          styles.content,
+          width > 600 && styles.contentWide,
+          containerStyle,
+        ]}
       >
         <View className="items-center w-full md:h-full md:w-3/5">
           <Animated.View style={titleStyle}>
@@ -152,8 +153,11 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
             </Text>
           </Animated.View>
           <Animated.View
-            style={winnerStyle}
-            className="overflow-hidden mb-5 w-full rounded-2xl shadow-lg md:h-4/5"
+            style={[
+              styles.winnerCard,
+              width > 600 && styles.winnerCardWide,
+              winnerStyle,
+            ]}
           >
             <LinearGradient
               colors={
@@ -161,7 +165,7 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
                   ? ["#FFD700", "#FFA500"]
                   : ["#9E9E9E", "#616161"]
               }
-              className="p-5 rounded-2xl"
+              style={styles.winnerGradient}
             >
               <View className="md:h-full items-center gap-2.5 justify-evenly">
                 <Text className="text-lg font-semibold text-white/80">
@@ -196,8 +200,11 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
 
         <View className="justify-center items-center w-full md:w-2/5 md:h-full">
           <Animated.View
-            style={buttonsStyle}
-            className="gap-4 w-full md:w-11/12"
+            style={[
+              styles.buttons,
+              width > 600 && styles.buttonsWide,
+              buttonsStyle,
+            ]}
           >
             <TouchableOpacity
               className="overflow-hidden w-full rounded-xl shadow-md"
@@ -206,13 +213,13 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
             >
               <LinearGradient
                 colors={["#FF9800", "#F57C00"]}
-                className="flex-row justify-center items-center p-4 rounded-xl"
+                style={styles.actionGradient}
               >
                 <Ionicons
                   name="reload"
                   size={20}
                   color="#FFF"
-                  className="mr-2.5"
+                  style={styles.actionIcon}
                 />
                 <Text className="text-lg font-semibold text-white">
                   {!isMultiPlayer ? "Play Again" : "Return to room"}
@@ -233,13 +240,13 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
               >
                 <LinearGradient
                   colors={["#4CAF50", "#2E7D32"]}
-                  className="flex-row justify-center items-center p-4 rounded-xl"
+                  style={styles.actionGradient}
                 >
                   <Ionicons
                     name="home"
                     size={20}
                     color="#FFF"
-                    className="mr-2.5"
+                    style={styles.actionIcon}
                   />
                   <Text className="text-lg font-semibold text-white">
                     Return to Main Menu
@@ -253,5 +260,47 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
     </LinearGradient>
   );
 };
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, justifyContent: "center", alignItems: "center" },
+  confettiCard: {
+    position: "absolute",
+    width: 80,
+    height: 112,
+    borderRadius: 8,
+    borderWidth: 2,
+    backgroundColor: "rgba(255,255,255,0.15)",
+    borderColor: "rgba(255,255,255,0.3)",
+  },
+  content: {
+    flex: 1,
+    flexDirection: "column",
+    gap: 20,
+    width: "90%",
+    alignItems: "center",
+    justifyContent: "center",
+    marginVertical: 20,
+  },
+  contentWide: { flexDirection: "row" },
+  winnerCard: {
+    width: "100%",
+    marginBottom: 20,
+    borderRadius: 16,
+    overflow: "hidden",
+    elevation: 8,
+  },
+  winnerCardWide: { height: "80%" },
+  winnerGradient: { padding: 20, borderRadius: 16 },
+  buttons: { width: "100%", gap: 16 },
+  buttonsWide: { width: "91.666%" },
+  actionGradient: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 16,
+    borderRadius: 12,
+  },
+  actionIcon: { marginRight: 10 },
+});
 
 export default GameOverScreen;

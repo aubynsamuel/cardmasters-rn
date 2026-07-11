@@ -123,7 +123,6 @@ const ProfileScreen = () => {
     <View className="flex-1 bg-[#076324]">
       <LinearGradient
         colors={["#076324", "#076345"]}
-        className="flex-1"
         style={[styles.backgroundContainer]}
       >
         {/* Decorative elements */}
@@ -179,7 +178,9 @@ const ProfileScreen = () => {
             </View>
 
             {/* User Info */}
-            <Animated.View style={[animatedContentStyle]} className={"mb-6"}>
+            <Animated.View
+              style={[styles.profileContent, animatedContentStyle]}
+            >
               <Text className="text-2xl font-bold text-[#333] text-center mb-4">
                 {userData?.displayName ?? "Guest"}
               </Text>
@@ -239,13 +240,13 @@ const ProfileScreen = () => {
               >
                 <LinearGradient
                   colors={["#ff7e47", "#ff5722"]}
-                  className="flex-row justify-center items-center px-6 py-4 rounded-xl"
+                  style={styles.logoutGradient}
                 >
                   <Ionicons
                     name="log-out-outline"
                     size={20}
                     color="#fff"
-                    className="mr-2.5"
+                    style={styles.logoutIcon}
                   />
                   <Text style={styles.buttonText}>Logout</Text>
                 </LinearGradient>
@@ -261,6 +262,9 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   backgroundContainer: {
     ...StyleSheet.absoluteFill,
+  },
+  profileContent: {
+    marginBottom: 24,
   },
   decorationContainer: {
     ...StyleSheet.absoluteFill,
@@ -311,6 +315,17 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 3,
+  },
+  logoutGradient: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+  logoutIcon: {
+    marginRight: 10,
   },
   buttonText: {
     color: "#fff",

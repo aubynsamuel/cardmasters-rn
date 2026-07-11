@@ -213,7 +213,14 @@ const GameScreen = () => {
 
   return (
     <GestureHandlerRootView>
-      <SafeAreaView className="justify-center flex-1 px-2.5 bg-containerBackground">
+      <SafeAreaView
+        style={{
+          flex: 1,
+          justifyContent: "center",
+          paddingHorizontal: 10,
+          backgroundColor: "#076324",
+        }}
+      >
         <StatusBar style="light" hidden />
 
         <View style={styles.decorationContainer}>
