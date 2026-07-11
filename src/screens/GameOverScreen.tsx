@@ -18,12 +18,14 @@ import Animated, {
   withSequence,
   withTiming,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { gameScoreToString } from "../gameLogic/GamePlayUtils";
 import { useLegacyNavigation } from "../navigation/legacyNavigation";
 
 const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
   const navigation = useLegacyNavigation();
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const {
     winner,
     score,
@@ -119,7 +121,10 @@ const GameOverScreen: React.FC<GameOverScreenProps> = ({ route }) => {
   };
 
   return (
-    <LinearGradient colors={["#076345", "#0a8132"]} style={styles.screen}>
+    <LinearGradient
+      colors={["#076345", "#0a8132"]}
+      style={[styles.screen, { paddingBottom: insets.bottom }]}
+    >
       <View className="overflow-hidden absolute inset-0">
         {Array(6)
           .fill(0)

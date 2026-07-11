@@ -17,11 +17,13 @@ import Animated, {
   withDelay,
   withTiming,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLegacyNavigation } from "../navigation/legacyNavigation";
 import { useSettingsStore } from "../store/settingsStore";
 
 const SettingsScreen = () => {
   const navigation = useLegacyNavigation();
+  const insets = useSafeAreaInsets();
   const {
     musicVolume,
     sfxVolume,
@@ -104,7 +106,12 @@ const SettingsScreen = () => {
       </Animated.View>
 
       {/* Content */}
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: 40 + insets.bottom },
+        ]}
+      >
         <Animated.View style={[styles.content, contentAnimatedStyle]}>
           {/* Audio Section */}
           <View style={styles.section}>

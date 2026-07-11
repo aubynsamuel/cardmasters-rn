@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
 import { useLegacyNavigation } from "../navigation/legacyNavigation";
 import { fetchGameRecords } from "../services/firestore";
@@ -21,6 +22,7 @@ const StatsScreen = () => {
   const [records, setRecords] = useState<GameRecord[]>();
   const navigation = useLegacyNavigation();
   const { userId } = useAuth();
+  const insets = useSafeAreaInsets();
 
   const getStoredRecords = async () => {
     try {
@@ -212,7 +214,7 @@ const StatsScreen = () => {
         }
         contentContainerStyle={{
           padding: 14,
-          paddingBottom: 30,
+          paddingBottom: 30 + insets.bottom,
         }}
         showsVerticalScrollIndicator={false}
         className="md:px-7"

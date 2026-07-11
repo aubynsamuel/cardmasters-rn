@@ -9,10 +9,12 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLobby } from "../hooks/useLobby";
 import { LobbyRoom } from "../types/serverPayloadTypes";
 
 const MultiplayerLobbyScreen = () => {
+  const insets = useSafeAreaInsets();
   const {
     handleCreateRoom,
     handleJoinRoom,
@@ -137,7 +139,12 @@ const MultiplayerLobbyScreen = () => {
       </View>
 
       {/* Create Room Button */}
-      <View style={styles.buttonContainer}>
+      <View
+        style={[
+          styles.buttonContainer,
+          { paddingBottom: Math.max(20, insets.bottom + 8) },
+        ]}
+      >
         <TouchableOpacity
           style={styles.createRoomButton}
           onPress={handleCreateRoom}

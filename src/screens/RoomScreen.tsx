@@ -12,12 +12,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import RoomChatComponent from "../components/RoomChatComponent";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
 import useRoom from "../hooks/useRoom";
 import { Player, PlayerStatus } from "../types/serverPayloadTypes";
 
 const RoomScreen = () => {
+  const insets = useSafeAreaInsets();
   const {
     roomState,
     isOwner,
@@ -132,7 +134,12 @@ const RoomScreen = () => {
       style={{ flex: 1, backgroundColor: "#1a2a1f" }}
       contentContainerStyle={{ backgroundColor: "yellow" }}
     >
-      <View style={styles.container}>
+      <View
+        style={[
+          styles.container,
+          { paddingBottom: Math.max(20, insets.bottom + 8) },
+        ]}
+      >
         <Text style={styles.title}>Waiting Room</Text>
         <Text style={styles.roomNameText}>Room: {roomState.name}</Text>
         <Text style={styles.playerCountText}>

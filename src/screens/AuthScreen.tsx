@@ -12,11 +12,13 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
 import { useLegacyNavigation } from "../navigation/legacyNavigation";
 
 const AuthScreen = () => {
+  const insets = useSafeAreaInsets();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -153,6 +155,7 @@ const AuthScreen = () => {
       >
         <ScrollView
           contentContainerClassName="flex-grow justify-center px-6 py-8 md:w-8/12 md:self-center"
+          contentContainerStyle={{ paddingBottom: 32 + insets.bottom }}
           showsVerticalScrollIndicator={false}
         >
           <View className="items-center mb-10">

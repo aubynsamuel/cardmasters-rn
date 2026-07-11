@@ -8,12 +8,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useLegacyNavigation } from "../navigation/legacyNavigation";
 
 const { width } = Dimensions.get("window");
 
 const RulesScreen = () => {
   const navigation = useLegacyNavigation();
+  const insets = useSafeAreaInsets();
 
   const renderRuleSection = (title, icon, content) => (
     <View style={styles.sectionCard}>
@@ -65,7 +67,10 @@ const RulesScreen = () => {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[
+          styles.scrollContent,
+          { paddingBottom: insets.bottom },
+        ]}
       >
         {/* Setup Section */}
         {renderRuleSection(
@@ -225,7 +230,7 @@ const RulesScreen = () => {
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={() => navigation.goBack()}
-        style={styles.backButton}
+        style={[styles.backButton, { bottom: insets.bottom + 12 }]}
       >
         <LinearGradient
           colors={["#FF4E50", "#F9D423"]}
@@ -361,7 +366,6 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    bottom: 30,
     alignSelf: "center",
     elevation: 5,
     shadowColor: "#000",

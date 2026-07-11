@@ -17,6 +17,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../context/AuthContext";
 import { useCustomAlerts } from "../context/CustomAlertsContext";
 import { useLegacyNavigation } from "../navigation/legacyNavigation";
@@ -28,6 +29,7 @@ const ProfileScreen = () => {
   const { userEmail, userData, logout, userId } = useAuth();
   const { width } = useWindowDimensions();
   const { showAlert } = useCustomAlerts();
+  const insets = useSafeAreaInsets();
 
   const cardScale = useSharedValue(0.9);
   const cardOpacity = useSharedValue(0);
@@ -161,6 +163,7 @@ const ProfileScreen = () => {
               overflow: "hidden",
               backgroundColor: "rgba(245,245,245,0.9)",
               padding: 24,
+              paddingBottom: 24 + insets.bottom,
             }}
             showsVerticalScrollIndicator={false}
           >

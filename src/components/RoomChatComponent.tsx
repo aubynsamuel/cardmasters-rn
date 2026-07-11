@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Message } from "../types/serverPayloadTypes";
 
 interface ChatComponentProps {
@@ -23,6 +24,7 @@ const RoomChatComponent = ({
   onSendMessage,
   onDismiss,
 }: ChatComponentProps) => {
+  const insets = useSafeAreaInsets();
   const [text, setText] = useState("");
   const flatListRef = useRef<FlatList>(null);
 
@@ -59,7 +61,7 @@ const RoomChatComponent = ({
   };
 
   return (
-    <View style={[styles.container]}>
+    <View style={[styles.container, { bottom: insets.bottom + 5 }]}>
       <View style={styles.header}>
         <Text style={styles.headerText}>Chat</Text>
         <TouchableOpacity onPress={onDismiss} style={styles.closeButton}>
